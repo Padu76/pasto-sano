@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { 
   ShoppingCart, 
   Clock, 
@@ -20,7 +21,8 @@ import {
   MessageCircle,
   Facebook,
   Instagram,
-  ArrowRight
+  ArrowRight,
+  ExternalLink
 } from 'lucide-react';
 
 export default function LandingPage() {
@@ -137,6 +139,30 @@ export default function LandingPage() {
     }
   ];
 
+  // Sample menu items for preview
+  const menuPreview = [
+    {
+      name: "Fusilli, Manzo e Verdure",
+      image: "/images/meals/fusilli-manzo-zucchine-melanzane.jpg",
+      price: "8.50"
+    },
+    {
+      name: "Roastbeef e Patate",
+      image: "/images/meals/roastbeef-patate-fagiolini.jpg",
+      price: "8.50"
+    },
+    {
+      name: "Pollo Grigliato",
+      image: "/images/meals/pollo-patate-zucchine.jpg",
+      price: "8.50"
+    },
+    {
+      name: "Salmone e Broccoli",
+      image: "/images/meals/patate-salmone-broccoli.jpg",
+      price: "8.50"
+    }
+  ];
+
   if (isLoading) {
     return (
       <div className="fixed inset-0 bg-white z-50 flex items-center justify-center">
@@ -182,12 +208,12 @@ export default function LandingPage() {
               <button onClick={() => scrollToSection('contatti')} className="text-gray-700 hover:text-amber-600 transition-colors">
                 Contatti
               </button>
-              <button 
-                onClick={() => scrollToSection('menu')}
+              <Link 
+                href="/"
                 className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-6 py-2.5 rounded-full font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300"
               >
                 Ordina Ora
-              </button>
+              </Link>
             </div>
 
             {/* Mobile Menu Button */}
@@ -208,69 +234,69 @@ export default function LandingPage() {
                 <button onClick={() => scrollToSection('menu')} className="text-left py-2 text-gray-700">Menu</button>
                 <button onClick={() => scrollToSection('come-funziona')} className="text-left py-2 text-gray-700">Come Funziona</button>
                 <button onClick={() => scrollToSection('contatti')} className="text-left py-2 text-gray-700">Contatti</button>
-                <button 
-                  onClick={() => scrollToSection('menu')}
+                <Link 
+                  href="/"
                   className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-6 py-3 rounded-full font-semibold text-center"
                 >
                   Ordina Ora
-                </button>
+                </Link>
               </div>
             </div>
           )}
         </nav>
       </header>
 
-      {/* Hero Section */}
-      <section id="home" className="pt-20 min-h-screen bg-gradient-to-br from-amber-900 via-amber-800 to-orange-900 relative overflow-hidden">
+      {/* Hero Section - REDUCED HEIGHT */}
+      <section id="home" className="pt-20 min-h-[70vh] lg:min-h-[80vh] bg-gradient-to-br from-amber-900 via-amber-800 to-orange-900 relative overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full filter blur-3xl"></div>
           <div className="absolute bottom-0 right-0 w-96 h-96 bg-orange-300 rounded-full filter blur-3xl"></div>
         </div>
 
-        <div className="container mx-auto px-4 lg:px-8 py-20 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center min-h-[80vh]">
+        <div className="container mx-auto px-4 lg:px-8 py-12 lg:py-16 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             {/* Text Content */}
-            <div className="text-white space-y-6">
-              <h1 className="text-4xl lg:text-6xl font-bold leading-tight">
+            <div className="text-white space-y-4 lg:space-y-6">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight">
                 Mangia Sano,<br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-400">
                   Vivi Meglio
                 </span>
               </h1>
-              <p className="text-xl text-white/90 leading-relaxed">
+              <p className="text-lg lg:text-xl text-white/90 leading-relaxed">
                 Pasti bilanciati e gustosi, preparati con ingredienti freschi e di alta qualità. 
-                La soluzione perfetta per chi non ha tempo di cucinare ma non vuole rinunciare al benessere.
+                La soluzione perfetta per chi non ha tempo di cucinare.
               </p>
               
               {/* Features Pills */}
-              <div className="flex flex-wrap gap-4 py-4">
-                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
-                  <MapPin className="w-5 h-5" />
+              <div className="flex flex-wrap gap-3 py-2">
+                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 py-2 rounded-full text-sm">
+                  <MapPin className="w-4 h-4" />
                   <span>Ritiro presso sede</span>
                 </div>
-                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
-                  <Clock className="w-5 h-5" />
+                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 py-2 rounded-full text-sm">
+                  <Clock className="w-4 h-4" />
                   <span>Pronto in 2 giorni</span>
                 </div>
-                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
-                  <Star className="w-5 h-5" />
-                  <span>Ingredienti Premium</span>
+                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 py-2 rounded-full text-sm">
+                  <Star className="w-4 h-4" />
+                  <span>Premium</span>
                 </div>
               </div>
 
               {/* CTA Buttons */}
-              <div className="flex flex-wrap gap-4 pt-4">
-                <button 
-                  onClick={() => scrollToSection('menu')}
-                  className="bg-gradient-to-r from-yellow-400 to-orange-400 text-gray-900 px-8 py-4 rounded-full font-bold text-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 flex items-center gap-2"
+              <div className="flex flex-wrap gap-4 pt-2">
+                <Link 
+                  href="/"
+                  className="bg-gradient-to-r from-yellow-400 to-orange-400 text-gray-900 px-6 py-3 rounded-full font-bold hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 flex items-center gap-2"
                 >
                   <ShoppingCart className="w-5 h-5" />
                   Ordina Ora
-                </button>
+                </Link>
                 <button 
                   onClick={() => scrollToSection('chi-sono')}
-                  className="bg-white/20 backdrop-blur-sm border-2 border-white text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white hover:text-amber-900 transition-all duration-300"
+                  className="bg-white/20 backdrop-blur-sm border-2 border-white text-white px-6 py-3 rounded-full font-bold hover:bg-white hover:text-amber-900 transition-all duration-300"
                 >
                   Scopri di Più
                 </button>
@@ -280,22 +306,29 @@ export default function LandingPage() {
             {/* Image */}
             <div className="relative">
               <div className="relative rounded-2xl overflow-hidden shadow-2xl">
-                <img 
-                  src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80" 
+                <Image 
+                  src="/images/landing/hero-meal.jpg" 
                   alt="Pasti Sani"
+                  width={600}
+                  height={400}
                   className="w-full h-auto"
+                  priority
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80';
+                  }}
                 />
               </div>
               
               {/* Floating Cards */}
-              <div className="absolute -top-4 -right-4 bg-white rounded-xl shadow-xl p-4 animate-bounce">
-                <div className="text-amber-900 font-bold">100% Naturale</div>
-                <div className="text-gray-600 text-sm">Senza conservanti</div>
+              <div className="absolute -top-4 -right-4 bg-white rounded-xl shadow-xl p-3 animate-bounce hidden sm:block">
+                <div className="text-amber-900 font-bold text-sm">100% Naturale</div>
+                <div className="text-gray-600 text-xs">Senza conservanti</div>
               </div>
               
-              <div className="absolute -bottom-4 -left-4 bg-white rounded-xl shadow-xl p-4 animate-bounce" style={{ animationDelay: '1s' }}>
-                <div className="text-amber-900 font-bold">Pronto in 2 giorni</div>
-                <div className="text-gray-600 text-sm">Ritiro presso sede</div>
+              <div className="absolute -bottom-4 -left-4 bg-white rounded-xl shadow-xl p-3 animate-bounce hidden sm:block" style={{ animationDelay: '1s' }}>
+                <div className="text-amber-900 font-bold text-sm">Pronto in 2 giorni</div>
+                <div className="text-gray-600 text-xs">Ritiro presso sede</div>
               </div>
             </div>
           </div>
@@ -303,16 +336,22 @@ export default function LandingPage() {
       </section>
 
       {/* Chi Sono Section */}
-      <section id="chi-sono" className="py-20 bg-gradient-to-b from-gray-50 to-white">
+      <section id="chi-sono" className="py-16 lg:py-20 bg-gradient-to-b from-gray-50 to-white">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Image */}
+            {/* Image - LOCAL PATH */}
             <div className="relative">
               <div className="rounded-2xl overflow-hidden shadow-xl">
-                <img 
-                  src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80" 
+                <Image 
+                  src="/images/landing/andrea.jpg" 
                   alt="Andrea Padoan"
+                  width={600}
+                  height={600}
                   className="w-full h-auto"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80';
+                  }}
                 />
               </div>
               <div className="absolute -bottom-6 -right-6 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl p-6 shadow-xl">
@@ -324,7 +363,7 @@ export default function LandingPage() {
             {/* Text */}
             <div className="space-y-6">
               <div className="text-amber-600 font-semibold">FONDATORE & PERSONAL TRAINER</div>
-              <h2 className="text-4xl lg:text-5xl font-bold text-gray-900">
+              <h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900">
                 Ciao, sono Andrea Padoan
               </h2>
               <p className="text-lg text-gray-700 leading-relaxed">
@@ -349,23 +388,23 @@ export default function LandingPage() {
                 di me e fare ordine. Questo significava cambiare stile di vita.
               </p>
 
-              <button 
-                onClick={() => scrollToSection('menu')}
-                className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-8 py-3 rounded-full font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2"
+              <Link 
+                href="/"
+                className="inline-flex bg-gradient-to-r from-amber-500 to-orange-500 text-white px-8 py-3 rounded-full font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300 items-center gap-2"
               >
                 Scopri Pasto Sano
                 <ArrowRight className="w-5 h-5" />
-              </button>
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
       {/* I 5 Segreti Section */}
-      <section className="py-20 bg-white">
+      <section className="py-16 lg:py-20 bg-white">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-4xl lg:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-900 to-amber-700 mb-4">
+            <h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-900 to-amber-700 mb-4">
               I 5 Segreti per Essere in Forma
             </h2>
             <p className="text-xl text-gray-600">
@@ -397,9 +436,9 @@ export default function LandingPage() {
       </section>
 
       {/* Perché Pasto Sano */}
-      <section className="py-20 bg-gradient-to-b from-amber-50 to-orange-50">
+      <section className="py-16 lg:py-20 bg-gradient-to-b from-amber-50 to-orange-50">
         <div className="container mx-auto px-4 lg:px-8">
-          <h2 className="text-4xl lg:text-5xl font-bold text-center text-gray-900 mb-12">
+          <h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-center text-gray-900 mb-12">
             Perché Scegliere Pasto Sano?
           </h2>
 
@@ -420,11 +459,11 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Menu Section */}
-      <section id="menu" className="py-20 bg-white">
+      {/* Menu Section - NO IFRAME, PREVIEW + LINK */}
+      <section id="menu" className="py-16 lg:py-20 bg-white">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 mb-4">
               Il Nostro Menu
             </h2>
             <p className="text-xl text-gray-600">
@@ -432,26 +471,58 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
-            <iframe 
-              src="/menu"
-              className="w-full h-[800px] lg:h-[900px]"
-              title="Menu Pasto Sano"
-            />
+          {/* Menu Preview Grid */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            {menuPreview.map((item, index) => (
+              <div key={index} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300">
+                <div className="h-48 overflow-hidden">
+                  <Image 
+                    src={item.image}
+                    alt={item.name}
+                    width={300}
+                    height={200}
+                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80';
+                    }}
+                  />
+                </div>
+                <div className="p-4">
+                  <h3 className="font-bold text-gray-900 mb-2">{item.name}</h3>
+                  <p className="text-amber-600 font-bold text-lg">€{item.price}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* CTA to Full Menu */}
+          <div className="text-center">
+            <Link 
+              href="/"
+              className="inline-flex items-center gap-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-10 py-4 rounded-full font-bold text-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300"
+            >
+              <ShoppingCart className="w-6 h-6" />
+              Vai al Menu Completo e Ordina
+              <ExternalLink className="w-5 h-5" />
+            </Link>
+            <p className="text-gray-600 mt-4">
+              Scopri tutti i nostri piatti e ordina direttamente online
+            </p>
           </div>
         </div>
       </section>
 
       {/* Come Funziona */}
-      <section id="come-funziona" className="py-20 bg-gradient-to-b from-gray-50 to-white">
+      <section id="come-funziona" className="py-16 lg:py-20 bg-gradient-to-b from-gray-50 to-white">
         <div className="container mx-auto px-4 lg:px-8">
-          <h2 className="text-4xl lg:text-5xl font-bold text-center text-gray-900 mb-12">
+          <h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-center text-gray-900 mb-12">
             Come Funziona?
           </h2>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {steps.map((step, index) => (
-              <div key={index} className="text-center group">
+              <div key={index} className="text-center group relative">
                 <div className="w-20 h-20 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center font-bold text-2xl mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
                   {step.number}
                 </div>
@@ -467,7 +538,7 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-amber-900 via-amber-800 to-orange-900 relative overflow-hidden">
+      <section className="py-16 lg:py-20 bg-gradient-to-r from-amber-900 via-amber-800 to-orange-900 relative overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 right-0 w-96 h-96 bg-white rounded-full filter blur-3xl"></div>
@@ -475,7 +546,7 @@ export default function LandingPage() {
         </div>
 
         <div className="container mx-auto px-4 lg:px-8 text-center relative z-10">
-          <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
+          <h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-white mb-6">
             Inizia Oggi il Tuo Percorso di Benessere
           </h2>
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
@@ -483,13 +554,13 @@ export default function LandingPage() {
           </p>
           
           <div className="flex flex-wrap gap-4 justify-center">
-            <button 
-              onClick={() => scrollToSection('menu')}
+            <Link 
+              href="/"
               className="bg-white text-amber-900 px-8 py-4 rounded-full font-bold text-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 flex items-center gap-2"
             >
               <ShoppingCart className="w-5 h-5" />
               Ordina Ora
-            </button>
+            </Link>
             <a 
               href="https://wa.me/393478881515?text=Ciao%20Pasto%20Sano,%20vorrei%20informazioni"
               target="_blank"
@@ -555,9 +626,9 @@ export default function LandingPage() {
                   </button>
                 </li>
                 <li>
-                  <a href="#" className="text-white/80 hover:text-amber-400 transition-colors">
-                    FAQ
-                  </a>
+                  <Link href="/" className="text-white/80 hover:text-amber-400 transition-colors">
+                    Ordina Online
+                  </Link>
                 </li>
               </ul>
             </div>
