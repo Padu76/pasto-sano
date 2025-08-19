@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useState } from 'react';
-import { ShoppingCart, Plus, Info, Heart, Star, Clock, Truck } from 'lucide-react';
+import { ShoppingCart, Plus, Heart, Star, Clock, Truck } from 'lucide-react';
 
 // Definizione prodotti con percorsi immagini locali
 const mainMeals = [
