@@ -18,24 +18,36 @@ import {
 import { getAuth } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 
-// Configurazione Firebase - usa le environment variables
+// Configurazione Firebase - USA SOLO ENVIRONMENT VARIABLES
+// NESSUNA CHIAVE HARDCODED PER SICUREZZA
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyAWrw1vDEKOJnEbTMv4bF10vYeZnOI7DpY",
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "pasto-sano.firebaseapp.com",
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "pasto-sano",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "pasto-sano.firebasestorage.app",
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "109720925931",
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:109720925931:web:6450822431711297d730ae",
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "G-5XMDRQL46Z"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-// Debug logging (solo in development)
+// Verifica che le environment variables siano presenti
+if (typeof window !== 'undefined') {
+  // Solo lato client
+  if (!firebaseConfig.apiKey) {
+    console.error('⚠️ ATTENZIONE: NEXT_PUBLIC_FIREBASE_API_KEY mancante!');
+    console.error('Assicurati di aver configurato le environment variables su Vercel');
+  }
+}
+
+// Debug logging (solo in development e senza esporre le chiavi)
 if (process.env.NODE_ENV === 'development') {
-  console.log('🔥 Firebase Config:', {
-    apiKey: firebaseConfig.apiKey?.substring(0, 10) + '...',
-    authDomain: firebaseConfig.authDomain,
-    projectId: firebaseConfig.projectId,
-    storageBucket: firebaseConfig.storageBucket
+  console.log('🔥 Firebase Config Check:', {
+    apiKey: firebaseConfig.apiKey ? '✅ Presente' : '❌ MANCANTE',
+    authDomain: firebaseConfig.authDomain ? '✅ Presente' : '❌ MANCANTE',
+    projectId: firebaseConfig.projectId ? '✅ Presente' : '❌ MANCANTE',
+    storageBucket: firebaseConfig.storageBucket ? '✅ Presente' : '❌ MANCANTE',
+    messagingSenderId: firebaseConfig.messagingSenderId ? '✅ Presente' : '❌ MANCANTE',
+    appId: firebaseConfig.appId ? '✅ Presente' : '❌ MANCANTE'
   });
 }
 
@@ -46,23 +58,35 @@ let auth: any;
 let storage: any;
 
 try {
-  if (!getApps().length) {
-    app = initializeApp(firebaseConfig);
-    console.log('✅ Firebase inizializzato correttamente con progetto:', firebaseConfig.projectId);
-  } else {
-    app = getApps()[0];
-    console.log('✅ Firebase già inizializzato');
-  }
+  // Verifica che almeno le chiavi essenziali siano presenti
+  if (firebaseConfig.apiKey && firebaseConfig.projectId) {
+    if (!getApps().length) {
+      app = initializeApp(firebaseConfig);
+      console.log('✅ Firebase inizializzato correttamente con progetto:', firebaseConfig.projectId);
+    } else {
+      app = getApps()[0];
+      console.log('✅ Firebase già inizializzato');
+    }
 
-  // Inizializza i servizi
-  db = getFirestore(app);
-  auth = getAuth(app);
-  storage = getStorage(app);
-  
-  // Test di connessione
-  if (typeof window !== 'undefined') {
-    // Solo lato client
-    console.log('🔍 Testing Firebase connection...');
+    // Inizializza i servizi
+    db = getFirestore(app);
+    auth = getAuth(app);
+    storage = getStorage(app);
+    
+    // Test di connessione
+    if (typeof window !== 'undefined') {
+      // Solo lato client
+      console.log('🔍 Testing Firebase connection...');
+    }
+  } else {
+    console.error('❌ Firebase non può essere inizializzato: chiavi mancanti');
+    console.error('Configura le environment variables su Vercel:');
+    console.error('- NEXT_PUBLIC_FIREBASE_API_KEY');
+    console.error('- NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN');
+    console.error('- NEXT_PUBLIC_FIREBASE_PROJECT_ID');
+    console.error('- NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET');
+    console.error('- NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID');
+    console.error('- NEXT_PUBLIC_FIREBASE_APP_ID');
   }
   
 } catch (error) {
@@ -135,8 +159,8 @@ export async function addOrder(order: Omit<Order, 'id'>): Promise<string> {
   try {
     // Verifica che Firestore sia inizializzato
     if (!db) {
-      console.error('❌ Firestore non inizializzato');
-      throw new Error('Firestore not initialized');
+      console.error('❌ Firestore non inizializzato - verificare environment variables');
+      throw new Error('Firestore not initialized - check environment variables');
     }
 
     console.log('📝 Tentativo di salvare ordine:', {
@@ -172,7 +196,7 @@ export async function addOrder(order: Omit<Order, 'id'>): Promise<string> {
 export async function getOrders(limitCount: number = 100): Promise<Order[]> {
   try {
     if (!db) {
-      console.error('❌ Firestore non inizializzato');
+      console.error('❌ Firestore non inizializzato - verificare environment variables');
       return [];
     }
 
@@ -206,7 +230,7 @@ export async function getOrders(limitCount: number = 100): Promise<Order[]> {
 export async function getOrdersByDate(date: Date): Promise<Order[]> {
   try {
     if (!db) {
-      console.error('❌ Firestore non inizializzato');
+      console.error('❌ Firestore non inizializzato - verificare environment variables');
       return [];
     }
 
@@ -249,7 +273,7 @@ export async function getOrdersByDate(date: Date): Promise<Order[]> {
 export async function getOrdersByDateRange(startDate: Date, endDate: Date): Promise<Order[]> {
   try {
     if (!db) {
-      console.error('❌ Firestore non inizializzato');
+      console.error('❌ Firestore non inizializzato - verificare environment variables');
       return [];
     }
 
@@ -292,7 +316,7 @@ export async function getOrdersByDateRange(startDate: Date, endDate: Date): Prom
 export async function updateOrderStatus(orderId: string, status: string): Promise<void> {
   try {
     if (!db) {
-      console.error('❌ Firestore non inizializzato');
+      console.error('❌ Firestore non inizializzato - verificare environment variables');
       return;
     }
 
@@ -313,7 +337,7 @@ export async function updateOrderStatus(orderId: string, status: string): Promis
 export async function getDashboardStats(): Promise<DashboardStats> {
   try {
     if (!db) {
-      console.error('❌ Firestore non inizializzato');
+      console.error('❌ Firestore non inizializzato - verificare environment variables');
       return {
         ordersToday: 0,
         revenueToday: 0,
@@ -374,7 +398,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 export async function getTopProducts(limitCount: number = 10, days: number = 30): Promise<ProductSales[]> {
   try {
     if (!db) {
-      console.error('❌ Firestore non inizializzato');
+      console.error('❌ Firestore non inizializzato - verificare environment variables');
       return [];
     }
 
@@ -420,7 +444,7 @@ export async function getTopProducts(limitCount: number = 10, days: number = 30)
 export async function getUniqueCustomers(days: number = 365): Promise<Customer[]> {
   try {
     if (!db) {
-      console.error('❌ Firestore non inizializzato');
+      console.error('❌ Firestore non inizializzato - verificare environment variables');
       return [];
     }
 
@@ -478,7 +502,7 @@ export function listenForNewOrders(
 ): Unsubscribe | (() => void) {
   try {
     if (!db) {
-      console.error('❌ Firestore non inizializzato');
+      console.error('❌ Firestore non inizializzato - verificare environment variables');
       return () => {};
     }
 
@@ -520,7 +544,7 @@ export function listenToOrders(
 ): Unsubscribe | (() => void) {
   try {
     if (!db) {
-      console.error('❌ Firestore non inizializzato');
+      console.error('❌ Firestore non inizializzato - verificare environment variables');
       return () => {};
     }
 
@@ -572,7 +596,14 @@ export function formatDate(timestamp: any): string {
 export async function testFirebaseConnection(): Promise<boolean> {
   try {
     if (!db) {
-      console.error('❌ Firestore non inizializzato');
+      console.error('❌ Firestore non inizializzato - verificare environment variables');
+      console.error('Assicurati di aver configurato su Vercel:');
+      console.error('- NEXT_PUBLIC_FIREBASE_API_KEY');
+      console.error('- NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN');
+      console.error('- NEXT_PUBLIC_FIREBASE_PROJECT_ID');
+      console.error('- NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET');
+      console.error('- NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID');
+      console.error('- NEXT_PUBLIC_FIREBASE_APP_ID');
       return false;
     }
 
