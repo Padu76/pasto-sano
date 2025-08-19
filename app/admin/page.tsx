@@ -19,7 +19,6 @@ import {
   TrendingUp, 
   Download,
   FileText,
-  Check,
   X,
   Phone,
   Mail,
