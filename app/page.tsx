@@ -15,7 +15,10 @@ import {
   Star,
   Banknote,
   AlertCircle,
-  Loader2
+  Loader2,
+  Calendar,
+  MapPin,
+  Info
 } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import emailjs from '@emailjs/browser';
@@ -34,6 +37,46 @@ const initialPayPalOptions = {
   currency: "EUR",
   intent: "capture",
   locale: "it_IT"
+};
+
+// Funzione per calcolare la data minima di ritiro
+const calculateMinPickupDate = () => {
+  const today = new Date();
+  let minDate = new Date(today);
+  
+  // Aggiungi 2 giorni lavorativi
+  let daysAdded = 0;
+  while (daysAdded < 2) {
+    minDate.setDate(minDate.getDate() + 1);
+    const dayOfWeek = minDate.getDay();
+    
+    // Salta sabato (6) e domenica (0)
+    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+      daysAdded++;
+    }
+  }
+  
+  return minDate;
+};
+
+// Funzione per formattare la data per l'input
+const formatDateForInput = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// Funzione per verificare se una data è un weekend
+const isWeekend = (date: Date) => {
+  const day = date.getDay();
+  return day === 0 || day === 6;
+};
+
+// Funzione per ottenere il giorno della settimana in italiano
+const getDayName = (date: Date) => {
+  const days = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
+  return days[date.getDay()];
 };
 
 const meals = [
@@ -152,12 +195,25 @@ export default function Home() {
   const [customerPhone, setCustomerPhone] = useState('');
   const [pickupDate, setPickupDate] = useState('');
   const [notes, setNotes] = useState('');
+  
+  // Calcolo data minima e suggerita
+  const [minPickupDate, setMinPickupDate] = useState('');
+  const [suggestedDate, setSuggestedDate] = useState('');
 
   const categories = ['tutti', 'pasta', 'carne', 'pesce', 'vegetariano', 'wrap', 'colazione'];
 
   const filteredMeals = selectedCategory === 'tutti' 
     ? meals 
     : meals.filter(meal => meal.category === selectedCategory);
+
+  // Inizializza le date al mount del componente
+  useEffect(() => {
+    const minDate = calculateMinPickupDate();
+    const minDateString = formatDateForInput(minDate);
+    setMinPickupDate(minDateString);
+    setSuggestedDate(minDateString);
+    setPickupDate(minDateString); // Imposta automaticamente la data suggerita
+  }, []);
 
   // Carica carrello da localStorage
   useEffect(() => {
@@ -209,18 +265,48 @@ export default function Home() {
     return cart.reduce((total, item) => total + item.quantity, 0);
   };
 
-  // Validazione form
+  // Validazione form con controllo weekend
   const validateForm = () => {
     if (!customerName || !customerPhone || !pickupDate) {
       setError('Compila tutti i campi obbligatori');
       return false;
     }
+    
+    // Verifica che la data non sia un weekend
+    const selectedDate = new Date(pickupDate);
+    if (isWeekend(selectedDate)) {
+      setError('Il ritiro non è disponibile nel weekend. Seleziona un giorno feriale.');
+      return false;
+    }
+    
+    // Verifica che la data sia almeno la data minima
+    const minDate = new Date(minPickupDate);
+    if (selectedDate < minDate) {
+      setError(`La data minima per il ritiro è ${minDate.toLocaleDateString('it-IT')}`);
+      return false;
+    }
+    
     if (cart.length === 0) {
       setError('Il carrello è vuoto');
       return false;
     }
+    
     setError(null);
     return true;
+  };
+
+  // Gestione cambio data con validazione weekend
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedDate = new Date(e.target.value);
+    
+    // Se è weekend, mostra avviso e non cambiare
+    if (isWeekend(selectedDate)) {
+      setError('Attenzione: il ritiro non è disponibile sabato e domenica');
+      return;
+    }
+    
+    setError(null);
+    setPickupDate(e.target.value);
   };
 
   // Salva ordine in sessionStorage per la pagina success
@@ -324,7 +410,7 @@ export default function Home() {
     
     try {
       // Invia notifica ordine contanti
-      const response = await fetch('/.netlify/functions/cash-order', {
+      const response = await fetch('/api/cash-order', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -406,7 +492,7 @@ export default function Home() {
       customer_address: customerAddress,
       order_details: orderDetails,
       total_amount: getTotalPrice().toFixed(2),
-      payment_method: method === 'cash' ? 'Contanti alla consegna' : method === 'paypal' ? 'PayPal' : 'Carta di credito',
+      payment_method: method === 'cash' ? 'Contanti al ritiro' : method === 'paypal' ? 'PayPal' : 'Carta di credito',
       pickup_date: pickupDate,
       notes: notes || 'Nessuna nota',
       order_date: new Date().toLocaleString('it-IT')
@@ -462,16 +548,16 @@ export default function Home() {
               Mangia Sano, Vivi Meglio
             </h2>
             <p className="text-xl mb-8 opacity-90">
-              Pasti equilibrati consegnati a casa tua
+              Pasti equilibrati pronti per il ritiro
             </p>
             <div className="flex justify-center space-x-8 flex-wrap">
               <div className="flex items-center space-x-2">
-                <Truck className="w-5 h-5" />
-                <span>Consegna Gratuita</span>
+                <MapPin className="w-5 h-5" />
+                <span>Ritiro presso Pasto Sano</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Clock className="w-5 h-5" />
-                <span>Consegna in 24h</span>
+                <span>Pronto in 2 giorni</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Star className="w-5 h-5" />
@@ -671,30 +757,58 @@ export default function Home() {
                       />
                     </div>
                     
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Indirizzo di consegna
-                      </label>
+                    {/* Sezione Data Ritiro Migliorata */}
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Calendar className="w-5 h-5 text-blue-600" />
+                        <label className="text-sm font-medium text-gray-700">
+                          Data Ritiro Ordine *
+                        </label>
+                      </div>
+                      
                       <input
-                        type="text"
-                        value={customerAddress}
-                        onChange={(e) => setCustomerAddress(e.target.value)}
-                        className="w-full p-3 border rounded-lg focus:outline-none focus:border-green-500"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Data e ora ritiro/consegna *
-                      </label>
-                      <input
-                        type="datetime-local"
+                        type="date"
                         value={pickupDate}
-                        onChange={(e) => setPickupDate(e.target.value)}
-                        min={new Date().toISOString().slice(0, 16)}
-                        className="w-full p-3 border rounded-lg focus:outline-none focus:border-green-500"
+                        onChange={handleDateChange}
+                        min={minPickupDate}
+                        className="w-full p-3 border rounded-lg focus:outline-none focus:border-green-500 mb-3"
                         required
                       />
+                      
+                      {pickupDate && (
+                        <div className="text-sm text-gray-600">
+                          <p className="font-medium mb-1">
+                            📅 Ritiro: {getDayName(new Date(pickupDate))}, {new Date(pickupDate).toLocaleDateString('it-IT')}
+                          </p>
+                        </div>
+                      )}
+                      
+                      <div className="mt-3 p-3 bg-white rounded-lg">
+                        <div className="flex items-start gap-2">
+                          <MapPin className="w-4 h-4 text-green-600 mt-0.5" />
+                          <div>
+                            <p className="text-sm font-medium text-gray-800">Ritiro presso Pasto Sano</p>
+                            <p className="text-xs text-gray-600 mt-1">
+                              L'orario di ritiro ti verrà comunicato tramite SMS/WhatsApp
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-3 p-2 bg-yellow-50 rounded-lg">
+                        <div className="flex items-start gap-2">
+                          <Info className="w-4 h-4 text-yellow-600 mt-0.5" />
+                          <div className="text-xs text-yellow-800">
+                            <p className="font-medium mb-1">Tempi di preparazione:</p>
+                            <ul className="space-y-0.5">
+                              <li>• Ordini dal lunedì al mercoledì: ritiro dopo 2 giorni</li>
+                              <li>• Ordini del giovedì: ritiro lunedì</li>
+                              <li>• Ordini del venerdì: ritiro martedì</li>
+                              <li>• Weekend: ordini non disponibili</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                     
                     <div>
@@ -706,7 +820,7 @@ export default function Home() {
                         onChange={(e) => setNotes(e.target.value)}
                         className="w-full p-3 border rounded-lg focus:outline-none focus:border-green-500"
                         rows={3}
-                        placeholder="Allergie, preferenze, istruzioni per la consegna..."
+                        placeholder="Allergie, preferenze, orario preferito per il ritiro..."
                       />
                     </div>
                   </div>
@@ -756,7 +870,7 @@ export default function Home() {
                       className="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-green-500 transition-colors flex items-center justify-center space-x-3 disabled:opacity-50"
                     >
                       <Banknote className="w-6 h-6 text-green-500" />
-                      <span className="font-semibold">Contanti alla Consegna</span>
+                      <span className="font-semibold">Contanti al Ritiro</span>
                     </button>
                   </div>
                 </>
@@ -771,6 +885,7 @@ export default function Home() {
                     <p className="font-semibold mb-2">Riepilogo Ordine:</p>
                     <p>Totale: €{getTotalPrice().toFixed(2)}</p>
                     <p>Articoli: {getTotalItems()}</p>
+                    <p>Ritiro: {pickupDate ? new Date(pickupDate).toLocaleDateString('it-IT') : 'Da definire'}</p>
                   </div>
                   <div className="flex gap-3">
                     <button
@@ -809,6 +924,7 @@ export default function Home() {
                     <p className="font-semibold mb-2">Riepilogo Ordine:</p>
                     <p>Totale: €{getTotalPrice().toFixed(2)}</p>
                     <p>Articoli: {getTotalItems()}</p>
+                    <p>Ritiro: {pickupDate ? new Date(pickupDate).toLocaleDateString('it-IT') : 'Da definire'}</p>
                   </div>
                   <PayPalButtons
                     createOrder={(data, actions) => {
@@ -840,17 +956,18 @@ export default function Home() {
 
               {paymentMethod === 'cash' && (
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Contanti alla Consegna</h3>
+                  <h3 className="text-lg font-semibold">Contanti al Ritiro</h3>
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                     <p className="text-yellow-800">
-                      <strong>Importante:</strong> Prepara l'importo esatto di €{getTotalPrice().toFixed(2)} in contanti per la consegna.
+                      <strong>Importante:</strong> Prepara l'importo esatto di €{getTotalPrice().toFixed(2)} in contanti per il ritiro.
                     </p>
                   </div>
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <p className="font-semibold mb-2">Riepilogo Ordine:</p>
                     <p>Totale da pagare: €{getTotalPrice().toFixed(2)}</p>
                     <p>Articoli: {getTotalItems()}</p>
-                    <p>Consegna: {pickupDate ? new Date(pickupDate).toLocaleString('it-IT') : 'Da definire'}</p>
+                    <p>Ritiro: {pickupDate ? `${getDayName(new Date(pickupDate))}, ${new Date(pickupDate).toLocaleDateString('it-IT')}` : 'Da definire'}</p>
+                    <p className="text-sm text-gray-600 mt-2">📍 Presso: Pasto Sano</p>
                   </div>
                   <div className="flex gap-3">
                     <button
