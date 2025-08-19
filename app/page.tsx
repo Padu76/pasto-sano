@@ -584,7 +584,7 @@ export default function Home() {
         {/* Meals Grid */}
         <div className="container mx-auto px-4 pb-16">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredMeals.map((meal, index) => (
+            {filteredMeals.map((meal) => (
               <div 
                 key={meal.id} 
                 className="bg-white rounded-2xl shadow-lg overflow-hidden hover:transform hover:-translate-y-1 transition-all duration-300"
