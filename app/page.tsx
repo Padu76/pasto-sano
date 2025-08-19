@@ -511,9 +511,9 @@ export default function Home() {
 
   return (
     <PayPalScriptProvider options={initialPayPalOptions}>
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">
         {/* Header */}
-        <header className="bg-white shadow-lg sticky top-0 z-40">
+        <header className="bg-gradient-to-r from-amber-50 to-orange-50 shadow-lg sticky top-0 z-40 border-b-2 border-orange-200">
           <div className="container mx-auto px-4 py-4">
             <div className="flex justify-between items-center">
               <div className="flex items-center space-x-3">
@@ -525,15 +525,15 @@ export default function Home() {
                   className="object-contain"
                 />
                 <div>
-                  <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-yellow-600 bg-clip-text text-transparent">
+                  <h1 className="text-2xl font-bold text-amber-900">
                     Pasto Sano
                   </h1>
-                  <p className="text-xs text-gray-600">La soluzione per stare in forma</p>
+                  <p className="text-xs text-amber-700">La soluzione per stare in forma</p>
                 </div>
               </div>
               <button 
                 onClick={() => setIsCartOpen(true)}
-                className="relative bg-gradient-to-r from-green-500 to-blue-500 text-white p-3 rounded-full hover:shadow-lg transition-all duration-300 hover:scale-105"
+                className="relative bg-gradient-to-r from-orange-500 to-amber-500 text-white p-3 rounded-full hover:shadow-lg transition-all duration-300 hover:scale-105"
               >
                 <ShoppingCart className="w-6 h-6" />
                 {getTotalItems() > 0 && (
@@ -547,24 +547,24 @@ export default function Home() {
         </header>
 
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-green-600 to-blue-600 text-white py-16">
+        <div className="bg-gradient-to-br from-amber-700 via-orange-600 to-amber-800 text-white py-16">
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
               Mangia Sano, Vivi Meglio
             </h2>
-            <p className="text-xl mb-8 opacity-90">
+            <p className="text-xl mb-8 opacity-95">
               Pasti equilibrati pronti per il ritiro
             </p>
-            <div className="flex justify-center space-x-8 flex-wrap">
-              <div className="flex items-center space-x-2">
+            <div className="flex justify-center space-x-8 flex-wrap gap-4">
+              <div className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
                 <MapPin className="w-5 h-5" />
                 <span>Ritiro presso Pasto Sano</span>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
                 <Clock className="w-5 h-5" />
                 <span>Pronto in 2 giorni</span>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
                 <Star className="w-5 h-5" />
                 <span>Ingredienti Premium</span>
               </div>
@@ -581,8 +581,8 @@ export default function Home() {
                 onClick={() => setSelectedCategory(category)}
                 className={`px-6 py-2 rounded-full whitespace-nowrap transition-all duration-300 ${
                   selectedCategory === category
-                    ? 'bg-gradient-to-r from-green-500 to-blue-500 text-white shadow-lg scale-105'
-                    : 'bg-white text-gray-700 hover:shadow-md'
+                    ? 'bg-gradient-to-r from-amber-600 to-orange-500 text-white shadow-lg scale-105'
+                    : 'bg-white text-amber-800 hover:bg-amber-100 hover:shadow-md border border-amber-200'
                 }`}
               >
                 {category.charAt(0).toUpperCase() + category.slice(1)}
@@ -605,8 +605,8 @@ export default function Home() {
                     alt={meal.name}
                     className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
                   />
-                  <div className="absolute top-2 right-2 bg-white px-3 py-1 rounded-full shadow-md">
-                    <span className="font-bold text-green-600">€{meal.price.toFixed(2)}</span>
+                  <div className="absolute top-2 right-2 bg-amber-100 px-3 py-1 rounded-full shadow-md">
+                    <span className="font-bold text-amber-800">€{meal.price.toFixed(2)}</span>
                   </div>
                 </div>
                 <div className="p-4">
@@ -614,7 +614,7 @@ export default function Home() {
                   <p className="text-gray-600 text-sm mb-4">{meal.description}</p>
                   <button
                     onClick={() => addToCart(meal)}
-                    className="w-full bg-gradient-to-r from-green-500 to-blue-500 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-105 flex items-center justify-center space-x-2"
+                    className="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-105 flex items-center justify-center space-x-2"
                   >
                     <Plus className="w-5 h-5" />
                     <span>Aggiungi</span>
@@ -1025,7 +1025,7 @@ export default function Home() {
         )}
 
         {/* Footer */}
-        <footer className="bg-gradient-to-br from-amber-900 to-amber-950 text-white mt-16">
+        <footer className="bg-gradient-to-r from-amber-900 to-amber-950 text-white mt-16">
           <div className="container mx-auto px-4 py-12">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {/* Logo e Info Azienda */}
@@ -1039,7 +1039,7 @@ export default function Home() {
                     className="object-contain"
                   />
                 </div>
-                <h3 className="text-xl font-bold mb-2">Pasto Sano</h3>
+                <h3 className="text-xl font-bold mb-2 text-yellow-400">Pasto Sano</h3>
                 <p className="text-sm opacity-90">
                   La soluzione per stare in forma.<br />
                   Pasti sani e gustosi, preparati con amore.
@@ -1048,7 +1048,7 @@ export default function Home() {
 
               {/* Contatti */}
               <div className="text-center">
-                <h4 className="text-lg font-semibold mb-4">Contatti</h4>
+                <h4 className="text-lg font-semibold mb-4 text-yellow-400">Contatti</h4>
                 <div className="space-y-3">
                   <a 
                     href="mailto:info@pastosano.it"
@@ -1080,10 +1080,10 @@ export default function Home() {
 
               {/* Orari e Info */}
               <div className="text-center md:text-right">
-                <h4 className="text-lg font-semibold mb-4">Ritiro Ordini</h4>
+                <h4 className="text-lg font-semibold mb-4 text-yellow-400">Ritiro Ordini</h4>
                 <div className="space-y-2 text-sm opacity-90">
                   <p>Lunedì - Venerdì</p>
-                  <p className="font-semibold">Orario da concordare</p>
+                  <p className="font-semibold text-yellow-300">Orario da concordare</p>
                   <p className="mt-3">Ordina entro 2 giorni lavorativi</p>
                   <p>Ritiro presso la nostra sede</p>
                 </div>
@@ -1091,7 +1091,7 @@ export default function Home() {
             </div>
 
             {/* Copyright */}
-            <div className="border-t border-white/20 mt-8 pt-6 text-center text-sm opacity-75">
+            <div className="border-t border-yellow-800/30 mt-8 pt-6 text-center text-sm opacity-75">
               <p>© 2024 Pasto Sano - Tutti i diritti riservati</p>
               <p className="mt-2">P.IVA: IT00000000000 | Powered with ❤️ by Pasto Sano Team</p>
             </div>
