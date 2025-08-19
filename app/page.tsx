@@ -512,32 +512,32 @@ export default function Home() {
   return (
     <PayPalScriptProvider options={initialPayPalOptions}>
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">
-        {/* Header */}
+        {/* Header Mobile Optimized */}
         <header className="bg-gradient-to-r from-amber-50 to-orange-50 shadow-lg sticky top-0 z-40 border-b-2 border-orange-200">
-          <div className="container mx-auto px-4 py-4">
+          <div className="container mx-auto px-3 py-3 md:px-4 md:py-4">
             <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2 md:space-x-3">
                 <Image 
                   src="/images/logo.png" 
                   alt="Pasto Sano" 
-                  width={60} 
-                  height={60}
-                  className="object-contain"
+                  width={50} 
+                  height={50}
+                  className="object-contain md:w-[60px] md:h-[60px]"
                 />
                 <div>
-                  <h1 className="text-2xl font-bold text-amber-900">
+                  <h1 className="text-xl md:text-2xl font-bold text-amber-900">
                     Pasto Sano
                   </h1>
-                  <p className="text-xs text-amber-700">La soluzione per stare in forma</p>
+                  <p className="text-[10px] md:text-xs text-amber-700 hidden sm:block">La soluzione per stare in forma</p>
                 </div>
               </div>
               <button 
                 onClick={() => setIsCartOpen(true)}
-                className="relative bg-gradient-to-r from-orange-500 to-amber-500 text-white p-3 rounded-full hover:shadow-lg transition-all duration-300 hover:scale-105"
+                className="relative bg-gradient-to-r from-orange-500 to-amber-500 text-white p-2.5 md:p-3 rounded-full hover:shadow-lg transition-all duration-300 hover:scale-105"
               >
-                <ShoppingCart className="w-6 h-6" />
+                <ShoppingCart className="w-5 h-5 md:w-6 md:h-6" />
                 {getTotalItems() > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center animate-pulse">
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] md:text-xs rounded-full w-5 h-5 md:w-6 md:h-6 flex items-center justify-center animate-pulse font-bold">
                     {getTotalItems()}
                   </span>
                 )}
@@ -546,40 +546,40 @@ export default function Home() {
           </div>
         </header>
 
-        {/* Hero Section */}
-        <div className="bg-gradient-to-br from-amber-700 via-orange-600 to-amber-800 text-white py-16">
+        {/* Hero Section Mobile Optimized */}
+        <div className="bg-gradient-to-br from-amber-700 via-orange-600 to-amber-800 text-white py-8 md:py-16">
           <div className="container mx-auto px-4 text-center">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4">
               Mangia Sano, Vivi Meglio
             </h2>
-            <p className="text-xl mb-8 opacity-95">
+            <p className="text-base sm:text-lg md:text-xl mb-6 md:mb-8 opacity-95">
               Pasti equilibrati pronti per il ritiro
             </p>
-            <div className="flex justify-center space-x-8 flex-wrap gap-4">
-              <div className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
-                <MapPin className="w-5 h-5" />
-                <span>Ritiro presso Pasto Sano</span>
+            <div className="flex flex-col sm:flex-row justify-center items-center space-y-3 sm:space-y-0 sm:space-x-4 md:space-x-8">
+              <div className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm px-3 py-2 rounded-full text-sm md:text-base">
+                <MapPin className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
+                <span>Ritiro presso sede</span>
               </div>
-              <div className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
-                <Clock className="w-5 h-5" />
+              <div className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm px-3 py-2 rounded-full text-sm md:text-base">
+                <Clock className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
                 <span>Pronto in 2 giorni</span>
               </div>
-              <div className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
-                <Star className="w-5 h-5" />
+              <div className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm px-3 py-2 rounded-full text-sm md:text-base">
+                <Star className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
                 <span>Ingredienti Premium</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Categories */}
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex space-x-4 overflow-x-auto pb-4">
+        {/* Categories Mobile Optimized - Scrollabile orizzontalmente su mobile */}
+        <div className="container mx-auto px-4 py-6 md:py-8">
+          <div className="flex space-x-2 md:space-x-4 overflow-x-auto pb-2 scrollbar-hide">
             {categories.map(category => (
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
-                className={`px-6 py-2 rounded-full whitespace-nowrap transition-all duration-300 ${
+                className={`px-4 md:px-6 py-2 rounded-full whitespace-nowrap transition-all duration-300 text-sm md:text-base flex-shrink-0 ${
                   selectedCategory === category
                     ? 'bg-gradient-to-r from-amber-600 to-orange-500 text-white shadow-lg scale-105'
                     : 'bg-white text-amber-800 hover:bg-amber-100 hover:shadow-md border border-amber-200'
@@ -625,16 +625,16 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Cart Sidebar */}
+        {/* Cart Sidebar - Full screen su mobile */}
         {isCartOpen && (
           <div className="fixed inset-0 z-50 flex justify-end">
             <div 
               className="absolute inset-0 bg-black bg-opacity-50"
               onClick={() => setIsCartOpen(false)}
             />
-            <div className="relative bg-white w-full max-w-md h-full overflow-y-auto">
-              <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
-                <h2 className="text-2xl font-bold">Carrello</h2>
+            <div className="relative bg-white w-full sm:max-w-md h-full overflow-y-auto">
+              <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center shadow-md">
+                <h2 className="text-xl md:text-2xl font-bold">Carrello</h2>
                 <button
                   onClick={() => setIsCartOpen(false)}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -647,38 +647,44 @@ export default function Home() {
                 <div className="p-8 text-center">
                   <ShoppingCart className="w-16 h-16 mx-auto text-gray-300 mb-4" />
                   <p className="text-gray-500">Il carrello è vuoto</p>
+                  <button
+                    onClick={() => setIsCartOpen(false)}
+                    className="mt-4 bg-orange-500 text-white px-6 py-2 rounded-lg"
+                  >
+                    Continua lo Shopping
+                  </button>
                 </div>
               ) : (
                 <>
-                  <div className="p-4 space-y-4">
+                  <div className="p-4 space-y-3">
                     {cart.map(item => (
-                      <div key={item.id} className="bg-gray-50 rounded-lg p-4">
+                      <div key={item.id} className="bg-gray-50 rounded-lg p-3 md:p-4">
                         <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-semibold flex-1">{item.name}</h4>
+                          <h4 className="font-semibold flex-1 text-sm md:text-base">{item.name}</h4>
                           <button
                             onClick={() => removeFromCart(item.id)}
                             className="text-red-500 hover:text-red-700 ml-2"
                           >
-                            <X className="w-5 h-5" />
+                            <X className="w-4 h-4 md:w-5 md:h-5" />
                           </button>
                         </div>
                         <div className="flex justify-between items-center">
                           <div className="flex items-center space-x-2">
                             <button
                               onClick={() => updateQuantity(item.id, -1)}
-                              className="w-8 h-8 bg-white rounded-lg hover:bg-gray-200 flex items-center justify-center transition-colors"
+                              className="w-7 h-7 md:w-8 md:h-8 bg-white rounded-lg hover:bg-gray-200 flex items-center justify-center transition-colors"
                             >
-                              <Minus className="w-4 h-4" />
+                              <Minus className="w-3 h-3 md:w-4 md:h-4" />
                             </button>
-                            <span className="w-8 text-center font-semibold">{item.quantity}</span>
+                            <span className="w-8 text-center font-semibold text-sm md:text-base">{item.quantity}</span>
                             <button
                               onClick={() => updateQuantity(item.id, 1)}
-                              className="w-8 h-8 bg-white rounded-lg hover:bg-gray-200 flex items-center justify-center transition-colors"
+                              className="w-7 h-7 md:w-8 md:h-8 bg-white rounded-lg hover:bg-gray-200 flex items-center justify-center transition-colors"
                             >
-                              <Plus className="w-4 h-4" />
+                              <Plus className="w-3 h-3 md:w-4 md:h-4" />
                             </button>
                           </div>
-                          <span className="font-bold text-green-600">
+                          <span className="font-bold text-orange-600 text-sm md:text-base">
                             €{(item.price * item.quantity).toFixed(2)}
                           </span>
                         </div>
@@ -686,10 +692,10 @@ export default function Home() {
                     ))}
                   </div>
 
-                  <div className="sticky bottom-0 bg-white border-t p-4">
+                  <div className="sticky bottom-0 bg-white border-t p-4 shadow-lg">
                     <div className="flex justify-between items-center mb-4">
-                      <span className="text-xl font-bold">Totale:</span>
-                      <span className="text-2xl font-bold text-green-600">
+                      <span className="text-lg md:text-xl font-bold">Totale:</span>
+                      <span className="text-xl md:text-2xl font-bold text-orange-600">
                         €{getTotalPrice().toFixed(2)}
                       </span>
                     </div>
@@ -698,7 +704,7 @@ export default function Home() {
                         setShowCheckout(true);
                         setIsCartOpen(false);
                       }}
-                      className="w-full bg-gradient-to-r from-green-500 to-blue-500 text-white py-3 rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-105 font-semibold"
+                      className="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white py-3 rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-105 font-semibold text-base md:text-lg"
                     >
                       Procedi al Pagamento
                     </button>
@@ -1024,44 +1030,44 @@ export default function Home() {
           </div>
         )}
 
-        {/* Footer */}
-        <footer className="bg-gradient-to-r from-amber-900 to-amber-950 text-white mt-16">
-          <div className="container mx-auto px-4 py-12">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Logo e Info Azienda */}
-              <div className="text-center md:text-left">
-                <div className="flex items-center justify-center md:justify-start mb-4">
+        {/* Footer Mobile Optimized */}
+        <footer className="bg-gradient-to-r from-amber-900 to-amber-950 text-white mt-8 md:mt-16">
+          <div className="container mx-auto px-4 py-8 md:py-12">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+              {/* Logo e Info Azienda - Centrato su mobile */}
+              <div className="text-center">
+                <div className="flex items-center justify-center mb-3 md:mb-4">
                   <Image 
                     src="/images/logo.png" 
                     alt="Pasto Sano" 
-                    width={80} 
-                    height={80}
-                    className="object-contain"
+                    width={70} 
+                    height={70}
+                    className="object-contain md:w-[80px] md:h-[80px]"
                   />
                 </div>
-                <h3 className="text-xl font-bold mb-2 text-yellow-400">Pasto Sano</h3>
-                <p className="text-sm opacity-90">
+                <h3 className="text-lg md:text-xl font-bold mb-2 text-yellow-400">Pasto Sano</h3>
+                <p className="text-xs md:text-sm opacity-90">
                   La soluzione per stare in forma.<br />
                   Pasti sani e gustosi, preparati con amore.
                 </p>
               </div>
 
-              {/* Contatti */}
+              {/* Contatti - Con pulsante WhatsApp prominente */}
               <div className="text-center">
-                <h4 className="text-lg font-semibold mb-4 text-yellow-400">Contatti</h4>
+                <h4 className="text-base md:text-lg font-semibold mb-3 md:mb-4 text-yellow-400">Contatti</h4>
                 <div className="space-y-3">
                   <a 
                     href="mailto:info@pastosano.it"
-                    className="flex items-center justify-center gap-2 hover:text-yellow-400 transition"
+                    className="flex items-center justify-center gap-2 hover:text-yellow-400 transition text-sm md:text-base"
                   >
-                    <Mail className="w-5 h-5" />
+                    <Mail className="w-4 h-4 md:w-5 md:h-5" />
                     <span>info@pastosano.it</span>
                   </a>
                   <a 
                     href="https://wa.me/393478881515?text=Ciao%20Pasto%20Sano,%20vorrei%20informazioni"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full transition transform hover:scale-105"
+                    className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2.5 md:py-2 rounded-full transition transform hover:scale-105 text-sm md:text-base"
                   >
                     <MessageCircle className="w-5 h-5" />
                     <span className="font-semibold">WhatsApp: 347 888 1515</span>
@@ -1070,30 +1076,30 @@ export default function Home() {
                     href="https://www.pastosano.it"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 hover:text-yellow-400 transition"
+                    className="flex items-center justify-center gap-2 hover:text-yellow-400 transition text-sm md:text-base"
                   >
-                    <Globe className="w-5 h-5" />
+                    <Globe className="w-4 h-4 md:w-5 md:h-5" />
                     <span>www.pastosano.it</span>
                   </a>
                 </div>
               </div>
 
               {/* Orari e Info */}
-              <div className="text-center md:text-right">
-                <h4 className="text-lg font-semibold mb-4 text-yellow-400">Ritiro Ordini</h4>
-                <div className="space-y-2 text-sm opacity-90">
+              <div className="text-center">
+                <h4 className="text-base md:text-lg font-semibold mb-3 md:mb-4 text-yellow-400">Ritiro Ordini</h4>
+                <div className="space-y-1 md:space-y-2 text-xs md:text-sm opacity-90">
                   <p>Lunedì - Venerdì</p>
                   <p className="font-semibold text-yellow-300">Orario da concordare</p>
-                  <p className="mt-3">Ordina entro 2 giorni lavorativi</p>
+                  <p className="mt-2 md:mt-3">Ordina entro 2 giorni lavorativi</p>
                   <p>Ritiro presso la nostra sede</p>
                 </div>
               </div>
             </div>
 
             {/* Copyright */}
-            <div className="border-t border-yellow-800/30 mt-8 pt-6 text-center text-sm opacity-75">
+            <div className="border-t border-yellow-800/30 mt-6 md:mt-8 pt-4 md:pt-6 text-center text-xs md:text-sm opacity-75">
               <p>© 2024 Pasto Sano - Tutti i diritti riservati</p>
-              <p className="mt-2">P.IVA: IT00000000000 | Powered with ❤️ by Pasto Sano Team</p>
+              <p className="mt-1 md:mt-2">P.IVA: IT00000000000 | Made with ❤️</p>
             </div>
           </div>
         </footer>
