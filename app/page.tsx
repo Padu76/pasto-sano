@@ -369,7 +369,7 @@ export default function Home() {
   };
 
   // PAGAMENTO PAYPAL
-  const handlePayPalApprove = async (data: any, actions: any) => {
+  const handlePayPalApprove = async (_data: any, actions: any) => {
     setIsLoading(true);
     try {
       const details = await actions.order.capture();
