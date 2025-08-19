@@ -135,19 +135,6 @@ export default function MenuPage() {
   const [selectedCategory, setSelectedCategory] = useState<'tutti' | 'main' | 'breakfast'>('tutti');
   const [hoveredMeal, setHoveredMeal] = useState<number | null>(null);
 
-  const getMealsToDisplay = () => {
-    switch(selectedCategory) {
-      case 'main':
-        return mainMeals;
-      case 'breakfast':
-        return breakfastMeals;
-      default:
-        return [...mainMeals, ...breakfastMeals];
-    }
-  };
-
-  const mealsToDisplay = getMealsToDisplay();
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
       {/* Header */}
