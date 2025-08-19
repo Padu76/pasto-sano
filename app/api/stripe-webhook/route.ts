@@ -342,7 +342,7 @@ async function sendPaymentFailedEmail(data: any) {
 }
 
 // Endpoint per verificare lo stato del webhook (GET)
-export async function GET(request: NextRequest) {
+export async function GET() {
   // Verifica configurazione
   const config = {
     stripe_key: !!process.env.STRIPE_SECRET_KEY,
