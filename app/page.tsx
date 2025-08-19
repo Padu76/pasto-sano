@@ -376,7 +376,7 @@ export default function Home() {
       console.log('Pagamento PayPal completato:', details);
       
       // Salva ordine su Firebase
-      await saveOrderToFirebase('paypal', details.id);
+      await saveOrderToFirebase('paypal');
       
       // Invia email
       await sendOrderEmail('paypal');
@@ -428,7 +428,7 @@ export default function Home() {
       }
 
       // Salva ordine su Firebase
-      await saveOrderToFirebase('cash', `CASH-${Date.now()}`);
+      await saveOrderToFirebase('cash');
       
       // Invia email di conferma
       await sendOrderEmail('cash');
@@ -451,7 +451,7 @@ export default function Home() {
   };
 
   // Salva ordine su Firebase
-  const saveOrderToFirebase = async (method: string, transactionId: string) => {
+  const saveOrderToFirebase = async (method: string) => {
     try {
       await addOrder({
         customerName,
