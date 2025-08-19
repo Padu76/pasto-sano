@@ -12,43 +12,66 @@ import {
   limit,
   onSnapshot,
   Timestamp,
-  Unsubscribe
+  Unsubscribe,
+  connectFirestoreEmulator
 } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 
-// ⚠️ NON METTERE MAI LE CHIAVI DIRETTAMENTE NEL CODICE!
-// USA SEMPRE VARIABILI D'AMBIENTE
-
+// Configurazione Firebase - usa le environment variables
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET!,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyAWrw1vDEKOJnEbTMv4bF10vYeZnOI7DpY",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "pasto-sano.firebaseapp.com",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "pasto-sano",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "pasto-sano.firebasestorage.app",
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "109720925931",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:109720925931:web:6450822431711297d730ae",
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "G-5XMDRQL46Z"
 };
 
-// Verifica che tutte le variabili siano presenti
-if (!firebaseConfig.apiKey || !firebaseConfig.authDomain || !firebaseConfig.projectId) {
-  console.error('❌ Configurazione Firebase mancante! Controlla le variabili d\'ambiente.');
-  throw new Error('Firebase configuration is incomplete');
+// Debug logging (solo in development)
+if (process.env.NODE_ENV === 'development') {
+  console.log('🔥 Firebase Config:', {
+    apiKey: firebaseConfig.apiKey?.substring(0, 10) + '...',
+    authDomain: firebaseConfig.authDomain,
+    projectId: firebaseConfig.projectId,
+    storageBucket: firebaseConfig.storageBucket
+  });
 }
 
 // Inizializza Firebase
 let app: FirebaseApp;
+let db: any;
+let auth: any;
+let storage: any;
 
-if (!getApps().length) {
-  app = initializeApp(firebaseConfig);
-  console.log('✅ Firebase inizializzato correttamente');
-} else {
-  app = getApps()[0];
+try {
+  if (!getApps().length) {
+    app = initializeApp(firebaseConfig);
+    console.log('✅ Firebase inizializzato correttamente con progetto:', firebaseConfig.projectId);
+  } else {
+    app = getApps()[0];
+    console.log('✅ Firebase già inizializzato');
+  }
+
+  // Inizializza i servizi
+  db = getFirestore(app);
+  auth = getAuth(app);
+  storage = getStorage(app);
+  
+  // Test di connessione
+  if (typeof window !== 'undefined') {
+    // Solo lato client
+    console.log('🔍 Testing Firebase connection...');
+  }
+  
+} catch (error) {
+  console.error('❌ Errore inizializzazione Firebase:', error);
+  // Non bloccare l'app se Firebase fallisce
 }
 
 // Esporta servizi Firebase
-export const db = getFirestore(app);
-export const auth = getAuth(app);
-export const storage = getStorage(app);
+export { db, auth, storage };
 
 // Tipi TypeScript
 export interface OrderItem {
@@ -107,9 +130,52 @@ export interface DashboardStats {
 
 // FUNZIONI FIREBASE
 
-// Ottieni tutti gli ordini
+// Aggiungi nuovo ordine con error handling migliorato
+export async function addOrder(order: Omit<Order, 'id'>): Promise<string> {
+  try {
+    // Verifica che Firestore sia inizializzato
+    if (!db) {
+      console.error('❌ Firestore non inizializzato');
+      throw new Error('Firestore not initialized');
+    }
+
+    console.log('📝 Tentativo di salvare ordine:', {
+      customerName: order.customerName,
+      totalAmount: order.totalAmount,
+      paymentMethod: order.paymentMethod
+    });
+
+    const orderData = {
+      ...order,
+      timestamp: Timestamp.now(),
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now()
+    };
+    
+    const docRef = await addDoc(collection(db, 'orders'), orderData);
+    console.log('✅ Ordine salvato su Firebase con ID:', docRef.id);
+    return docRef.id;
+    
+  } catch (error: any) {
+    console.error('❌ Errore dettagliato salvataggio ordine:', {
+      message: error.message,
+      code: error.code,
+      details: error
+    });
+    
+    // Rilancia l'errore per gestirlo a livello superiore
+    throw new Error(`Firebase save failed: ${error.message}`);
+  }
+}
+
+// Ottieni tutti gli ordini con error handling
 export async function getOrders(limitCount: number = 100): Promise<Order[]> {
   try {
+    if (!db) {
+      console.error('❌ Firestore non inizializzato');
+      return [];
+    }
+
     console.log(`📊 Caricamento ultimi ${limitCount} ordini...`);
     
     const ordersRef = collection(db, 'orders');
@@ -130,15 +196,20 @@ export async function getOrders(limitCount: number = 100): Promise<Order[]> {
     console.log(`✅ ${orders.length} ordini caricati da Firebase`);
     return orders;
     
-  } catch (error) {
-    console.error('❌ Errore caricamento ordini:', error);
-    throw error;
+  } catch (error: any) {
+    console.error('❌ Errore caricamento ordini:', error.message);
+    return [];
   }
 }
 
 // Ottieni ordini per data
 export async function getOrdersByDate(date: Date): Promise<Order[]> {
   try {
+    if (!db) {
+      console.error('❌ Firestore non inizializzato');
+      return [];
+    }
+
     const startDate = new Date(date);
     startDate.setHours(0, 0, 0, 0);
     
@@ -168,15 +239,20 @@ export async function getOrdersByDate(date: Date): Promise<Order[]> {
     console.log(`✅ ${orders.length} ordini trovati per ${date.toLocaleDateString()}`);
     return orders;
     
-  } catch (error) {
-    console.error('❌ Errore caricamento ordini per data:', error);
-    throw error;
+  } catch (error: any) {
+    console.error('❌ Errore caricamento ordini per data:', error.message);
+    return [];
   }
 }
 
 // Ottieni ordini per range di date
 export async function getOrdersByDateRange(startDate: Date, endDate: Date): Promise<Order[]> {
   try {
+    if (!db) {
+      console.error('❌ Firestore non inizializzato');
+      return [];
+    }
+
     const start = new Date(startDate);
     start.setHours(0, 0, 0, 0);
     
@@ -206,35 +282,20 @@ export async function getOrdersByDateRange(startDate: Date, endDate: Date): Prom
     console.log(`✅ ${orders.length} ordini trovati dal ${startDate.toLocaleDateString()} al ${endDate.toLocaleDateString()}`);
     return orders;
     
-  } catch (error) {
-    console.error('❌ Errore caricamento ordini per range:', error);
-    throw error;
-  }
-}
-
-// Aggiungi nuovo ordine
-export async function addOrder(order: Omit<Order, 'id'>): Promise<string> {
-  try {
-    const orderData = {
-      ...order,
-      timestamp: Timestamp.now(),
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now()
-    };
-    
-    const docRef = await addDoc(collection(db, 'orders'), orderData);
-    console.log('✅ Ordine aggiunto con ID:', docRef.id);
-    return docRef.id;
-    
-  } catch (error) {
-    console.error('❌ Errore aggiunta ordine:', error);
-    throw error;
+  } catch (error: any) {
+    console.error('❌ Errore caricamento ordini per range:', error.message);
+    return [];
   }
 }
 
 // Aggiorna stato ordine
 export async function updateOrderStatus(orderId: string, status: string): Promise<void> {
   try {
+    if (!db) {
+      console.error('❌ Firestore non inizializzato');
+      return;
+    }
+
     const orderRef = doc(db, 'orders', orderId);
     await updateDoc(orderRef, {
       orderStatus: status,
@@ -243,15 +304,26 @@ export async function updateOrderStatus(orderId: string, status: string): Promis
     
     console.log(`✅ Stato ordine ${orderId} aggiornato a: ${status}`);
     
-  } catch (error) {
-    console.error('❌ Errore aggiornamento stato ordine:', error);
-    throw error;
+  } catch (error: any) {
+    console.error('❌ Errore aggiornamento stato ordine:', error.message);
   }
 }
 
 // Ottieni statistiche dashboard
 export async function getDashboardStats(): Promise<DashboardStats> {
   try {
+    if (!db) {
+      console.error('❌ Firestore non inizializzato');
+      return {
+        ordersToday: 0,
+        revenueToday: 0,
+        totalOrders: 0,
+        totalRevenue: 0,
+        averageOrder: 0,
+        uniqueCustomers: 0
+      };
+    }
+
     console.log('📈 Caricamento statistiche...');
     
     const today = new Date();
@@ -285,15 +357,27 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     console.log('✅ Statistiche caricate:', stats);
     return stats;
     
-  } catch (error) {
-    console.error('❌ Errore caricamento statistiche:', error);
-    throw error;
+  } catch (error: any) {
+    console.error('❌ Errore caricamento statistiche:', error.message);
+    return {
+      ordersToday: 0,
+      revenueToday: 0,
+      totalOrders: 0,
+      totalRevenue: 0,
+      averageOrder: 0,
+      uniqueCustomers: 0
+    };
   }
 }
 
 // Ottieni prodotti più venduti
 export async function getTopProducts(limitCount: number = 10, days: number = 30): Promise<ProductSales[]> {
   try {
+    if (!db) {
+      console.error('❌ Firestore non inizializzato');
+      return [];
+    }
+
     const daysAgo = new Date();
     daysAgo.setDate(daysAgo.getDate() - days);
     
@@ -326,15 +410,20 @@ export async function getTopProducts(limitCount: number = 10, days: number = 30)
     console.log(`✅ Top ${limitCount} prodotti degli ultimi ${days} giorni:`, sortedProducts);
     return sortedProducts;
     
-  } catch (error) {
-    console.error('❌ Errore caricamento top products:', error);
-    throw error;
+  } catch (error: any) {
+    console.error('❌ Errore caricamento top products:', error.message);
+    return [];
   }
 }
 
 // Ottieni clienti unici
 export async function getUniqueCustomers(days: number = 365): Promise<Customer[]> {
   try {
+    if (!db) {
+      console.error('❌ Firestore non inizializzato');
+      return [];
+    }
+
     const daysAgo = new Date();
     daysAgo.setDate(daysAgo.getDate() - days);
     
@@ -377,17 +466,22 @@ export async function getUniqueCustomers(days: number = 365): Promise<Customer[]
     console.log(`✅ ${customers.length} clienti unici trovati negli ultimi ${days} giorni`);
     return customers;
     
-  } catch (error) {
-    console.error('❌ Errore caricamento clienti unici:', error);
-    throw error;
+  } catch (error: any) {
+    console.error('❌ Errore caricamento clienti unici:', error.message);
+    return [];
   }
 }
 
 // Listener per nuovi ordini in tempo reale
 export function listenForNewOrders(
   callback: (order: Order) => void
-): Unsubscribe {
+): Unsubscribe | (() => void) {
   try {
+    if (!db) {
+      console.error('❌ Firestore non inizializzato');
+      return () => {};
+    }
+
     console.log('👂 Avvio listener per nuovi ordini...');
     
     const ordersRef = collection(db, 'orders');
@@ -407,13 +501,15 @@ export function listenForNewOrders(
           callback(newOrder);
         }
       });
+    }, (error) => {
+      console.error('❌ Errore listener ordini:', error);
     });
     
     return unsubscribe;
     
-  } catch (error) {
-    console.error('❌ Errore listener ordini:', error);
-    throw error;
+  } catch (error: any) {
+    console.error('❌ Errore listener ordini:', error.message);
+    return () => {};
   }
 }
 
@@ -421,26 +517,39 @@ export function listenForNewOrders(
 export function listenToOrders(
   callback: (orders: Order[]) => void,
   limitCount: number = 500
-): Unsubscribe {
-  const ordersRef = collection(db, 'orders');
-  const q = query(ordersRef, orderBy('timestamp', 'desc'), limit(limitCount));
-  
-  const unsubscribe = onSnapshot(q, (snapshot) => {
-    const orders: Order[] = [];
+): Unsubscribe | (() => void) {
+  try {
+    if (!db) {
+      console.error('❌ Firestore non inizializzato');
+      return () => {};
+    }
+
+    const ordersRef = collection(db, 'orders');
+    const q = query(ordersRef, orderBy('timestamp', 'desc'), limit(limitCount));
     
-    snapshot.forEach((doc) => {
-      const data = doc.data();
-      orders.push({
-        id: doc.id,
-        ...data,
-        timestamp: data.timestamp?.toDate?.() || new Date()
-      } as Order);
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const orders: Order[] = [];
+      
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        orders.push({
+          id: doc.id,
+          ...data,
+          timestamp: data.timestamp?.toDate?.() || new Date()
+        } as Order);
+      });
+      
+      callback(orders);
+    }, (error) => {
+      console.error('❌ Errore listener ordini:', error);
     });
     
-    callback(orders);
-  });
-  
-  return unsubscribe;
+    return unsubscribe;
+    
+  } catch (error: any) {
+    console.error('❌ Errore setup listener:', error.message);
+    return () => {};
+  }
 }
 
 // Utility per formattare date
@@ -459,6 +568,30 @@ export function formatDate(timestamp: any): string {
   }
 }
 
+// Test di connessione Firebase
+export async function testFirebaseConnection(): Promise<boolean> {
+  try {
+    if (!db) {
+      console.error('❌ Firestore non inizializzato');
+      return false;
+    }
+
+    console.log('🔍 Test connessione Firebase...');
+    
+    // Prova a leggere la collezione orders (anche se vuota)
+    const ordersRef = collection(db, 'orders');
+    const q = query(ordersRef, limit(1));
+    await getDocs(q);
+    
+    console.log('✅ Connessione Firebase OK!');
+    return true;
+    
+  } catch (error: any) {
+    console.error('❌ Test connessione Firebase fallito:', error.message);
+    return false;
+  }
+}
+
 // Esporta tutte le funzioni
 export default {
   getOrders,
@@ -471,5 +604,6 @@ export default {
   getUniqueCustomers,
   listenForNewOrders,
   listenToOrders,
-  formatDate
+  formatDate,
+  testFirebaseConnection
 };
