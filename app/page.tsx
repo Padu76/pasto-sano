@@ -9,7 +9,6 @@ import {
   Check, 
   CreditCard, 
   Smartphone, 
-  Truck, 
   Clock, 
   Heart, 
   Star,
@@ -471,8 +470,7 @@ export default function Home() {
         pickupDate,
         notes,
         source: 'website',
-        timestamp: new Date(),
-        transactionId
+        timestamp: new Date()
       });
     } catch (error) {
       console.error('Errore salvataggio Firebase:', error);
