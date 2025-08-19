@@ -11,7 +11,6 @@ import {
   CreditCard, 
   Smartphone, 
   Clock, 
-  Heart, 
   Star,
   Banknote,
   AlertCircle,
