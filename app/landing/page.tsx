@@ -21,18 +21,28 @@ import {
   Facebook,
   Instagram,
   ArrowRight,
-  ExternalLink
+  ExternalLink,
+  CheckCircle,
+  XCircle,
+  Home,
+  Timer,
+  TrendingUp,
+  Users,
+  AlertCircle,
+  Sparkles,
+  ChefHat,
+  ThumbsUp,
+  Zap
 } from 'lucide-react';
 
 export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [timeLeft, setTimeLeft] = useState('');
+  const [availableSpots, setAvailableSpots] = useState(8);
+  const [currentTestimonial, setCurrentTestimonial] = useState(0);
 
   useEffect(() => {
-    // Remove loading screen after mount
-    const timer = setTimeout(() => setIsLoading(false), 300);
-    
     // Handle scroll for header
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -40,9 +50,42 @@ export default function LandingPage() {
     
     window.addEventListener('scroll', handleScroll);
     
+    // Countdown timer
+    const updateCountdown = () => {
+      const now = new Date();
+      const deadline = new Date();
+      deadline.setHours(18, 0, 0, 0);
+      
+      if (now > deadline) {
+        deadline.setDate(deadline.getDate() + 1);
+      }
+      
+      const diff = deadline.getTime() - now.getTime();
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      
+      setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
+    };
+    
+    updateCountdown();
+    const countdownInterval = setInterval(updateCountdown, 1000);
+    
+    // Simulate available spots countdown
+    const spotsInterval = setInterval(() => {
+      setAvailableSpots(prev => prev > 3 ? prev - 1 : prev);
+    }, 45000);
+    
+    // Testimonials rotation
+    const testimonialInterval = setInterval(() => {
+      setCurrentTestimonial(prev => (prev + 1) % testimonials.length);
+    }, 4000);
+    
     return () => {
-      clearTimeout(timer);
       window.removeEventListener('scroll', handleScroll);
+      clearInterval(countdownInterval);
+      clearInterval(spotsInterval);
+      clearInterval(testimonialInterval);
     };
   }, []);
 
@@ -54,126 +97,161 @@ export default function LandingPage() {
     }
   };
 
-  const secrets = [
+  const problems = [
     {
-      number: 1,
-      title: "Cucina Sana",
-      description: "Cucina i tuoi pasti o trova chi lo fa per te in modo sano!"
+      icon: <XCircle className="w-6 h-6 text-red-500" />,
+      text: "Torni a casa stanco e non sai cosa mangiare"
     },
     {
-      number: 2,
-      title: "Mangia Correttamente",
-      description: "Impara a bilanciare tutti i nutrienti essenziali."
+      icon: <XCircle className="w-6 h-6 text-red-500" />,
+      text: "Mangi sempre le stesse cose in gastronomia"
     },
     {
-      number: 3,
-      title: "Movimento Quotidiano",
-      description: "30 minuti al giorno possono fare la differenza."
+      icon: <XCircle className="w-6 h-6 text-red-500" />,
+      text: "Spesa dell'ultimo minuto e sprechi"
     },
     {
-      number: 4,
-      title: "Nuove Abitudini",
-      description: "Una nuova abitudine positiva al mese."
+      icon: <XCircle className="w-6 h-6 text-red-500" />,
+      text: "Cibo pesante che ti rallenta"
+    }
+  ];
+
+  const solutions = [
+    {
+      icon: <CheckCircle className="w-6 h-6 text-green-500" />,
+      title: "Pasto Pronto in 2 Minuti",
+      description: "Torni a casa e il pranzo è già pronto"
     },
     {
-      number: 5,
+      icon: <Home className="w-6 h-6 text-green-500" />,
+      title: "Zero Stress",
+      description: "Niente spesa, niente cucina, solo relax"
+    },
+    {
+      icon: <Leaf className="w-6 h-6 text-green-500" />,
+      title: "Leggero e Nutriente",
+      description: "Ti senti energico tutto il giorno"
+    },
+    {
+      icon: <Timer className="w-6 h-6 text-green-500" />,
       title: "Tempo per Te",
-      description: "Dedicati a fare qualcosa che ti piace."
+      description: "Recuperi 1 ora al giorno"
     }
   ];
 
   const features = [
     {
-      icon: <Leaf className="w-6 h-6 sm:w-8 sm:h-8" />,
+      image: "/images/meals/fusilli-manzo-zucchine-melanzane.jpg",
       title: "100% Naturale",
-      description: "Senza conservanti o additivi artificiali."
+      description: "Senza conservanti o additivi",
+      badge: "GARANTITO"
     },
     {
-      icon: <Award className="w-6 h-6 sm:w-8 sm:h-8" />,
+      image: "/images/meals/roastbeef-patate-fagiolini.jpg",
       title: "Qualità Premium",
-      description: "Solo ingredienti freschi e di stagione."
+      description: "Solo ingredienti selezionati",
+      badge: "TOP QUALITY"
     },
     {
-      icon: <Scale className="w-6 h-6 sm:w-8 sm:h-8" />,
-      title: "Pasti Bilanciati",
-      description: "Proteine, carboidrati e vitamine."
+      image: "/images/meals/pollo-patate-zucchine.jpg",
+      title: "Bilanciato",
+      description: "Proteine, carboidrati, vitamine",
+      badge: "EQUILIBRATO"
     },
     {
-      icon: <Flame className="w-6 h-6 sm:w-8 sm:h-8" />,
+      image: "/images/meals/patate-salmone-broccoli.jpg",
       title: "Cottura Perfetta",
-      description: "Vapore o piastra per preservare i nutrienti."
+      description: "Vapore per preservare i nutrienti",
+      badge: "CHEF"
     },
     {
-      icon: <Clock className="w-6 h-6 sm:w-8 sm:h-8" />,
-      title: "Risparmia Tempo",
-      description: "Pronti in 2 minuti al microonde."
+      image: "/images/meals/riso-hamburger-carotine.jpg",
+      title: "Pronto Subito",
+      description: "2 minuti al microonde",
+      badge: "VELOCE"
     },
     {
-      icon: <Heart className="w-6 h-6 sm:w-8 sm:h-8" />,
-      title: "Migliora la Vita",
-      description: "Il 70% del benessere viene dal cibo."
+      image: "/images/meals/orzo-ceci-feta-pomodorini.jpg",
+      title: "Vario e Gustoso",
+      description: "Menu sempre diverso",
+      badge: "NOVITÀ"
     }
   ];
 
-  const steps = [
+  const testimonials = [
     {
-      number: 1,
-      title: "Scegli",
-      description: "Sfoglia il menu"
+      name: "Marco R.",
+      role: "Imprenditore",
+      text: "Finalmente posso mangiare sano anche con poco tempo. Pasto Sano mi ha cambiato la vita!",
+      rating: 5
     },
     {
-      number: 2,
-      title: "Ordina",
-      description: "Aggiungi al carrello"
+      name: "Laura B.",
+      role: "Manager",
+      text: "Ho perso 8kg in 3 mesi senza rinunciare al gusto. Consigliatissimo!",
+      rating: 5
     },
     {
-      number: 3,
-      title: "Ritira",
-      description: "Dopo 2 giorni"
+      name: "Giuseppe T.",
+      role: "Sportivo",
+      text: "Perfetto per chi si allena. Pasti bilanciati e gustosi, recupero meglio dopo l'allenamento.",
+      rating: 5
     },
     {
-      number: 4,
-      title: "Gusta",
-      description: "Buon appetito!"
+      name: "Anna M.",
+      role: "Mamma lavoratrice",
+      text: "Non ho più lo stress di cucinare ogni giorno. Più tempo per la famiglia!",
+      rating: 5
     }
   ];
 
-  const menuPreview = [
+  const menuHighlights = [
     {
       name: "Fusilli e Manzo",
       image: "/images/meals/fusilli-manzo-zucchine-melanzane.jpg",
-      price: "8.50"
+      price: "8.50",
+      oldPrice: "10.00",
+      badge: "BESTSELLER",
+      badgeColor: "bg-red-500"
     },
     {
       name: "Roastbeef",
       image: "/images/meals/roastbeef-patate-fagiolini.jpg",
-      price: "8.50"
+      price: "8.50",
+      badge: "PREFERITO",
+      badgeColor: "bg-blue-500"
     },
     {
       name: "Pollo Grigliato",
       image: "/images/meals/pollo-patate-zucchine.jpg",
-      price: "8.50"
+      price: "8.50",
+      badge: "LEGGERO",
+      badgeColor: "bg-green-500"
     },
     {
       name: "Salmone",
       image: "/images/meals/patate-salmone-broccoli.jpg",
-      price: "8.50"
+      price: "8.50",
+      badge: "OMEGA 3",
+      badgeColor: "bg-purple-500"
     }
   ];
 
-  if (isLoading) {
-    return (
-      <div className="fixed inset-0 bg-white z-50 flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-amber-200 border-t-amber-600 rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-white">
+      {/* Floating WhatsApp Button */}
+      <a 
+        href="https://wa.me/393478881515?text=Ciao%20Pasto%20Sano,%20vorrei%20ordinare"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-2xl hover:bg-green-600 transform hover:scale-110 transition-all duration-300 z-50 animate-pulse"
+      >
+        <MessageCircle className="w-6 h-6" />
+      </a>
+
       {/* Header - Mobile Optimized */}
-      <header className={`fixed top-0 w-full bg-white/95 backdrop-blur-md z-50 transition-all duration-300 ${
-        isScrolled ? 'shadow-lg py-2' : 'py-3'
+      <header className={`fixed top-0 w-full bg-white/95 backdrop-blur-md z-40 transition-all duration-300 ${
+        isScrolled ? 'shadow-xl py-2' : 'py-3'
       }`}>
         <nav className="container mx-auto px-4 lg:px-8">
           <div className="flex justify-between items-center">
@@ -194,21 +272,21 @@ export default function LandingPage() {
               <button onClick={() => scrollToSection('home')} className="text-gray-700 hover:text-amber-600 transition-colors text-sm xl:text-base">
                 Home
               </button>
-              <button onClick={() => scrollToSection('chi-sono')} className="text-gray-700 hover:text-amber-600 transition-colors text-sm xl:text-base">
-                Chi Sono
+              <button onClick={() => scrollToSection('vantaggi')} className="text-gray-700 hover:text-amber-600 transition-colors text-sm xl:text-base">
+                Vantaggi
               </button>
               <button onClick={() => scrollToSection('menu')} className="text-gray-700 hover:text-amber-600 transition-colors text-sm xl:text-base">
                 Menu
               </button>
-              <button onClick={() => scrollToSection('come-funziona')} className="text-gray-700 hover:text-amber-600 transition-colors text-sm xl:text-base">
-                Come Funziona
+              <button onClick={() => scrollToSection('chi-sono')} className="text-gray-700 hover:text-amber-600 transition-colors text-sm xl:text-base">
+                Chi Sono
               </button>
               <button onClick={() => scrollToSection('contatti')} className="text-gray-700 hover:text-amber-600 transition-colors text-sm xl:text-base">
                 Contatti
               </button>
               <Link 
                 href="/"
-                className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-5 py-2 rounded-full font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300 text-sm xl:text-base"
+                className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-5 py-2 rounded-full font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300 text-sm xl:text-base animate-pulse"
               >
                 Ordina Ora
               </Link>
@@ -223,14 +301,14 @@ export default function LandingPage() {
             </button>
           </div>
 
-          {/* Mobile Navigation - Full Screen */}
+          {/* Mobile Navigation */}
           {isMenuOpen && (
             <div className="lg:hidden fixed inset-0 top-[56px] bg-white z-50">
               <div className="flex flex-col p-6 space-y-4">
                 <button onClick={() => scrollToSection('home')} className="text-left py-3 text-gray-700 text-lg border-b">Home</button>
-                <button onClick={() => scrollToSection('chi-sono')} className="text-left py-3 text-gray-700 text-lg border-b">Chi Sono</button>
+                <button onClick={() => scrollToSection('vantaggi')} className="text-left py-3 text-gray-700 text-lg border-b">Vantaggi</button>
                 <button onClick={() => scrollToSection('menu')} className="text-left py-3 text-gray-700 text-lg border-b">Menu</button>
-                <button onClick={() => scrollToSection('come-funziona')} className="text-left py-3 text-gray-700 text-lg border-b">Come Funziona</button>
+                <button onClick={() => scrollToSection('chi-sono')} className="text-left py-3 text-gray-700 text-lg border-b">Chi Sono</button>
                 <button onClick={() => scrollToSection('contatti')} className="text-left py-3 text-gray-700 text-lg border-b">Contatti</button>
                 <Link 
                   href="/"
@@ -244,165 +322,112 @@ export default function LandingPage() {
         </nav>
       </header>
 
-      {/* Hero Section - COMPACT & MOBILE FIRST */}
-      <section id="home" className="pt-16 min-h-[40vh] sm:min-h-[45vh] lg:min-h-[50vh] bg-gradient-to-br from-amber-900 via-amber-800 to-orange-900 relative overflow-hidden">
-        <div className="container mx-auto px-4 lg:px-8 py-6 sm:py-8 lg:py-12 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-6 lg:gap-8 items-center">
-            {/* Text Content - Mobile Optimized */}
-            <div className="text-white space-y-3 sm:space-y-4">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold leading-tight">
-                Mangia Sano,<br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-400">
-                  Vivi Meglio
-                </span>
-              </h1>
-              <p className="text-sm sm:text-base lg:text-lg text-white/90 leading-relaxed">
-                Pasti bilanciati e gustosi, preparati con ingredienti freschi. 
-                La soluzione per chi non ha tempo di cucinare.
-              </p>
-              
-              {/* Features Pills - Mobile Optimized */}
-              <div className="flex flex-wrap gap-2 py-2">
-                <div className="flex items-center gap-1 bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full text-xs sm:text-sm">
-                  <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
-                  <span>Ritiro sede</span>
-                </div>
-                <div className="flex items-center gap-1 bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full text-xs sm:text-sm">
-                  <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-                  <span>2 giorni</span>
-                </div>
-                <div className="flex items-center gap-1 bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full text-xs sm:text-sm">
-                  <Star className="w-3 h-3 sm:w-4 sm:h-4" />
-                  <span>Premium</span>
-                </div>
-              </div>
-
-              {/* CTA Buttons - Mobile Optimized */}
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                <Link 
-                  href="/"
-                  className="bg-gradient-to-r from-yellow-400 to-orange-400 text-gray-900 px-5 py-2.5 rounded-full font-bold hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base"
-                >
-                  <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
-                  Ordina Ora
-                </Link>
-                <button 
-                  onClick={() => scrollToSection('chi-sono')}
-                  className="bg-white/20 backdrop-blur-sm border-2 border-white text-white px-5 py-2.5 rounded-full font-bold hover:bg-white hover:text-amber-900 transition-all duration-300 text-sm sm:text-base text-center"
-                >
-                  Scopri di Più
-                </button>
-              </div>
-            </div>
-
-            {/* Image - Mobile Optimized */}
-            <div className="relative hidden lg:block">
-              <div className="relative rounded-xl overflow-hidden shadow-2xl">
-                <Image 
-                  src="/images/landing/hero-meal.jpg" 
-                  alt="Pasti Sani"
-                  width={500}
-                  height={300}
-                  className="w-full h-auto object-cover"
-                  priority
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&q=80';
-                  }}
-                />
-              </div>
-            </div>
-          </div>
+      {/* Hero Section - SUPER COMPACT con URGENZA */}
+      <section id="home" className="pt-16 h-[300px] sm:h-[350px] bg-gradient-to-br from-amber-900 via-amber-800 to-orange-900 relative overflow-hidden">
+        {/* Animated Background Pattern */}
+        <div className="absolute inset-0">
+          <div className="absolute top-10 left-10 w-20 h-20 bg-yellow-400/20 rounded-full animate-pulse"></div>
+          <div className="absolute bottom-10 right-10 w-32 h-32 bg-orange-400/20 rounded-full animate-pulse delay-1000"></div>
+          <div className="absolute top-20 right-20 w-16 h-16 bg-yellow-300/20 rounded-full animate-pulse delay-500"></div>
         </div>
-      </section>
-
-      {/* Chi Sono Section - COMPACT & MOBILE FIRST */}
-      <section id="chi-sono" className="py-10 sm:py-12 lg:py-16 bg-gradient-to-b from-gray-50 to-white">
-        <div className="container mx-auto px-4 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-6 lg:gap-10 items-start">
-            {/* Image - Same height as text content */}
-            <div className="relative order-2 lg:order-1">
-              <div className="rounded-xl overflow-hidden shadow-xl h-[300px] sm:h-[350px] lg:h-[400px]">
-                <Image 
-                  src="/images/landing/andrea.jpg" 
-                  alt="Andrea Padoan"
-                  width={600}
-                  height={400}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80';
-                  }}
-                />
-              </div>
-              <div className="absolute -bottom-4 -right-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg p-3 sm:p-4 shadow-xl">
-                <div className="text-lg sm:text-xl font-bold">12+ anni</div>
-                <div className="text-xs sm:text-sm">di esperienza</div>
-              </div>
+        
+        <div className="container mx-auto px-4 lg:px-8 h-full flex items-center relative z-10">
+          <div className="text-white space-y-4 text-center lg:text-left max-w-2xl mx-auto lg:mx-0">
+            {/* Countdown Badge */}
+            <div className="inline-flex items-center gap-2 bg-red-500/90 text-white px-4 py-2 rounded-full text-sm font-bold animate-bounce">
+              <AlertCircle className="w-4 h-4" />
+              Ordina entro le 18:00 per ritiro dopodomani! ⏰ {timeLeft}
             </div>
-
-            {/* Text - Compact */}
-            <div className="space-y-3 sm:space-y-4 order-1 lg:order-2">
-              <div className="text-amber-600 font-semibold text-sm sm:text-base">FONDATORE & PERSONAL TRAINER</div>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
-                Ciao, sono Andrea
-              </h2>
-              <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
-                Sono un Personal Trainer e il mio lavoro è far tornare in forma le persone!
-              </p>
-              
-              <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-amber-500 p-3 sm:p-4 rounded-r-lg">
-                <p className="text-sm sm:text-base text-gray-700">
-                  <strong>La mia storia:</strong> Dopo 12 anni di lavoro sedentario, ero completamente fuori forma a 30 anni. 
-                  Ho deciso di cambiare vita e ora aiuto gli altri a fare lo stesso.
-                </p>
-              </div>
-
-              <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
-                Ho creato Pasto Sano perché so quanto è difficile mangiare bene quando non hai tempo. 
-                La soluzione? Pasti pronti, sani e gustosi!
-              </p>
-
+            
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight animate-fade-in">
+              Mangia Sano,
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-400">
+                {" "}Vivi Meglio
+              </span>
+            </h1>
+            
+            <p className="text-base sm:text-lg text-white/90">
+              Pasti pronti in 2 minuti. Torni a casa e mangi subito!
+            </p>
+            
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
               <Link 
                 href="/"
-                className="inline-flex bg-gradient-to-r from-amber-500 to-orange-500 text-white px-6 py-2.5 rounded-full font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300 items-center gap-2 text-sm sm:text-base"
+                className="bg-gradient-to-r from-yellow-400 to-orange-400 text-gray-900 px-6 py-3 rounded-full font-bold hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
               >
-                Scopri il Menu
-                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                <ShoppingCart className="w-5 h-5" />
+                Ordina Subito
+                <Sparkles className="w-4 h-4" />
               </Link>
+              <button 
+                onClick={() => scrollToSection('vantaggi')}
+                className="bg-white/20 backdrop-blur-sm border-2 border-white text-white px-6 py-3 rounded-full font-bold hover:bg-white hover:text-amber-900 transition-all duration-300"
+              >
+                Scopri i Vantaggi
+              </button>
+            </div>
+            
+            {/* Spots Available */}
+            <div className="text-sm text-yellow-300 font-semibold">
+              ⚠️ Solo {availableSpots} posti disponibili per domani!
             </div>
           </div>
         </div>
       </section>
 
-      {/* I 5 Segreti Section - MOBILE OPTIMIZED */}
-      <section className="py-10 sm:py-12 lg:py-16 bg-white">
+      {/* Problems & Solutions Section */}
+      <section id="vantaggi" className="py-12 lg:py-16 bg-gradient-to-b from-gray-50 to-white">
         <div className="container mx-auto px-4 lg:px-8">
-          <div className="text-center mb-8 sm:mb-10">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-900 to-amber-700 mb-2 sm:mb-3">
-              I 5 Segreti per Stare in Forma
+          <div className="text-center mb-10">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3">
+              Basta con questi problemi!
             </h2>
-            <p className="text-sm sm:text-base lg:text-lg text-gray-600">
-              Il metodo che funziona davvero
-            </p>
+            <p className="text-gray-600">Hai mai vissuto queste situazioni?</p>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-            {secrets.map((secret, index) => (
+          
+          {/* Problems */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+            {problems.map((problem, index) => (
               <div 
                 key={index}
-                className="bg-white border border-gray-100 rounded-xl p-4 sm:p-5 shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300 relative overflow-hidden"
+                className="bg-red-50 border border-red-200 rounded-lg p-4 transform hover:scale-105 transition-all duration-300"
+                style={{ animationDelay: `${index * 100}ms` }}
               >
-                <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-amber-500 to-orange-500"></div>
-                
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-lg flex-shrink-0">
-                    {secret.number}
-                  </div>
-                  <div>
-                    <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1">{secret.title}</h3>
-                    <p className="text-xs sm:text-sm text-gray-600">{secret.description}</p>
-                  </div>
+                  {problem.icon}
+                  <p className="text-sm text-gray-700">{problem.text}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Arrow Down */}
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center justify-center w-12 h-12 bg-amber-500 text-white rounded-full animate-bounce">
+              <ArrowRight className="w-6 h-6 rotate-90" />
+            </div>
+          </div>
+          
+          {/* Solutions */}
+          <div className="text-center mb-10">
+            <h3 className="text-2xl sm:text-3xl font-bold text-green-600 mb-3">
+              Ecco la Soluzione! 
+            </h3>
+            <p className="text-gray-600">Con Pasto Sano tutto cambia</p>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {solutions.map((solution, index) => (
+              <div 
+                key={index}
+                className="bg-green-50 border border-green-200 rounded-lg p-6 transform hover:scale-105 transition-all duration-300 hover:shadow-xl"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <div className="flex flex-col items-center text-center gap-3">
+                  {solution.icon}
+                  <h4 className="font-bold text-gray-900">{solution.title}</h4>
+                  <p className="text-sm text-gray-600">{solution.description}</p>
                 </div>
               </div>
             ))}
@@ -410,143 +435,331 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Perché Pasto Sano - MOBILE OPTIMIZED */}
-      <section className="py-10 sm:py-12 lg:py-16 bg-gradient-to-b from-amber-50 to-orange-50">
+      {/* Benefits with Real Images */}
+      <section className="py-12 lg:py-16 bg-white">
         <div className="container mx-auto px-4 lg:px-8">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center text-gray-900 mb-8 sm:mb-10">
-            Perché Scegliere Pasto Sano?
-          </h2>
-
+          <div className="text-center mb-10">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3">
+              Perché Scegliere Pasto Sano?
+            </h2>
+            <p className="text-gray-600">Guarda con i tuoi occhi la qualità dei nostri piatti</p>
+          </div>
+          
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {features.map((feature, index) => (
               <div 
                 key={index}
-                className="bg-white rounded-xl p-4 sm:p-6 shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300 text-center"
+                className="group relative bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300"
               >
-                <div className="text-amber-500 mb-2 sm:mb-3 flex justify-center">
-                  {feature.icon}
+                {/* Badge */}
+                <div className="absolute top-2 right-2 bg-amber-500 text-white text-xs px-2 py-1 rounded-full font-bold z-10">
+                  {feature.badge}
                 </div>
-                <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 mb-1 sm:mb-2">{feature.title}</h3>
-                <p className="text-xs sm:text-sm text-gray-600">{feature.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Menu Section - MOBILE OPTIMIZED */}
-      <section id="menu" className="py-10 sm:py-12 lg:py-16 bg-white">
-        <div className="container mx-auto px-4 lg:px-8">
-          <div className="text-center mb-8 sm:mb-10">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2 sm:mb-3">
-              Il Nostro Menu
-            </h2>
-            <p className="text-sm sm:text-base lg:text-lg text-gray-600">
-              Scegli e ordina online
-            </p>
-          </div>
-
-          {/* Menu Preview Grid - Mobile Optimized */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8 sm:mb-10">
-            {menuPreview.map((item, index) => (
-              <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300">
-                <div className="h-28 sm:h-36 lg:h-44 overflow-hidden">
+                
+                {/* Image */}
+                <div className="h-32 sm:h-40 overflow-hidden">
                   <Image 
-                    src={item.image}
-                    alt={item.name}
+                    src={feature.image}
+                    alt={feature.title}
                     width={300}
                     height={200}
-                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80';
                     }}
                   />
                 </div>
-                <div className="p-2 sm:p-3">
-                  <h3 className="font-bold text-gray-900 text-xs sm:text-sm lg:text-base mb-1">{item.name}</h3>
-                  <p className="text-amber-600 font-bold text-sm sm:text-base">€{item.price}</p>
+                
+                {/* Content */}
+                <div className="p-4">
+                  <h3 className="font-bold text-gray-900 mb-1">{feature.title}</h3>
+                  <p className="text-xs sm:text-sm text-gray-600">{feature.description}</p>
                 </div>
               </div>
             ))}
           </div>
+        </div>
+      </section>
 
-          {/* CTA to Full Menu - Mobile Optimized */}
+      {/* Menu Highlights with Effects */}
+      <section id="menu" className="py-12 lg:py-16 bg-gradient-to-b from-amber-50 to-orange-50">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3">
+              I Nostri Bestseller
+            </h2>
+            <p className="text-gray-600">I piatti più amati dai nostri clienti</p>
+          </div>
+          
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+            {menuHighlights.map((item, index) => (
+              <div 
+                key={index}
+                className="group relative bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+              >
+                {/* Badge */}
+                <div className={`absolute top-2 left-2 ${item.badgeColor} text-white text-xs px-3 py-1 rounded-full font-bold z-10 animate-pulse`}>
+                  {item.badge}
+                </div>
+                
+                {/* Image */}
+                <div className="h-32 sm:h-40 overflow-hidden">
+                  <Image 
+                    src={item.image}
+                    alt={item.name}
+                    width={300}
+                    height={200}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80';
+                    }}
+                  />
+                </div>
+                
+                {/* Content */}
+                <div className="p-4">
+                  <h3 className="font-bold text-gray-900 mb-2">{item.name}</h3>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl font-bold text-amber-600">€{item.price}</span>
+                    {item.oldPrice && (
+                      <span className="text-sm text-gray-400 line-through">€{item.oldPrice}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {/* CTA */}
           <div className="text-center">
             <Link 
               href="/"
-              className="inline-flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full font-bold text-sm sm:text-base lg:text-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300"
+              className="inline-flex items-center gap-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-8 py-4 rounded-full font-bold text-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
             >
-              <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6" />
-              <span>Vai al Menu Completo</span>
-              <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5" />
+              <ShoppingCart className="w-6 h-6" />
+              Scopri Tutto il Menu
+              <ExternalLink className="w-5 h-5" />
             </Link>
-            <p className="text-gray-600 mt-3 text-xs sm:text-sm">
-              Scopri tutti i piatti disponibili
+            <p className="text-amber-600 font-semibold mt-4 animate-pulse">
+              🔥 Offerta: Ordina 5 pasti e il 6° è GRATIS!
             </p>
           </div>
         </div>
       </section>
 
-      {/* Come Funziona - MOBILE OPTIMIZED */}
-      <section id="come-funziona" className="py-10 sm:py-12 lg:py-16 bg-gradient-to-b from-gray-50 to-white">
+      {/* Testimonials Carousel */}
+      <section className="py-12 lg:py-16 bg-white">
         <div className="container mx-auto px-4 lg:px-8">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center text-gray-900 mb-8 sm:mb-10">
-            Come Funziona?
-          </h2>
-
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-            {steps.map((step, index) => (
-              <div key={index} className="text-center">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center font-bold text-lg sm:text-xl lg:text-2xl mx-auto mb-3">
-                  {step.number}
+          <div className="text-center mb-10">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3">
+              Cosa Dicono i Nostri Clienti
+            </h2>
+            <div className="flex justify-center items-center gap-2 text-amber-500">
+              <Users className="w-5 h-5" />
+              <span className="font-semibold">Oltre 500 clienti soddisfatti</span>
+            </div>
+          </div>
+          
+          <div className="max-w-2xl mx-auto">
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-8 shadow-xl relative">
+              {/* Quote Icon */}
+              <div className="absolute -top-4 left-8 bg-amber-500 text-white w-8 h-8 rounded-full flex items-center justify-center">
+                <span className="text-2xl">"</span>
+              </div>
+              
+              {/* Testimonial Content */}
+              <div className="text-center">
+                <div className="flex justify-center mb-4">
+                  {[...Array(testimonials[currentTestimonial].rating)].map((_, i) => (
+                    <Star key={i} className="w-5 h-5 text-amber-500 fill-current" />
+                  ))}
                 </div>
-                <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 mb-1">{step.title}</h3>
-                <p className="text-xs sm:text-sm text-gray-600">{step.description}</p>
+                <p className="text-gray-700 text-lg mb-4 italic">
+                  "{testimonials[currentTestimonial].text}"
+                </p>
+                <div className="font-bold text-gray-900">
+                  {testimonials[currentTestimonial].name}
+                </div>
+                <div className="text-sm text-gray-600">
+                  {testimonials[currentTestimonial].role}
+                </div>
+              </div>
+              
+              {/* Dots */}
+              <div className="flex justify-center gap-2 mt-6">
+                {testimonials.map((_, index) => (
+                  <div 
+                    key={index}
+                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      index === currentTestimonial ? 'bg-amber-500 w-8' : 'bg-gray-300'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Chi Sono Section - EXPANDED */}
+      <section id="chi-sono" className="py-12 lg:py-16 bg-gradient-to-b from-gray-50 to-white">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            {/* Image */}
+            <div className="relative">
+              <div className="rounded-2xl overflow-hidden shadow-2xl">
+                <Image 
+                  src="/images/landing/andrea.jpg" 
+                  alt="Andrea Padoan"
+                  width={600}
+                  height={600}
+                  className="w-full h-auto"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80';
+                  }}
+                />
+              </div>
+              <div className="absolute -bottom-6 -right-6 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl p-6 shadow-xl">
+                <div className="text-2xl font-bold">12+ anni</div>
+                <div>di esperienza</div>
+              </div>
+            </div>
+
+            {/* Text - EXPANDED */}
+            <div className="space-y-4">
+              <div className="text-amber-600 font-semibold">FONDATORE & PERSONAL TRAINER</div>
+              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
+                Ciao, sono Andrea Padoan
+              </h2>
+              
+              <p className="text-gray-700 leading-relaxed">
+                <strong>La mia storia inizia come la tua.</strong> Dopo 12 anni passati dietro una scrivania, 
+                mi ritrovavo ogni sera a mangiare male: gastronomia, bar, mense aziendali. 
+                A 30 anni ero completamente fuori forma, con problemi digestivi e zero energia.
+              </p>
+              
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-amber-500 p-4 rounded-r-xl">
+                <p className="text-gray-700">
+                  <strong>La svolta:</strong> Ho deciso di cambiare vita, sono diventato Personal Trainer 
+                  e ho capito che il 70% dei risultati dipende dall'alimentazione. Ma c'era un problema: 
+                  chi ha tempo di cucinare sano ogni giorno?
+                </p>
+              </div>
+              
+              <p className="text-gray-700 leading-relaxed">
+                <strong>Nasce Pasto Sano:</strong> Ho passato 4 anni a testare laboratori e fornitori, 
+                cercando chi potesse preparare pasti come li avrei cucinati io: naturali, bilanciati, gustosi. 
+                Ho coinvolto decine di amici nei test, finché non ho trovato la formula perfetta.
+              </p>
+              
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <p className="text-gray-700">
+                  <ChefHat className="w-5 h-5 text-green-600 inline mr-2" />
+                  <strong>La missione:</strong> Oggi aiuto centinaia di persone a mangiare sano senza stress. 
+                  Perché so cosa significa tornare a casa stanchi e non avere voglia di cucinare. 
+                  Con Pasto Sano, il problema è risolto: 2 minuti e mangi!
+                </p>
+              </div>
+              
+              <div className="flex items-center gap-6 pt-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-amber-600">500+</div>
+                  <div className="text-sm text-gray-600">Clienti Felici</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-amber-600">15.000+</div>
+                  <div className="text-sm text-gray-600">Pasti Consegnati</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-amber-600">4.9⭐</div>
+                  <div className="text-sm text-gray-600">Valutazione</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Come Funziona - Quick Steps */}
+      <section className="py-12 lg:py-16 bg-white">
+        <div className="container mx-auto px-4 lg:px-8">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center text-gray-900 mb-10">
+            Facilissimo! 4 Step
+          </h2>
+          
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { icon: <ShoppingCart />, title: "Scegli", desc: "Dal menu online" },
+              { icon: <CreditCard />, title: "Ordina", desc: "Paghi online o al ritiro" },
+              { icon: <Clock />, title: "Aspetta", desc: "2 giorni lavorativi" },
+              { icon: <ThumbsUp />, title: "Ritira", desc: "Via Albere 27/B" }
+            ].map((step, i) => (
+              <div key={i} className="text-center group">
+                <div className="w-16 h-16 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                  {React.cloneElement(step.icon as React.ReactElement, { className: "w-8 h-8" })}
+                </div>
+                <h3 className="font-bold text-gray-900 mb-1">{step.title}</h3>
+                <p className="text-xs text-gray-600">{step.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section - MOBILE OPTIMIZED */}
-      <section className="py-10 sm:py-12 lg:py-16 bg-gradient-to-r from-amber-900 via-amber-800 to-orange-900 relative overflow-hidden">
-        <div className="container mx-auto px-4 lg:px-8 text-center relative z-10">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-3 sm:mb-4">
-            Inizia Oggi!
+      {/* Final CTA - URGENCY */}
+      <section className="py-12 lg:py-16 bg-gradient-to-r from-amber-900 via-amber-800 to-orange-900">
+        <div className="container mx-auto px-4 lg:px-8 text-center">
+          <Zap className="w-12 h-12 text-yellow-400 mx-auto mb-4 animate-pulse" />
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">
+            Non Aspettare!
           </h2>
-          <p className="text-sm sm:text-base lg:text-lg text-white/90 mb-6 sm:mb-8 max-w-2xl mx-auto">
-            Non aspettare domani per prenderti cura di te
+          <p className="text-white/90 text-lg mb-6">
+            Ogni giorno che passa è un giorno perso per la tua salute
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 max-w-md mx-auto mb-8">
+            <p className="text-yellow-300 font-bold text-lg mb-2">
+              🎁 OFFERTA LIMITATA
+            </p>
+            <p className="text-white">
+              Ordina ora e ricevi il 10% di sconto sul primo ordine!
+            </p>
+            <p className="text-sm text-white/80 mt-2">
+              Codice: SALUTE10
+            </p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link 
               href="/"
-              className="bg-white text-amber-900 px-6 py-3 rounded-full font-bold text-sm sm:text-base hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2"
+              className="bg-white text-amber-900 px-8 py-4 rounded-full font-bold text-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
             >
-              <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
-              Ordina Ora
+              <ShoppingCart className="w-6 h-6" />
+              Ordina Ora con lo Sconto
             </Link>
             <a 
-              href="https://wa.me/393478881515?text=Ciao%20Pasto%20Sano,%20vorrei%20informazioni"
+              href="https://wa.me/393478881515?text=Ciao%20voglio%20ordinare%20con%20SALUTE10"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-green-500 text-white px-6 py-3 rounded-full font-bold text-sm sm:text-base hover:bg-green-600 hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2"
+              className="bg-green-500 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-green-600 hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
             >
-              <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
-              WhatsApp
+              <MessageCircle className="w-6 h-6" />
+              Ordina via WhatsApp
             </a>
           </div>
         </div>
       </section>
 
-      {/* Footer - MOBILE OPTIMIZED */}
-      <footer id="contatti" className="bg-amber-950 text-white py-10 sm:py-12 lg:py-16">
+      {/* Footer - COMPACT */}
+      <footer id="contatti" className="bg-amber-950 text-white py-10">
         <div className="container mx-auto px-4 lg:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 mb-8 sm:mb-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {/* Brand */}
-            <div className="text-center sm:text-left">
-              <div className="flex items-center gap-2 mb-3 justify-center sm:justify-start">
+            <div>
+              <div className="flex items-center gap-2 mb-3">
                 <Image 
                   src="/images/logo.png" 
                   alt="Pasto Sano" 
@@ -557,79 +770,73 @@ export default function LandingPage() {
                 <span className="text-xl font-bold">Pasto Sano</span>
               </div>
               <p className="text-white/80 text-sm">
-                La soluzione per stare in forma.
+                La soluzione per mangiare sano senza stress.
               </p>
-              <div className="flex gap-3 mt-4 justify-center sm:justify-start">
-                <a href="#" className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center hover:bg-amber-500 transition-colors">
-                  <Facebook className="w-4 h-4" />
-                </a>
-                <a href="#" className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center hover:bg-amber-500 transition-colors">
-                  <Instagram className="w-4 h-4" />
-                </a>
-                <a href="https://wa.me/393478881515" target="_blank" rel="noopener noreferrer" className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center hover:bg-green-500 transition-colors">
-                  <MessageCircle className="w-4 h-4" />
-                </a>
-              </div>
             </div>
 
-            {/* Link Utili */}
-            <div className="text-center sm:text-left">
-              <h3 className="text-yellow-400 font-bold text-base mb-3">Link Utili</h3>
-              <ul className="space-y-2">
-                <li>
-                  <button onClick={() => scrollToSection('chi-sono')} className="text-white/80 hover:text-amber-400 transition-colors text-sm">
-                    Chi Sono
-                  </button>
-                </li>
-                <li>
-                  <button onClick={() => scrollToSection('menu')} className="text-white/80 hover:text-amber-400 transition-colors text-sm">
-                    Menu
-                  </button>
-                </li>
-                <li>
-                  <Link href="/" className="text-white/80 hover:text-amber-400 transition-colors text-sm">
-                    Ordina Online
-                  </Link>
-                </li>
-              </ul>
+            {/* Quick Links */}
+            <div>
+              <h3 className="text-yellow-400 font-bold mb-3">Menu</h3>
+              <Link href="/" className="text-white/80 hover:text-amber-400 text-sm block mb-2">
+                Ordina Online
+              </Link>
+              <button onClick={() => scrollToSection('menu')} className="text-white/80 hover:text-amber-400 text-sm block mb-2">
+                I Nostri Piatti
+              </button>
             </div>
 
             {/* Contatti */}
-            <div className="text-center sm:text-left">
-              <h3 className="text-yellow-400 font-bold text-base mb-3">Contatti</h3>
-              <ul className="space-y-2">
-                <li className="flex items-center gap-2 text-white/80 justify-center sm:justify-start">
-                  <Mail className="w-4 h-4" />
-                  <a href="mailto:info@pastosano.it" className="hover:text-amber-400 transition-colors text-sm">
-                    info@pastosano.it
-                  </a>
-                </li>
-                <li className="flex items-center gap-2 text-white/80 justify-center sm:justify-start">
-                  <Phone className="w-4 h-4" />
-                  <a href="tel:+393478881515" className="hover:text-amber-400 transition-colors text-sm">
-                    347 888 1515
-                  </a>
-                </li>
-              </ul>
+            <div>
+              <h3 className="text-yellow-400 font-bold mb-3">Contatti</h3>
+              <a href="tel:+393478881515" className="text-white/80 hover:text-amber-400 text-sm block mb-2">
+                📞 347 888 1515
+              </a>
+              <a href="mailto:info@pastosano.it" className="text-white/80 hover:text-amber-400 text-sm block mb-2">
+                ✉️ info@pastosano.it
+              </a>
             </div>
 
-            {/* Orari */}
-            <div className="text-center sm:text-left">
-              <h3 className="text-yellow-400 font-bold text-base mb-3">Ritiro</h3>
+            {/* Ritiro */}
+            <div>
+              <h3 className="text-yellow-400 font-bold mb-3">Ritiro</h3>
               <p className="text-white/80 text-sm">
-                Via Albere 27/B<br />
-                Lun-Ven (orario da concordare)<br />
-                <span className="text-amber-400 font-semibold mt-2 inline-block">Ordina 2 giorni prima</span>
+                📍 Via Albere 27/B<br />
+                Lun-Ven (concordare orario)<br />
+                <span className="text-amber-400 font-bold">Ordina 2 giorni prima!</span>
               </p>
             </div>
           </div>
 
-          {/* Copyright */}
-          <div className="border-t border-white/10 pt-6 text-center text-white/60 text-xs sm:text-sm">
-            <p>© 2024 Pasto Sano - Tutti i diritti riservati</p>
+          <div className="border-t border-white/10 pt-6 text-center text-white/60 text-xs">
+            <p>© 2024 Pasto Sano - Tutti i diritti riservati | Made with ❤️ by Andrea Padoan</p>
           </div>
         </div>
       </footer>
+
+      <style jsx>{`
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .animate-fade-in {
+          animation: fade-in 0.8s ease-out;
+        }
+        
+        .delay-500 {
+          animation-delay: 500ms;
+        }
+        
+        .delay-1000 {
+          animation-delay: 1000ms;
+        }
+      `}</style>
     </div>
   );
 }
