@@ -7,7 +7,6 @@ import {
   ShoppingCart, 
   Clock, 
   Star,
-  MapPin,
   Menu,
   X,
   Leaf,
@@ -26,13 +25,12 @@ import {
   XCircle,
   Home,
   Timer,
-  TrendingUp,
   Users,
   AlertCircle,
   Sparkles,
   ChefHat,
-  ThumbsUp,
-  Zap
+  Zap,
+  CreditCard
 } from 'lucide-react';
 
 export default function LandingPage() {
