@@ -122,7 +122,7 @@ export default function AdminDashboard() {
       setLoading(true);
       setError(null);
 
-      const [ordersData, statsData, productsData, customersData] = await Promise.all([
+      const [ordersData, ,statsData, productsData, customersData] = await Promise.all([
         getOrders(500),
         getDashboardStats(),
         getTopProducts(10, 30),
