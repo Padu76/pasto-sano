@@ -194,9 +194,8 @@ export default function Home() {
   const [pickupDate, setPickupDate] = useState('');
   const [notes, setNotes] = useState('');
   
-  // Calcolo data minima e suggerita
+  // Calcolo data minima
   const [minPickupDate, setMinPickupDate] = useState('');
-  const [suggestedDate, setSuggestedDate] = useState('');
 
   const categories = ['tutti', 'pasta', 'carne', 'pesce', 'vegetariano', 'wrap', 'colazione'];
 
@@ -209,7 +208,6 @@ export default function Home() {
     const minDate = calculateMinPickupDate();
     const minDateString = formatDateForInput(minDate);
     setMinPickupDate(minDateString);
-    setSuggestedDate(minDateString);
     setPickupDate(minDateString); // Imposta automaticamente la data suggerita
   }, []);
 
