@@ -197,7 +197,7 @@ async function sendCashOrderEmail(orderData: any) {
 }
 
 // GET endpoint per verificare che l'endpoint sia attivo
-export async function GET(request: NextRequest) {
+export async function GET() {
   return NextResponse.json({
     status: 'active',
     endpoint: '/api/cash-order',
