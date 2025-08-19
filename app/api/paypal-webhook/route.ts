@@ -47,8 +47,7 @@ export async function POST(request: NextRequest) {
           pickupDate: new Date().toISOString(),
           notes: `PayPal Order ID: ${paypalOrderId}`,
           source: 'paypal_webhook',
-          timestamp: new Date(),
-          transactionId: paypalOrderId
+          timestamp: new Date()
         });
         
         console.log('✅ Ordine salvato su Firebase');
@@ -167,7 +166,7 @@ async function sendPayPalEmailNotification(paymentData: any) {
 }
 
 // GET endpoint per verificare che il webhook sia attivo
-export async function GET(request: NextRequest) {
+export async function GET() {
   return NextResponse.json({
     status: 'active',
     endpoint: '/api/paypal-webhook',
