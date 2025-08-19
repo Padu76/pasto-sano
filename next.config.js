@@ -120,7 +120,6 @@ const nextConfig = {
 
   // Experimental features
   experimental: {
-    serverActions: true,
     serverComponentsExternalPackages: ['firebase-admin'],
   },
 
