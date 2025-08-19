@@ -12,8 +12,6 @@ import {
   limit,
   onSnapshot,
   Timestamp,
-  DocumentData,
-  QuerySnapshot,
   Unsubscribe
 } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
