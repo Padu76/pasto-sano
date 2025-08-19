@@ -1,6 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
+
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { 
   ShoppingCart, 
   Plus, 
@@ -17,7 +21,10 @@ import {
   Loader2,
   Calendar,
   MapPin,
-  Info
+  Info,
+  Mail,
+  MessageCircle,
+  Globe
 } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import emailjs from '@emailjs/browser';
@@ -513,13 +520,20 @@ export default function Home() {
         <header className="bg-white shadow-lg sticky top-0 z-40">
           <div className="container mx-auto px-4 py-4">
             <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-2">
-                <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center">
-                  <Heart className="w-6 h-6 text-white" />
+              <div className="flex items-center space-x-3">
+                <Image 
+                  src="/images/logo.png" 
+                  alt="Pasto Sano" 
+                  width={60} 
+                  height={60}
+                  className="object-contain"
+                />
+                <div>
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-yellow-600 bg-clip-text text-transparent">
+                    Pasto Sano
+                  </h1>
+                  <p className="text-xs text-gray-600">La soluzione per stare in forma</p>
                 </div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-                  Pasto Sano
-                </h1>
               </div>
               <button 
                 onClick={() => setIsCartOpen(true)}
@@ -1013,6 +1027,80 @@ export default function Home() {
             <span className="font-semibold">Ordine completato con successo!</span>
           </div>
         )}
+
+        {/* Footer */}
+        <footer className="bg-gradient-to-br from-amber-900 to-amber-950 text-white mt-16">
+          <div className="container mx-auto px-4 py-12">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Logo e Info Azienda */}
+              <div className="text-center md:text-left">
+                <div className="flex items-center justify-center md:justify-start mb-4">
+                  <Image 
+                    src="/images/logo.png" 
+                    alt="Pasto Sano" 
+                    width={80} 
+                    height={80}
+                    className="object-contain"
+                  />
+                </div>
+                <h3 className="text-xl font-bold mb-2">Pasto Sano</h3>
+                <p className="text-sm opacity-90">
+                  La soluzione per stare in forma.<br />
+                  Pasti sani e gustosi, preparati con amore.
+                </p>
+              </div>
+
+              {/* Contatti */}
+              <div className="text-center">
+                <h4 className="text-lg font-semibold mb-4">Contatti</h4>
+                <div className="space-y-3">
+                  <a 
+                    href="mailto:info@pastosano.it"
+                    className="flex items-center justify-center gap-2 hover:text-yellow-400 transition"
+                  >
+                    <Mail className="w-5 h-5" />
+                    <span>info@pastosano.it</span>
+                  </a>
+                  <a 
+                    href="https://wa.me/393478881515?text=Ciao%20Pasto%20Sano,%20vorrei%20informazioni"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full transition transform hover:scale-105"
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    <span className="font-semibold">WhatsApp: 347 888 1515</span>
+                  </a>
+                  <a 
+                    href="https://www.pastosano.it"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 hover:text-yellow-400 transition"
+                  >
+                    <Globe className="w-5 h-5" />
+                    <span>www.pastosano.it</span>
+                  </a>
+                </div>
+              </div>
+
+              {/* Orari e Info */}
+              <div className="text-center md:text-right">
+                <h4 className="text-lg font-semibold mb-4">Ritiro Ordini</h4>
+                <div className="space-y-2 text-sm opacity-90">
+                  <p>Lunedì - Venerdì</p>
+                  <p className="font-semibold">Orario da concordare</p>
+                  <p className="mt-3">Ordina entro 2 giorni lavorativi</p>
+                  <p>Ritiro presso la nostra sede</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Copyright */}
+            <div className="border-t border-white/20 mt-8 pt-6 text-center text-sm opacity-75">
+              <p>© 2024 Pasto Sano - Tutti i diritti riservati</p>
+              <p className="mt-2">P.IVA: IT00000000000 | Powered with ❤️ by Pasto Sano Team</p>
+            </div>
+          </div>
+        </footer>
       </div>
     </PayPalScriptProvider>
   );
