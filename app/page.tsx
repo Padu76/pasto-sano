@@ -924,6 +924,7 @@ export default function Home() {
                   <PayPalButtons
                     createOrder={(_data, actions) => {
                       return actions.order.create({
+                        intent: "CAPTURE",
                         purchase_units: [{
                           description: `Ordine Pasto Sano - ${customerName}`,
                           amount: {
