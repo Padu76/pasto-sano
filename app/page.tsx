@@ -922,7 +922,7 @@ export default function Home() {
                     <p>Ritiro: {pickupDate ? new Date(pickupDate).toLocaleDateString('it-IT') : 'Da definire'}</p>
                   </div>
                   <PayPalButtons
-                    createOrder={(data, actions) => {
+                    createOrder={(_data, actions) => {
                       return actions.order.create({
                         purchase_units: [{
                           description: `Ordine Pasto Sano - ${customerName}`,
