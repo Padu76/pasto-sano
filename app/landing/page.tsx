@@ -10,7 +10,6 @@ import {
   Menu,
   X,
   Leaf,
-  Award,
   Scale,
   Flame,
   Heart,
@@ -29,8 +28,7 @@ import {
   AlertCircle,
   Sparkles,
   ChefHat,
-  Zap,
-  CreditCard
+  Zap
 } from 'lucide-react';
 
 export default function LandingPage() {
@@ -39,6 +37,33 @@ export default function LandingPage() {
   const [timeLeft, setTimeLeft] = useState('');
   const [availableSpots, setAvailableSpots] = useState(8);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
+
+  const testimonials = [
+    {
+      name: "Marco R.",
+      role: "Imprenditore",
+      text: "Finalmente posso mangiare sano anche con poco tempo. Pasto Sano mi ha cambiato la vita!",
+      rating: 5
+    },
+    {
+      name: "Laura B.",
+      role: "Manager",
+      text: "Ho perso 8kg in 3 mesi senza rinunciare al gusto. Consigliatissimo!",
+      rating: 5
+    },
+    {
+      name: "Giuseppe T.",
+      role: "Sportivo",
+      text: "Perfetto per chi si allena. Pasti bilanciati e gustosi, recupero meglio dopo l'allenamento.",
+      rating: 5
+    },
+    {
+      name: "Anna M.",
+      role: "Mamma lavoratrice",
+      text: "Non ho più lo stress di cucinare ogni giorno. Più tempo per la famiglia!",
+      rating: 5
+    }
+  ];
 
   useEffect(() => {
     // Handle scroll for header
@@ -85,7 +110,7 @@ export default function LandingPage() {
       clearInterval(spotsInterval);
       clearInterval(testimonialInterval);
     };
-  }, []);
+  }, [testimonials.length]);
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
@@ -142,64 +167,43 @@ export default function LandingPage() {
       image: "/images/meals/fusilli-manzo-zucchine-melanzane.jpg",
       title: "100% Naturale",
       description: "Senza conservanti o additivi",
-      badge: "GARANTITO"
+      badge: "GARANTITO",
+      icon: <Leaf className="w-8 h-8" />
     },
     {
       image: "/images/meals/roastbeef-patate-fagiolini.jpg",
       title: "Qualità Premium",
       description: "Solo ingredienti selezionati",
-      badge: "TOP QUALITY"
+      badge: "TOP QUALITY",
+      icon: <Star className="w-8 h-8" />
     },
     {
       image: "/images/meals/pollo-patate-zucchine.jpg",
       title: "Bilanciato",
       description: "Proteine, carboidrati, vitamine",
-      badge: "EQUILIBRATO"
+      badge: "EQUILIBRATO",
+      icon: <Scale className="w-8 h-8" />
     },
     {
       image: "/images/meals/patate-salmone-broccoli.jpg",
       title: "Cottura Perfetta",
       description: "Vapore per preservare i nutrienti",
-      badge: "CHEF"
+      badge: "CHEF",
+      icon: <Flame className="w-8 h-8" />
     },
     {
       image: "/images/meals/riso-hamburger-carotine.jpg",
       title: "Pronto Subito",
       description: "2 minuti al microonde",
-      badge: "VELOCE"
+      badge: "VELOCE",
+      icon: <Clock className="w-8 h-8" />
     },
     {
       image: "/images/meals/orzo-ceci-feta-pomodorini.jpg",
       title: "Vario e Gustoso",
       description: "Menu sempre diverso",
-      badge: "NOVITÀ"
-    }
-  ];
-
-  const testimonials = [
-    {
-      name: "Marco R.",
-      role: "Imprenditore",
-      text: "Finalmente posso mangiare sano anche con poco tempo. Pasto Sano mi ha cambiato la vita!",
-      rating: 5
-    },
-    {
-      name: "Laura B.",
-      role: "Manager",
-      text: "Ho perso 8kg in 3 mesi senza rinunciare al gusto. Consigliatissimo!",
-      rating: 5
-    },
-    {
-      name: "Giuseppe T.",
-      role: "Sportivo",
-      text: "Perfetto per chi si allena. Pasti bilanciati e gustosi, recupero meglio dopo l'allenamento.",
-      rating: 5
-    },
-    {
-      name: "Anna M.",
-      role: "Mamma lavoratrice",
-      text: "Non ho più lo stress di cucinare ogni giorno. Più tempo per la famiglia!",
-      rating: 5
+      badge: "NOVITÀ",
+      icon: <Heart className="w-8 h-8" />
     }
   ];
 
@@ -233,6 +237,13 @@ export default function LandingPage() {
       badge: "OMEGA 3",
       badgeColor: "bg-purple-500"
     }
+  ];
+
+  const steps = [
+    { icon: <ShoppingCart className="w-8 h-8" />, title: "Scegli", desc: "Dal menu online" },
+    { icon: <Timer className="w-8 h-8" />, title: "Ordina", desc: "Paghi online o al ritiro" },
+    { icon: <Clock className="w-8 h-8" />, title: "Aspetta", desc: "2 giorni lavorativi" },
+    { icon: <CheckCircle className="w-8 h-8" />, title: "Ritira", desc: "Via Albere 27/B" }
   ];
 
   return (
@@ -689,15 +700,10 @@ export default function LandingPage() {
           </h2>
           
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { icon: <ShoppingCart />, title: "Scegli", desc: "Dal menu online" },
-              { icon: <CreditCard />, title: "Ordina", desc: "Paghi online o al ritiro" },
-              { icon: <Clock />, title: "Aspetta", desc: "2 giorni lavorativi" },
-              { icon: <ThumbsUp />, title: "Ritira", desc: "Via Albere 27/B" }
-            ].map((step, i) => (
+            {steps.map((step, i) => (
               <div key={i} className="text-center group">
                 <div className="w-16 h-16 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                  {React.cloneElement(step.icon as React.ReactElement, { className: "w-8 h-8" })}
+                  {step.icon}
                 </div>
                 <h3 className="font-bold text-gray-900 mb-1">{step.title}</h3>
                 <p className="text-xs text-gray-600">{step.desc}</p>
