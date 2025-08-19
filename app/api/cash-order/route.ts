@@ -47,7 +47,6 @@ export async function POST(request: NextRequest) {
         notes: notes || '',
         source: 'website',
         timestamp: new Date(),
-        transactionId: `CASH-${Date.now()}`
       });
       
       console.log('✅ Ordine salvato su Firebase con ID:', orderId);
