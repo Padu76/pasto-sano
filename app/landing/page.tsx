@@ -15,7 +15,6 @@ import {
   Scale,
   Flame,
   Heart,
-  ChevronRight,
   Mail,
   Phone,
   MessageCircle,
