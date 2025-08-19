@@ -12,8 +12,7 @@ import {
   limit,
   onSnapshot,
   Timestamp,
-  Unsubscribe,
-  connectFirestoreEmulator
+  Unsubscribe
 } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
