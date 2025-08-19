@@ -9,7 +9,6 @@ import {
   MapPin,
   Menu,
   X,
-  Check,
   Leaf,
   Award,
   Scale,
