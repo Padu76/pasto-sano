@@ -190,7 +190,6 @@ export default function Home() {
   // Dati cliente
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerName, setCustomerName] = useState('');
-  const [customerAddress, setCustomerAddress] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [pickupDate, setPickupDate] = useState('');
   const [notes, setNotes] = useState('');
@@ -314,7 +313,7 @@ export default function Home() {
       customerName,
       customerEmail,
       customerPhone,
-      customerAddress,
+      customerAddress: 'Ritiro presso Pasto Sano',
       pickupDate,
       items: cart,
       totalAmount: getTotalPrice(),
@@ -342,7 +341,7 @@ export default function Home() {
           items: cart,
           customerEmail,
           customerName,
-          customerAddress,
+          customerAddress: 'Ritiro presso Pasto Sano',
           customerPhone,
           pickupDate,
           notes
@@ -418,7 +417,7 @@ export default function Home() {
           customerName,
           customerPhone,
           customerEmail,
-          customerAddress,
+          customerAddress: 'Ritiro presso Pasto Sano',
           pickupDate,
           items: cart,
           totalAmount: getTotalPrice(),
@@ -460,7 +459,7 @@ export default function Home() {
         customerName,
         customerEmail,
         customerPhone,
-        customerAddress,
+        customerAddress: 'Ritiro presso Pasto Sano',
         items: cart,
         totalAmount: getTotalPrice(),
         paymentMethod: method,
@@ -487,7 +486,7 @@ export default function Home() {
       customer_name: customerName,
       customer_email: customerEmail,
       customer_phone: customerPhone,
-      customer_address: customerAddress,
+      customer_address: 'Ritiro presso Pasto Sano',
       order_details: orderDetails,
       total_amount: getTotalPrice().toFixed(2),
       payment_method: method === 'cash' ? 'Contanti al ritiro' : method === 'paypal' ? 'PayPal' : 'Carta di credito',
