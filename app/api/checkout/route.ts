@@ -41,7 +41,18 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     console.log('📦 Body ricevuto:', JSON.stringify(body, null, 2));
     
-    const { items, customerEmail, customerName, customerAddress, customerPhone } = body;
+    const { 
+      items, 
+      customerEmail, 
+      customerName, 
+      customerAddress, 
+      customerPhone,
+      pickupDate,
+      notes,
+      appliedDiscount,
+      originalAmount,
+      totalAmount
+    } = body;
     
     // 🔍 VALIDAZIONE DATI
     console.log('🔍 Validazione dati:');
@@ -49,6 +60,10 @@ export async function POST(request: NextRequest) {
     console.log('customerEmail:', customerEmail || 'Non fornita');
     console.log('customerName:', customerName || 'Non fornito');
     console.log('customerPhone:', customerPhone || 'Non fornito');
+    console.log('pickupDate:', pickupDate || 'Non fornita');
+    console.log('appliedDiscount:', appliedDiscount || 'Nessuno sconto');
+    console.log('originalAmount:', originalAmount || 'Non fornito');
+    console.log('totalAmount:', totalAmount || 'Non fornito');
     
     if (!items || items.length === 0) {
       console.error('❌ Carrello vuoto');
@@ -66,15 +81,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 🛒 CREAZIONE LINE ITEMS
+    // 🛒 CREAZIONE LINE ITEMS CON SCONTI
     console.log('🛒 Creazione line items per Stripe...');
+    
+    // Se c'è uno sconto, applica il prezzo scontato ai line items
     const lineItems = items.map((item: any, index: number) => {
+      // Calcola prezzo unitario scontato se applicabile
+      let finalPrice = item.price;
+      if (appliedDiscount && appliedDiscount.percent > 0) {
+        finalPrice = item.price * (1 - appliedDiscount.percent / 100);
+      }
+      
       console.log(`Item ${index + 1}:`, {
         name: item.name,
-        price: item.price,
+        originalPrice: item.price,
+        finalPrice: finalPrice.toFixed(2),
         quantity: item.quantity,
         image: item.image,
-        description: item.description?.substring(0, 50) + '...'
+        discount: appliedDiscount ? `${appliedDiscount.percent}%` : 'Nessuno'
       });
       
       // 🔧 FIX IMMAGINI - Converti path relativi in URL assoluti o rimuovi
@@ -95,10 +119,10 @@ export async function POST(request: NextRequest) {
           currency: 'eur',
           product_data: {
             name: item.name,
-            description: item.description,
+            description: item.description + (appliedDiscount ? ` (Sconto ${appliedDiscount.description})` : ''),
             images: productImages, // Usa array di immagini processate
           },
-          unit_amount: Math.round(item.price * 100), // Stripe usa centesimi
+          unit_amount: Math.round(finalPrice * 100), // Stripe usa centesimi con prezzo scontato
         },
         quantity: item.quantity,
       };
@@ -106,18 +130,26 @@ export async function POST(request: NextRequest) {
     
     console.log('✅ Line items creati:', lineItems.length);
 
-    // 📝 PREPARAZIONE METADATA
+    // 📝 PREPARAZIONE METADATA CON SCONTI
     console.log('📝 Preparazione metadata...');
     const metadata = {
       customerName,
       customerAddress: customerAddress || 'Ritiro presso Pasto Sano',
       customerPhone: customerPhone || '',
       customerEmail: customerEmail || '',
+      pickupDate: pickupDate || '',
+      orderNotes: notes || '',
       orderItems: JSON.stringify(items.map((item: any) => ({
         name: item.name,
         quantity: item.quantity,
         price: item.price
-      })))
+      }))),
+      // ✅ AGGIUNTI DATI SCONTO NEI METADATA
+      discountCode: appliedDiscount?.code || '',
+      discountPercent: appliedDiscount?.percent?.toString() || '',
+      discountAmount: appliedDiscount?.amount?.toFixed(2) || '',
+      originalAmount: originalAmount?.toFixed(2) || '',
+      totalAmount: totalAmount?.toFixed(2) || ''
     };
     
     console.log('📝 Metadata preparati:', Object.keys(metadata));
