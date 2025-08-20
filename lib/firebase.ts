@@ -17,6 +17,10 @@ import {
 import { getAuth } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 
+// ⚡ FIREBASE ADMIN SDK PER SERVER-SIDE (webhook)
+import { initializeApp as initializeAdminApp, cert, getApps as getAdminApps } from 'firebase-admin/app';
+import { getFirestore as getAdminFirestore } from 'firebase-admin/firestore';
+
 // Configurazione Firebase - USA SOLO ENVIRONMENT VARIABLES
 // NESSUNA CHIAVE HARDCODED PER SICUREZZA
 const firebaseConfig = {
@@ -93,6 +97,55 @@ try {
   // Non bloccare l'app se Firebase fallisce
 }
 
+// 🔥 FIREBASE ADMIN SDK SETUP PER WEBHOOK SERVER-SIDE
+let adminApp: any;
+let adminDb: any;
+
+// Inizializza Firebase Admin per webhook
+export function initializeFirebaseAdmin() {
+  try {
+    console.log('🔥 === INIZIALIZZAZIONE FIREBASE ADMIN SDK ===');
+    
+    // Verifica variabili Admin
+    console.log('🔍 Verifica variabili Admin:', {
+      projectId: !!process.env.FIREBASE_PROJECT_ID,
+      clientEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: !!process.env.FIREBASE_PRIVATE_KEY
+    });
+    
+    if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !process.env.FIREBASE_PRIVATE_KEY) {
+      throw new Error('❌ Variabili Firebase Admin mancanti');
+    }
+    
+    if (getAdminApps().length === 0) {
+      console.log('🚀 Inizializzazione nuova app Admin...');
+      
+      adminApp = initializeAdminApp({
+        credential: cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+        })
+      });
+      
+      adminDb = getAdminFirestore(adminApp);
+      console.log('✅ Firebase Admin SDK inizializzato con progetto:', process.env.FIREBASE_PROJECT_ID);
+    } else {
+      console.log('✅ Firebase Admin già inizializzato');
+      adminApp = getAdminApps()[0];
+      adminDb = getAdminFirestore(adminApp);
+    }
+    
+    return adminDb;
+    
+  } catch (error: any) {
+    console.error('❌ === ERRORE FIREBASE ADMIN INIT ===');
+    console.error('Errore:', error.message);
+    console.error('Stack:', error.stack);
+    throw error;
+  }
+}
+
 // Esporta servizi Firebase
 export { db, auth, storage };
 
@@ -151,7 +204,7 @@ export interface DashboardStats {
   uniqueCustomers: number;
 }
 
-// FUNZIONI FIREBASE
+// FUNZIONI FIREBASE CLIENT SDK (FRONTEND)
 
 // Aggiungi nuovo ordine con error handling migliorato
 export async function addOrder(order: Omit<Order, 'id'>): Promise<string> {
@@ -162,7 +215,7 @@ export async function addOrder(order: Omit<Order, 'id'>): Promise<string> {
       throw new Error('Firestore not initialized - check environment variables');
     }
 
-    console.log('📝 Tentativo di salvare ordine:', {
+    console.log('🔍 Tentativo di salvare ordine:', {
       customerName: order.customerName,
       totalAmount: order.totalAmount,
       paymentMethod: order.paymentMethod
@@ -188,6 +241,55 @@ export async function addOrder(order: Omit<Order, 'id'>): Promise<string> {
     
     // Rilancia l'errore per gestirlo a livello superiore
     throw new Error(`Firebase save failed: ${error.message}`);
+  }
+}
+
+// 🚀 FUNZIONE FIREBASE ADMIN SDK (SERVER-SIDE WEBHOOK)
+export async function addOrderAdmin(order: Omit<Order, 'id'>): Promise<string> {
+  try {
+    console.log('🔥 === INIZIO SALVATAGGIO CON ADMIN SDK ===');
+    
+    const adminDb = initializeFirebaseAdmin();
+    
+    console.log('📝 Preparazione dati ordine Admin:', {
+      customerName: order.customerName,
+      totalAmount: order.totalAmount,
+      paymentMethod: order.paymentMethod,
+      itemsCount: order.items?.length || 0
+    });
+    
+    const orderData = {
+      ...order,
+      timestamp: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    console.log('🚀 Invio a Firebase Admin...');
+    const docRef = await adminDb.collection('orders').add(orderData);
+    
+    console.log('🎉 === ORDINE SALVATO CON ADMIN SDK! ===');
+    console.log('📄 Document ID:', docRef.id);
+    
+    return docRef.id;
+    
+  } catch (error: any) {
+    console.error('❌ === ERRORE ADMIN SDK SALVATAGGIO ===');
+    console.error('Tipo errore:', typeof error);
+    console.error('Nome:', error.name);
+    console.error('Messaggio:', error.message);
+    console.error('Code:', error.code);
+    console.error('Stack:', error.stack);
+    
+    // Log dettagliato dell'errore
+    if (error.code === 'auth/invalid-credential') {
+      console.error('🔑 ERRORE CREDENZIALI - Verifica:');
+      console.error('- FIREBASE_PROJECT_ID:', !!process.env.FIREBASE_PROJECT_ID);
+      console.error('- FIREBASE_CLIENT_EMAIL:', !!process.env.FIREBASE_CLIENT_EMAIL);
+      console.error('- FIREBASE_PRIVATE_KEY:', !!process.env.FIREBASE_PRIVATE_KEY);
+    }
+    
+    throw new Error(`Firebase Admin save failed: ${error.message}`);
   }
 }
 
@@ -628,6 +730,7 @@ export default {
   getOrdersByDate,
   getOrdersByDateRange,
   addOrder,
+  addOrderAdmin, // ⚡ NUOVA FUNZIONE ADMIN
   updateOrderStatus,
   getDashboardStats,
   getTopProducts,
