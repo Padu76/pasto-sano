@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { addOrderAdmin } from '@/lib/firebase'; // ⚡ CAMBIATO DA addOrder A addOrderAdmin
+import { addOrderAdmin } from '@/lib/firebase-admin'; // ⚡ USA FILE SEPARATO ADMIN SDK
 
 // Inizializza Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
