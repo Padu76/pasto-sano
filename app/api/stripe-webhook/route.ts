@@ -160,7 +160,7 @@ async function handleCheckoutSessionCompleted(event: Stripe.Event) {
   console.log('📋 Raw metadata:', JSON.stringify(metadata, null, 2));
   
   // ✅ USA I METADATA PERFETTI CHE ARRIVANO DA STRIPE
-  const orderData = {
+  const orderData: any = {
     customerName: metadata.customerName || 'Cliente',
     customerPhone: metadata.customerPhone || '',
     customerEmail: session.customer_email || metadata.customerEmail || '',
@@ -172,7 +172,8 @@ async function handleCheckoutSessionCompleted(event: Stripe.Event) {
     originalAmount: metadata.originalAmount ? parseFloat(metadata.originalAmount) : session.amount_total ? session.amount_total / 100 : 0,
     totalAmount: session.amount_total ? session.amount_total / 100 : 0,
     sessionId: session.id,
-    paymentIntentId: session.payment_intent as string
+    paymentIntentId: session.payment_intent as string,
+    orderItems: [] // ✅ Aggiungi orderItems nel tipo iniziale
   };
 
   // ✅ PARSE ORDERITEMS DAI METADATA
@@ -198,7 +199,7 @@ async function handleCheckoutSessionCompleted(event: Stripe.Event) {
     console.error('❌ NESSUN ORDER ITEMS NEI METADATA!');
   }
 
-  // Aggiungi orderItems ai dati dell'ordine
+  // Aggiorna orderItems nei dati dell'ordine
   orderData.orderItems = orderItems;
 
   console.log('📋 === DATI ORDINE FINALI ===');
