@@ -402,42 +402,96 @@ async function sendStripeOrderEmail(orderData: any) {
       status_color: '#28a745'  // Verde per pagato
     };
 
-    // Log per debug
-    console.log('📧 Invio email con parametri:', {
+    console.log('📧 Tentativo invio email con parametri:', {
       to: templateParams.to_email,
       customer: customerName,
       amount: totalAmount,
       items: totalItems
     });
 
-    // Chiamata API EmailJS
-    const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+    // 🔧 METODO ALTERNATIVO - API REST DIRETTA SENZA BROWSER
+    const emailPayload = {
+      service_id: process.env.EMAILJS_SERVICE_ID,
+      template_id: process.env.EMAILJS_TEMPLATE_ID,
+      user_id: process.env.EMAILJS_PUBLIC_KEY,
+      template_params: templateParams
+    };
+
+    console.log('📧 Configurazione EmailJS:', {
+      service_id: !!process.env.EMAILJS_SERVICE_ID,
+      template_id: !!process.env.EMAILJS_TEMPLATE_ID,
+      user_id: !!process.env.EMAILJS_PUBLIC_KEY,
+      has_params: !!templateParams
+    });
+
+    // 🔧 PROVA 1: API REST senza accessToken
+    console.log('📧 Tentativo 1: API REST senza accessToken...');
+    const response1 = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'User-Agent': 'PastoSano-Webhook/1.0'
       },
-      body: JSON.stringify({
-        service_id: process.env.EMAILJS_SERVICE_ID,
-        template_id: process.env.EMAILJS_TEMPLATE_ID,
-        user_id: process.env.EMAILJS_PUBLIC_KEY,
-        accessToken: process.env.EMAILJS_PRIVATE_KEY,
-        template_params: templateParams
-      })
+      body: JSON.stringify(emailPayload)
     });
 
-    if (response.ok) {
-      console.log('✅ Email ordine Stripe inviata con successo a:', process.env.NOTIFICATION_EMAIL);
-      const result = await response.text();
-      console.log('📧 Risposta EmailJS:', result);
+    if (response1.ok) {
+      const result = await response1.text();
+      console.log('✅ Email inviata con successo (metodo 1):', result);
+      return;
     } else {
-      const errorText = await response.text();
-      console.error('❌ Errore risposta EmailJS:', {
-        status: response.status,
-        statusText: response.statusText,
-        error: errorText
-      });
-      throw new Error(`EmailJS error: ${response.status} - ${errorText}`);
+      const error1 = await response1.text();
+      console.log('❌ Metodo 1 fallito:', response1.status, error1);
     }
+
+    // 🔧 PROVA 2: API REST con accessToken
+    console.log('📧 Tentativo 2: API REST con accessToken...');
+    const emailPayloadWithToken = {
+      ...emailPayload,
+      accessToken: process.env.EMAILJS_PRIVATE_KEY
+    };
+
+    const response2 = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'PastoSano-Webhook/1.0'
+      },
+      body: JSON.stringify(emailPayloadWithToken)
+    });
+
+    if (response2.ok) {
+      const result = await response2.text();
+      console.log('✅ Email inviata con successo (metodo 2):', result);
+      return;
+    } else {
+      const error2 = await response2.text();
+      console.log('❌ Metodo 2 fallito:', response2.status, error2);
+    }
+
+    // 🔧 PROVA 3: API REST con Authorization header
+    console.log('📧 Tentativo 3: API REST con Authorization header...');
+    const response3 = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.EMAILJS_PRIVATE_KEY}`,
+        'User-Agent': 'PastoSano-Webhook/1.0'
+      },
+      body: JSON.stringify(emailPayload)
+    });
+
+    if (response3.ok) {
+      const result = await response3.text();
+      console.log('✅ Email inviata con successo (metodo 3):', result);
+      return;
+    } else {
+      const error3 = await response3.text();
+      console.log('❌ Metodo 3 fallito:', response3.status, error3);
+    }
+
+    // Se tutti i metodi falliscono, lancia errore
+    throw new Error(`Tutti i metodi EmailJS falliti. Ultimo errore: ${response3.status}`);
 
   } catch (error) {
     console.error('❌ Errore invio email ordine Stripe:', error);
