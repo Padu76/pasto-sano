@@ -1,4 +1,189 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse }
+
+// Gestisce evento checkout.session.completed
+async function handleCheckoutSessionCompleted(event: Stripe.Event) {
+  const session = event.data.object as Stripe.Checkout.Session;
+  
+  console.log('📋 Dati sessione:', {
+    sessionId: session.id,
+    customerEmail: session.customer_email,
+    amount: session.amount_total ? session.amount_total / 100 : 0,
+    paymentStatus: session.payment_status,
+    metadataKeys: Object.keys(session.metadata || {})
+  });
+
+  // Estrai metadata
+  const metadata = session.metadata || {};
+  console.log('📋 METADATA COMPLETI:', JSON.stringify(metadata, null, 2));
+  
+  await processOrder({
+    customerName: metadata.customerName || 'Cliente',
+    customerPhone: metadata.customerPhone || '',
+    customerEmail: session.customer_email || metadata.customerEmail || '',
+    customerAddress: metadata.customerAddress || 'Ritiro presso Pasto Sano',
+    pickupDate: metadata.pickupDate || 'Da concordare',
+    orderNotes: metadata.orderNotes || '',
+    discountCode: metadata.discountCode || '',
+    discountPercent: metadata.discountPercent ? parseFloat(metadata.discountPercent) : 0,
+    orderItems: metadata.orderItems ? JSON.parse(metadata.orderItems) : [],
+    totalAmount: session.amount_total ? session.amount_total / 100 : 0,
+    originalAmount: metadata.originalAmount ? parseFloat(metadata.originalAmount) : session.amount_total ? session.amount_total / 100 : 0,
+    sessionId: session.id,
+    paymentIntentId: session.payment_intent as string
+  });
+}
+
+// Gestisce evento charge.succeeded
+async function handleChargeSucceeded(event: Stripe.Event) {
+  const charge = event.data.object as Stripe.Charge;
+  
+  console.log('💳 Dati charge:', {
+    chargeId: charge.id,
+    amount: charge.amount / 100,
+    currency: charge.currency,
+    status: charge.status,
+    metadataKeys: Object.keys(charge.metadata || {})
+  });
+
+  // Per charge.succeeded, i metadata potrebbero essere nel payment_intent
+  let metadata = charge.metadata || {};
+  
+  // Se non ci sono metadata nel charge, prova a recuperarli dal payment_intent
+  if (Object.keys(metadata).length === 0 && charge.payment_intent) {
+    try {
+      console.log('🔍 Recupero metadata da payment_intent...');
+      const paymentIntent = await stripe.paymentIntents.retrieve(charge.payment_intent as string);
+      metadata = paymentIntent.metadata || {};
+      console.log('📋 METADATA DA PAYMENT_INTENT:', JSON.stringify(metadata, null, 2));
+    } catch (error) {
+      console.error('❌ Errore recupero payment_intent:', error);
+    }
+  }
+
+  await processOrder({
+    customerName: metadata.customerName || charge.billing_details?.name || 'Cliente',
+    customerPhone: metadata.customerPhone || charge.billing_details?.phone || '',
+    customerEmail: metadata.customerEmail || charge.billing_details?.email || '',
+    customerAddress: metadata.customerAddress || 'Ritiro presso Pasto Sano',
+    pickupDate: metadata.pickupDate || 'Da concordare',
+    orderNotes: metadata.orderNotes || '',
+    discountCode: metadata.discountCode || '',
+    discountPercent: metadata.discountPercent ? parseFloat(metadata.discountPercent) : 0,
+    orderItems: metadata.orderItems ? JSON.parse(metadata.orderItems) : [],
+    totalAmount: charge.amount / 100,
+    originalAmount: metadata.originalAmount ? parseFloat(metadata.originalAmount) : charge.amount / 100,
+    sessionId: charge.id,
+    paymentIntentId: charge.payment_intent as string
+  });
+}
+
+// Funzione comune per processare l'ordine
+async function processOrder(orderData: any) {
+  const {
+    customerName,
+    customerPhone,
+    customerEmail,
+    customerAddress,
+    pickupDate,
+    orderNotes,
+    discountCode,
+    discountPercent,
+    orderItems,
+    totalAmount,
+    originalAmount,
+    sessionId,
+    paymentIntentId
+  } = orderData;
+
+  const discountAmount = originalAmount - totalAmount;
+
+  console.log('👤 Dati cliente estratti:', {
+    customerName,
+    customerEmail,
+    customerPhone,
+    pickupDate,
+    discountCode,
+    discountPercent
+  });
+
+  console.log('📦 Articoli ordinati:', orderItems.length, 'items');
+  console.log('💰 Calcoli finali:', {
+    originalAmount,
+    discountAmount,
+    totalAmount,
+    discountPercent
+  });
+
+  // 🔥 SALVA ORDINE SU FIREBASE
+  try {
+    console.log('🔥 === INIZIO SALVATAGGIO SU FIREBASE ===');
+    
+    const firebaseOrderData = {
+      customerName,
+      customerEmail,
+      customerPhone,
+      customerAddress,
+      items: orderItems,
+      totalAmount,
+      paymentMethod: 'stripe',
+      paymentMethodName: 'Carta di Credito/Debito (Stripe)',
+      paymentStatus: 'paid',
+      orderStatus: 'confirmed',
+      pickupDate,
+      notes: discountCode ? 
+        `${orderNotes || ''}\n\nSconto applicato: ${discountCode} (-${discountPercent}%) = -€${discountAmount.toFixed(2)}\n\nStripe: ${sessionId}` : 
+        `${orderNotes || ''}\n\nStripe: ${sessionId}`,
+      source: 'website',
+      timestamp: new Date()
+    };
+    
+    console.log('📝 Dati ordine preparati per Firebase:', {
+      customerName: firebaseOrderData.customerName,
+      totalAmount: firebaseOrderData.totalAmount,
+      itemsCount: firebaseOrderData.items.length,
+      paymentMethod: firebaseOrderData.paymentMethod
+    });
+    
+    await addOrder(firebaseOrderData);
+    
+    console.log('✅ === ORDINE SALVATO SU FIREBASE CON SUCCESSO! ===');
+  } catch (firebaseError) {
+    console.error('❌ === ERRORE SALVATAGGIO FIREBASE ===');
+    console.error('Errore completo:', firebaseError);
+    console.error('Tipo errore:', typeof firebaseError);
+    console.error('Stack trace:', firebaseError instanceof Error ? firebaseError.stack : 'N/A');
+    // Non blocchiamo il webhook se Firebase fallisce
+  }
+
+  // 📧 INVIA EMAIL DI NOTIFICA
+  try {
+    console.log('📧 === INIZIO INVIO EMAIL ===');
+    
+    await sendStripeOrderEmail({
+      customerName,
+      customerEmail,
+      customerPhone,
+      pickupDate,
+      items: orderItems,
+      totalAmount,
+      originalAmount,
+      discountCode,
+      discountPercent,
+      discountAmount,
+      orderNotes,
+      sessionId,
+      paymentIntentId
+    });
+    
+    console.log('✅ === EMAIL DI NOTIFICA INVIATA CON SUCCESSO! ===');
+  } catch (emailError) {
+    console.error('❌ === ERRORE INVIO EMAIL ===');
+    console.error('Errore email:', emailError);
+    // Non bloccare il webhook se l'email fallisce
+  }
+
+  console.log('🎉 === ELABORAZIONE ORDINE COMPLETATA ===');
+} from 'next/server';
 import Stripe from 'stripe';
 import { addOrder } from '@/lib/firebase'; // ✅ AGGIUNTO IMPORT FIREBASE
 
@@ -66,131 +251,13 @@ export async function POST(request: NextRequest) {
     switch (event.type) {
       case 'checkout.session.completed': {
         console.log('🎉 EVENTO CHECKOUT.SESSION.COMPLETED RILEVATO!');
-        
-        const session = event.data.object as Stripe.Checkout.Session;
-        
-        console.log('📋 Dati sessione:', {
-          sessionId: session.id,
-          customerEmail: session.customer_email,
-          amount: session.amount_total ? session.amount_total / 100 : 0,
-          paymentStatus: session.payment_status,
-          metadataKeys: Object.keys(session.metadata || {})
-        });
+        await handleCheckoutSessionCompleted(event);
+        break;
+      }
 
-        // ✅ ESTRAI METADATA CON LOG DETTAGLIATO
-        const metadata = session.metadata || {};
-        console.log('📋 METADATA COMPLETI:', JSON.stringify(metadata, null, 2));
-        
-        const customerName = metadata.customerName || 'Cliente';
-        const customerPhone = metadata.customerPhone || '';
-        const customerEmail = session.customer_email || metadata.customerEmail || '';
-        const customerAddress = metadata.customerAddress || 'Ritiro presso Pasto Sano';
-        const pickupDate = metadata.pickupDate || 'Da concordare';
-        const orderNotes = metadata.orderNotes || '';
-        const discountCode = metadata.discountCode || '';
-        const discountPercent = metadata.discountPercent ? parseFloat(metadata.discountPercent) : 0;
-        
-        console.log('👤 Dati cliente estratti:', {
-          customerName,
-          customerEmail,
-          customerPhone,
-          pickupDate,
-          discountCode,
-          discountPercent
-        });
-        
-        // Parse order items dai metadata
-        let orderItems = [];
-        try {
-          orderItems = metadata.orderItems ? JSON.parse(metadata.orderItems) : [];
-          console.log('📦 Articoli ordinati estratti:', orderItems.length, 'items');
-          console.log('📦 Primo articolo:', orderItems[0] || 'Nessuno');
-        } catch (e) {
-          console.error('❌ Errore parsing orderItems:', e);
-          orderItems = [];
-        }
-
-        // Calcola totali
-        const totalAmount = session.amount_total ? session.amount_total / 100 : 0;
-        const originalAmount = metadata.originalAmount ? parseFloat(metadata.originalAmount) : totalAmount;
-        const discountAmount = originalAmount - totalAmount;
-
-        console.log('💰 Calcoli finali:', {
-          originalAmount,
-          discountAmount,
-          totalAmount,
-          discountPercent
-        });
-
-        // 🔥 SALVA ORDINE SU FIREBASE
-        try {
-          console.log('🔥 === INIZIO SALVATAGGIO SU FIREBASE ===');
-          
-          const orderData = {
-            customerName,
-            customerEmail,
-            customerPhone,
-            customerAddress,
-            items: orderItems,
-            totalAmount,
-            paymentMethod: 'stripe',
-            paymentMethodName: 'Carta di Credito/Debito (Stripe)',
-            paymentStatus: 'paid',
-            orderStatus: 'confirmed',
-            pickupDate,
-            notes: discountCode ? 
-              `${orderNotes || ''}\n\nSconto applicato: ${discountCode} (-${discountPercent}%) = -€${discountAmount.toFixed(2)}\n\nStripe Session: ${session.id}` : 
-              `${orderNotes || ''}\n\nStripe Session: ${session.id}`,
-            source: 'website',
-            timestamp: new Date()
-          };
-          
-          console.log('📝 Dati ordine preparati per Firebase:', {
-            customerName: orderData.customerName,
-            totalAmount: orderData.totalAmount,
-            itemsCount: orderData.items.length,
-            paymentMethod: orderData.paymentMethod
-          });
-          
-          await addOrder(orderData);
-          
-          console.log('✅ === ORDINE SALVATO SU FIREBASE CON SUCCESSO! ===');
-        } catch (firebaseError) {
-          console.error('❌ === ERRORE SALVATAGGIO FIREBASE ===');
-          console.error('Errore completo:', firebaseError);
-          console.error('Tipo errore:', typeof firebaseError);
-          console.error('Stack trace:', firebaseError instanceof Error ? firebaseError.stack : 'N/A');
-          // Non blocchiamo il webhook se Firebase fallisce
-        }
-
-        // 📧 INVIA EMAIL DI NOTIFICA
-        try {
-          console.log('📧 === INIZIO INVIO EMAIL ===');
-          
-          await sendStripeOrderEmail({
-            customerName,
-            customerEmail,
-            customerPhone,
-            pickupDate,
-            items: orderItems,
-            totalAmount,
-            originalAmount,
-            discountCode,
-            discountPercent,
-            discountAmount,
-            orderNotes,
-            sessionId: session.id,
-            paymentIntentId: session.payment_intent as string
-          });
-          
-          console.log('✅ === EMAIL DI NOTIFICA INVIATA CON SUCCESSO! ===');
-        } catch (emailError) {
-          console.error('❌ === ERRORE INVIO EMAIL ===');
-          console.error('Errore email:', emailError);
-          // Non bloccare il webhook se l'email fallisce
-        }
-
-        console.log('🎉 === ELABORAZIONE CHECKOUT COMPLETATA ===');
+      case 'charge.succeeded': {
+        console.log('💳 EVENTO CHARGE.SUCCEEDED RILEVATO!');
+        await handleChargeSucceeded(event);
         break;
       }
 
