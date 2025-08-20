@@ -30,9 +30,6 @@ import { addOrder } from '@/lib/firebase';
 // Inizializza Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
-// Inizializza EmailJS
-emailjs.init(process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!);
-
 // Inizializza PayPal
 const initialPayPalOptions = {
   clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!,
@@ -189,6 +186,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'paypal' | 'cash' | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [emailJSReady, setEmailJSReady] = useState(false);
   
   // Dati cliente
   const [customerEmail, setCustomerEmail] = useState('');
@@ -205,6 +203,26 @@ export default function Home() {
   const filteredMeals = selectedCategory === 'tutti' 
     ? meals 
     : meals.filter(meal => meal.category === selectedCategory);
+
+  // ✅ INIZIALIZZAZIONE EMAILJS CORRETTA
+  useEffect(() => {
+    const initEmailJS = async () => {
+      try {
+        const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+        if (publicKey) {
+          emailjs.init(publicKey);
+          setEmailJSReady(true);
+          console.log('✅ EmailJS inizializzato correttamente');
+        } else {
+          console.error('❌ Chiave EmailJS non trovata');
+        }
+      } catch (error) {
+        console.error('❌ Errore inizializzazione EmailJS:', error);
+      }
+    };
+
+    initEmailJS();
+  }, []);
 
   // Inizializza le date al mount del componente
   useEffect(() => {
@@ -479,8 +497,14 @@ export default function Home() {
     }
   };
 
-  // Invia email con EmailJS
+  // ✅ INVIO EMAIL MIGLIORATO CON CONTROLLI
   const sendOrderEmail = async (method: string) => {
+    // Verifica che EmailJS sia pronto
+    if (!emailJSReady) {
+      console.error('❌ EmailJS non è ancora inizializzato');
+      return;
+    }
+
     const orderDetails = cart.map(item => 
       `${item.name} x${item.quantity} - €${(item.price * item.quantity).toFixed(2)}`
     ).join('\n');
@@ -499,15 +523,19 @@ export default function Home() {
     };
 
     try {
-      await emailjs.send(
+      console.log('📧 Invio email con parametri:', templateParams);
+      
+      const result = await emailjs.send(
         process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
         process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
         templateParams,
         process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
       );
-      console.log('Email inviata con successo');
+      
+      console.log('✅ Email inviata con successo:', result);
     } catch (error) {
-      console.error('Errore invio email:', error);
+      console.error('❌ Errore invio email:', error);
+      // Non bloccare il processo se l'email fallisce
     }
   };
 
