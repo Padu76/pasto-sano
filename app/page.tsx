@@ -37,6 +37,13 @@ const initialPayPalOptions = {
   locale: "it_IT"
 };
 
+// ✅ CARICAMENTO EMAILJS GLOBALE
+declare global {
+  interface Window {
+    emailjs: any;
+  }
+}
+
 // Funzione per calcolare la data minima di ritiro
 const calculateMinPickupDate = () => {
   const today = new Date();
@@ -185,7 +192,6 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'paypal' | 'cash' | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [emailJSReady, setEmailJSReady] = useState(false);
   
   // Dati cliente
   const [customerEmail, setCustomerEmail] = useState('');
@@ -203,49 +209,36 @@ export default function Home() {
     ? meals 
     : meals.filter(meal => meal.category === selectedCategory);
 
-  // ✅ INIZIALIZZAZIONE EMAILJS ROBUSTA
+  // ✅ INIZIALIZZAZIONE EMAILJS SEMPLIFICATA
   useEffect(() => {
-    const loadEmailJS = async () => {
-      try {
-        console.log('🔄 Caricamento EmailJS...');
+    console.log('🚀 INIZIALIZZAZIONE EMAILJS INIZIATA');
+    
+    const loadEmailJS = () => {
+      // Carica script EmailJS
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
+      script.async = true;
+      
+      script.onload = () => {
+        console.log('📦 SCRIPT EMAILJS CARICATO');
         
-        // 1. Carica lo script EmailJS
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
-        script.async = true;
-        
-        script.onload = () => {
-          console.log('📦 Script EmailJS caricato');
-          
-          // 2. Inizializza EmailJS
-          setTimeout(() => {
-            try {
-              const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
-              console.log('🔑 Chiave pubblica:', publicKey ? 'PRESENTE' : 'MANCANTE');
-              
-              if (publicKey && (window as any).emailjs) {
-                (window as any).emailjs.init(publicKey);
-                setEmailJSReady(true);
-                console.log('✅ EmailJS inizializzato con successo!');
-                console.log('📧 EmailJS pronto:', (window as any).emailjs);
-              } else {
-                console.error('❌ EmailJS o chiave pubblica mancante');
-              }
-            } catch (error) {
-              console.error('❌ Errore inizializzazione EmailJS:', error);
-            }
-          }, 1000);
-        };
-        
-        script.onerror = () => {
-          console.error('❌ Errore caricamento script EmailJS');
-        };
-        
-        document.head.appendChild(script);
-        
-      } catch (error) {
-        console.error('❌ Errore generale EmailJS:', error);
-      }
+        // Inizializza con delay
+        setTimeout(() => {
+          if (window.emailjs) {
+            window.emailjs.init('ME0ru3KkNko0P6d2Y');
+            console.log('✅ EMAILJS INIZIALIZZATO CORRETTAMENTE');
+            console.log('📧 EmailJS disponibile:', window.emailjs);
+          } else {
+            console.error('❌ EMAILJS NON TROVATO DOPO CARICAMENTO');
+          }
+        }, 500);
+      };
+      
+      script.onerror = () => {
+        console.error('❌ ERRORE CARICAMENTO SCRIPT EMAILJS');
+      };
+      
+      document.head.appendChild(script);
     };
 
     loadEmailJS();
@@ -370,6 +363,72 @@ export default function Home() {
     sessionStorage.setItem('lastOrder', JSON.stringify(orderData));
   };
 
+  // ✅ INVIO NOTIFICA EMAIL SEMPLIFICATO
+  const sendOrderNotification = async (method: string) => {
+    console.log('📧 === INIZIO INVIO NOTIFICA ORDINE ===');
+    console.log('📧 Metodo pagamento:', method);
+    console.log('📧 EmailJS disponibile?', !!window.emailjs);
+    
+    if (!window.emailjs) {
+      console.error('❌ EMAILJS NON DISPONIBILE - CARICAMENTO FORZATO');
+      
+      // Caricamento forzato
+      try {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
+        document.head.appendChild(script);
+        
+        await new Promise((resolve, reject) => {
+          script.onload = () => {
+            window.emailjs.init('ME0ru3KkNko0P6d2Y');
+            console.log('✅ EMAILJS CARICATO FORZATAMENTE');
+            resolve(true);
+          };
+          script.onerror = () => reject(new Error('Errore caricamento'));
+          setTimeout(() => reject(new Error('Timeout')), 5000);
+        });
+      } catch (error) {
+        console.error('❌ FALLIMENTO CARICAMENTO FORZATO:', error);
+        return;
+      }
+    }
+
+    const orderDetails = cart.map(item => 
+      `${item.name} x${item.quantity} - €${(item.price * item.quantity).toFixed(2)}`
+    ).join('\n');
+
+    const templateParams = {
+      customer_name: customerName,
+      customer_email: customerEmail || 'Non fornita',
+      customer_phone: customerPhone,
+      customer_address: 'Ritiro presso Pasto Sano',
+      order_details: orderDetails,
+      total_amount: getTotalPrice().toFixed(2),
+      payment_method: method === 'cash' ? 'Contanti al ritiro' : method === 'paypal' ? 'PayPal' : 'Carta di credito',
+      pickup_date: pickupDate,
+      notes: notes || 'Nessuna nota',
+      order_date: new Date().toLocaleString('it-IT'),
+      order_id: `ORD-${Date.now()}`
+    };
+
+    console.log('📧 PARAMETRI EMAIL:', templateParams);
+    console.log('📧 SERVICE ID:', 'service_v6bw2m4');
+    console.log('📧 TEMPLATE ID:', 'template_lqxqdze');
+
+    try {
+      const result = await window.emailjs.send(
+        'service_v6bw2m4',
+        'template_lqxqdze',
+        templateParams,
+        'ME0ru3KkNko0P6d2Y'
+      );
+      
+      console.log('🎉 === EMAIL INVIATA CON SUCCESSO! ===', result);
+    } catch (error) {
+      console.error('💥 === ERRORE INVIO EMAIL ===', error);
+    }
+  };
+
   // PAGAMENTO STRIPE
   const handleStripeCheckout = async () => {
     if (!validateForm()) return;
@@ -445,7 +504,7 @@ export default function Home() {
     }
   };
 
-  // PAGAMENTO CONTANTI
+  // PAGAMENTO CONTANTI - ✅ FIX DUPLICATO
   const handleCashOrder = async () => {
     if (!validateForm()) return;
     
@@ -453,7 +512,9 @@ export default function Home() {
     setError(null);
     
     try {
-      // Invia notifica ordine contanti (l'API route salva già su Firebase)
+      console.log('💰 ELABORAZIONE ORDINE CONTANTI...');
+      
+      // ✅ SOLO API CALL - NON SALVARE SU FIREBASE (lo fa l'API)
       const response = await fetch('/api/cash-order', {
         method: 'POST',
         headers: {
@@ -475,9 +536,9 @@ export default function Home() {
         throw new Error('Errore nell\'invio dell\'ordine');
       }
 
-      // NON salvare di nuovo su Firebase - l'API route lo fa già!
+      console.log('✅ ORDINE INVIATO TRAMITE API');
       
-      // Invia email di notifica
+      // ✅ INVIA SOLO EMAIL DI NOTIFICA
       await sendOrderNotification('cash');
       
       saveOrderForSuccess();
@@ -497,7 +558,7 @@ export default function Home() {
     }
   };
 
-  // Salva ordine su Firebase (usata solo per PayPal ora)
+  // Salva ordine su Firebase (usata solo per PayPal)
   const saveOrderToFirebase = async (method: string) => {
     try {
       await addOrder({
@@ -520,74 +581,6 @@ export default function Home() {
     } catch (error) {
       console.error('Errore salvataggio Firebase:', error);
       // Non bloccare il processo se Firebase fallisce
-    }
-  };
-
-  // ✅ INVIO NOTIFICA ORDINE MIGLIORATO
-  const sendOrderNotification = async (method: string) => {
-    console.log('📧 Tentativo invio notifica ordine...');
-    console.log('📊 EmailJS Ready:', emailJSReady);
-    console.log('📊 EmailJS disponibile:', !!(window as any).emailjs);
-    
-    // Verifica che EmailJS sia pronto
-    if (!emailJSReady || !(window as any).emailjs) {
-      console.error('❌ EmailJS non è pronto o non disponibile');
-      console.log('🔄 Tentativo caricamento manuale EmailJS...');
-      
-      // Tentativo di caricamento manuale
-      try {
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
-        document.head.appendChild(script);
-        
-        await new Promise((resolve) => {
-          script.onload = () => {
-            (window as any).emailjs.init(process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!);
-            resolve(true);
-          };
-        });
-        
-        console.log('✅ EmailJS caricato manualmente');
-      } catch (error) {
-        console.error('❌ Fallito caricamento manuale EmailJS:', error);
-        return;
-      }
-    }
-
-    const orderDetails = cart.map(item => 
-      `${item.name} x${item.quantity} - €${(item.price * item.quantity).toFixed(2)}`
-    ).join('\n');
-
-    const templateParams = {
-      customer_name: customerName,
-      customer_email: customerEmail || 'Non fornita',
-      customer_phone: customerPhone,
-      customer_address: 'Ritiro presso Pasto Sano',
-      order_details: orderDetails,
-      total_amount: getTotalPrice().toFixed(2),
-      payment_method: method === 'cash' ? 'Contanti al ritiro' : method === 'paypal' ? 'PayPal' : 'Carta di credito',
-      pickup_date: pickupDate,
-      notes: notes || 'Nessuna nota',
-      order_date: new Date().toLocaleString('it-IT'),
-      order_id: `ORD-${Date.now()}`
-    };
-
-    try {
-      console.log('📧 Invio email con parametri:', templateParams);
-      console.log('📧 Service ID:', process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID);
-      console.log('📧 Template ID:', process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID);
-      
-      const result = await (window as any).emailjs.send(
-        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
-        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
-        templateParams,
-        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
-      );
-      
-      console.log('✅ NOTIFICA ORDINE INVIATA CON SUCCESSO!', result);
-    } catch (error) {
-      console.error('❌ ERRORE INVIO NOTIFICA ORDINE:', error);
-      // Non bloccare il processo se l'email fallisce
     }
   };
 
