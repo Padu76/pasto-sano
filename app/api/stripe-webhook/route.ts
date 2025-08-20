@@ -120,13 +120,10 @@ export async function POST(request: NextRequest) {
             orderStatus: 'confirmed',
             pickupDate,
             notes: discountCode ? 
-              `${orderNotes || ''}\n\nSconto applicato: ${discountCode} (-${discountPercent}%) = -€${discountAmount.toFixed(2)}` : 
-              orderNotes,
+              `${orderNotes || ''}\n\nSconto applicato: ${discountCode} (-${discountPercent}%) = -€${discountAmount.toFixed(2)}\n\nStripe Session: ${session.id}` : 
+              `${orderNotes || ''}\n\nStripe Session: ${session.id}`,
             source: 'website',
-            timestamp: new Date(),
-            // Dati aggiuntivi Stripe
-            stripeSessionId: session.id,
-            stripePaymentIntentId: session.payment_intent as string || ''
+            timestamp: new Date()
           });
           
           console.log('✅ ORDINE SALVATO SU FIREBASE CON SUCCESSO!');
