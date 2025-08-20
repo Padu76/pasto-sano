@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { addOrder } from '@/lib/firebase'; // ✅ AGGIUNTO IMPORT FIREBASE
 
 // Inizializza Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -10,10 +11,15 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
+  console.log('🚀 === WEBHOOK STRIPE RICEVUTO ===');
+  
   try {
     // Ottieni il body raw e la signature
     const body = await request.text();
     const signature = request.headers.get('stripe-signature');
+
+    console.log('🔐 Verifica signature...');
+    console.log('STRIPE_WEBHOOK_SECRET configurato:', !!process.env.STRIPE_WEBHOOK_SECRET);
 
     if (!signature) {
       console.error('❌ Manca la signature Stripe');
@@ -41,6 +47,7 @@ export async function POST(request: NextRequest) {
         signature,
         process.env.STRIPE_WEBHOOK_SECRET
       );
+      console.log('✅ Signature verificata, evento:', event.type);
     } catch (err: any) {
       console.error(`❌ Errore verifica webhook: ${err.message}`);
       return NextResponse.json(
@@ -61,43 +68,85 @@ export async function POST(request: NextRequest) {
           paymentStatus: session.payment_status
         });
 
-        // Estrai i metadata
+        // ✅ ESTRAI METADATA CON LOG
         const metadata = session.metadata || {};
-        const customerName = metadata.customer_name || 'Cliente';
-        const customerPhone = metadata.customer_phone || '';
-        const customerEmail = session.customer_email || metadata.customer_email || '';
-        const pickupDate = metadata.pickup_date || 'Da concordare';
-        const pickupTime = metadata.pickup_time || '';
-        const orderNotes = metadata.order_notes || '';
-        const discountCode = metadata.discount_code || '';
-        const discountPercent = metadata.discount_percent ? parseFloat(metadata.discount_percent) : 0;
+        console.log('📋 Metadata ricevuti:', metadata);
         
-        // Parse order details
-        let orderDetails = [];
+        const customerName = metadata.customerName || 'Cliente';
+        const customerPhone = metadata.customerPhone || '';
+        const customerEmail = session.customer_email || metadata.customerEmail || '';
+        const customerAddress = metadata.customerAddress || 'Ritiro presso Pasto Sano';
+        const pickupDate = metadata.pickupDate || 'Da concordare';
+        const orderNotes = metadata.orderNotes || '';
+        const discountCode = metadata.discountCode || '';
+        const discountPercent = metadata.discountPercent ? parseFloat(metadata.discountPercent) : 0;
+        
+        // Parse order items dai metadata
+        let orderItems = [];
         try {
-          orderDetails = metadata.order_details ? JSON.parse(metadata.order_details) : [];
+          orderItems = metadata.orderItems ? JSON.parse(metadata.orderItems) : [];
+          console.log('📦 Articoli ordinati:', orderItems);
         } catch (e) {
-          console.error('Errore parsing order_details:', e);
-          orderDetails = [];
+          console.error('❌ Errore parsing orderItems:', e);
+          orderItems = [];
         }
 
         // Calcola totali
         const totalAmount = session.amount_total ? session.amount_total / 100 : 0;
-        const subtotalAmount = discountPercent > 0 ? 
-          (totalAmount / (1 - discountPercent / 100)) : totalAmount;
-        const discountAmount = subtotalAmount - totalAmount;
+        const originalAmount = metadata.originalAmount ? parseFloat(metadata.originalAmount) : totalAmount;
+        const discountAmount = originalAmount - totalAmount;
 
-        // Invia email di notifica con EmailJS
+        console.log('💰 Calcoli finali:', {
+          originalAmount,
+          discountAmount,
+          totalAmount,
+          discountPercent
+        });
+
+        // 🔥 SALVA ORDINE SU FIREBASE
         try {
+          console.log('🔥 Inizio salvataggio su Firebase...');
+          
+          await addOrder({
+            customerName,
+            customerEmail,
+            customerPhone,
+            customerAddress,
+            items: orderItems,
+            totalAmount,
+            paymentMethod: 'stripe',
+            paymentMethodName: 'Carta di Credito/Debito (Stripe)',
+            paymentStatus: 'paid',
+            orderStatus: 'confirmed',
+            pickupDate,
+            notes: discountCode ? 
+              `${orderNotes || ''}\n\nSconto applicato: ${discountCode} (-${discountPercent}%) = -€${discountAmount.toFixed(2)}` : 
+              orderNotes,
+            source: 'website',
+            timestamp: new Date(),
+            // Dati aggiuntivi Stripe
+            stripeSessionId: session.id,
+            stripePaymentIntentId: session.payment_intent as string || ''
+          });
+          
+          console.log('✅ ORDINE SALVATO SU FIREBASE CON SUCCESSO!');
+        } catch (firebaseError) {
+          console.error('❌ ERRORE SALVATAGGIO FIREBASE:', firebaseError);
+          // Non blocchiamo il webhook se Firebase fallisce
+        }
+
+        // 📧 INVIA EMAIL DI NOTIFICA
+        try {
+          console.log('📧 Inizio invio email...');
+          
           await sendStripeOrderEmail({
             customerName,
             customerEmail,
             customerPhone,
             pickupDate,
-            pickupTime,
-            items: orderDetails,
+            items: orderItems,
             totalAmount,
-            subtotalAmount,
+            originalAmount,
             discountCode,
             discountPercent,
             discountAmount,
@@ -105,9 +154,10 @@ export async function POST(request: NextRequest) {
             sessionId: session.id,
             paymentIntentId: session.payment_intent as string
           });
-          console.log('✅ Email di notifica ordine Stripe inviata');
+          
+          console.log('✅ EMAIL DI NOTIFICA INVIATA CON SUCCESSO!');
         } catch (emailError) {
-          console.error('❌ Errore invio email notifica:', emailError);
+          console.error('❌ ERRORE INVIO EMAIL:', emailError);
           // Non bloccare il webhook se l'email fallisce
         }
 
@@ -148,11 +198,14 @@ export async function POST(request: NextRequest) {
         console.log(`⚠️ Evento non gestito: ${event.type}`);
     }
 
+    console.log('🎉 === WEBHOOK STRIPE COMPLETATO CON SUCCESSO ===');
+    
     // Rispondi a Stripe per confermare la ricezione
     return NextResponse.json({ received: true });
 
   } catch (error) {
-    console.error('❌ Errore nel webhook:', error);
+    console.error('❌ === ERRORE GENERALE WEBHOOK ===');
+    console.error('Errore:', error);
     return NextResponse.json(
       { error: 'Webhook handler failed' },
       { status: 500 }
@@ -168,10 +221,9 @@ async function sendStripeOrderEmail(orderData: any) {
       customerEmail,
       customerPhone,
       pickupDate,
-      pickupTime,
       items,
       totalAmount,
-      subtotalAmount,
+      originalAmount,
       discountCode,
       discountPercent,
       discountAmount,
@@ -194,12 +246,8 @@ async function sendStripeOrderEmail(orderData: any) {
       itemsList = 'Nessun articolo specificato';
     }
 
-    // Formatta data e ora di ritiro
+    // Formatta data di ritiro
     const formattedPickupDate = pickupDate || 'Da concordare';
-    const formattedPickupTime = pickupTime || '';
-    const pickupInfo = formattedPickupTime ? 
-      `${formattedPickupDate} alle ${formattedPickupTime}` : 
-      formattedPickupDate;
 
     // Parametri per il template EmailJS
     const templateParams = {
@@ -218,13 +266,13 @@ async function sendStripeOrderEmail(orderData: any) {
       customer_phone: customerPhone || 'Non fornito',
       
       // Info ordine
-      pickup_date: pickupInfo,
+      pickup_date: formattedPickupDate,
       payment_method: 'Carta di Credito/Debito (Stripe)',
       payment_status: '✅ PAGATO ONLINE',
       
       // Totali
       total_amount: discountCode ? 
-        `€${subtotalAmount.toFixed(2)} → €${totalAmount.toFixed(2)} (con sconto)` : 
+        `€${originalAmount.toFixed(2)} → €${totalAmount.toFixed(2)} (con sconto)` : 
         `€${totalAmount.toFixed(2)}`,
       
       // Lista articoli
@@ -343,6 +391,8 @@ async function sendPaymentFailedEmail(data: any) {
 
 // Endpoint per verificare lo stato del webhook (GET)
 export async function GET() {
+  console.log('🔍 Test configurazione webhook...');
+  
   // Verifica configurazione
   const config = {
     stripe_key: !!process.env.STRIPE_SECRET_KEY,
@@ -355,6 +405,8 @@ export async function GET() {
   };
 
   const allConfigured = Object.values(config).every(v => v === true || typeof v === 'string');
+
+  console.log('📋 Configurazione webhook:', config);
 
   return NextResponse.json({
     status: allConfigured ? 'active' : 'partial',
