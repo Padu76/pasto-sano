@@ -214,7 +214,8 @@ async function handleCheckoutSessionCompleted(event: Stripe.Event) {
   await processOrder(orderData);
 }
 
-// Gestisce evento charge.succeeded
+// Gestisce evento charge.succeeded (BACKUP - NON USATO AL MOMENTO)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function handleChargeSucceeded(event: Stripe.Event) {
   const charge = event.data.object as Stripe.Charge;
   
