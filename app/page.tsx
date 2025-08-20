@@ -408,7 +408,7 @@ export default function Home() {
     setError(null);
     
     try {
-      // Invia notifica ordine contanti
+      // Invia notifica ordine contanti (l'API route salva già su Firebase)
       const response = await fetch('/api/cash-order', {
         method: 'POST',
         headers: {
@@ -430,8 +430,8 @@ export default function Home() {
         throw new Error('Errore nell\'invio dell\'ordine');
       }
 
-      // Salva ordine su Firebase
-      await saveOrderToFirebase('cash');
+      // NON salvare di nuovo su Firebase - l'API route lo fa già!
+      // await saveOrderToFirebase('cash'); // ❌ RIMOSSO - QUESTO CAUSAVA IL DUPLICATO
       
       // Invia email di conferma
       await sendOrderEmail('cash');
@@ -453,7 +453,7 @@ export default function Home() {
     }
   };
 
-  // Salva ordine su Firebase
+  // Salva ordine su Firebase (usata solo per PayPal ora)
   const saveOrderToFirebase = async (method: string) => {
     try {
       await addOrder({
@@ -472,8 +472,10 @@ export default function Home() {
         source: 'website',
         timestamp: new Date()
       });
+      console.log('✅ Ordine salvato su Firebase');
     } catch (error) {
       console.error('Errore salvataggio Firebase:', error);
+      // Non bloccare il processo se Firebase fallisce
     }
   };
 
