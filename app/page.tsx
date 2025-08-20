@@ -37,11 +37,21 @@ const initialPayPalOptions = {
   locale: "it_IT"
 };
 
-// ✅ CARICAMENTO EMAILJS GLOBALE
-declare global {
-  interface Window {
-    emailjs: any;
-  }
+// ✅ CARICAMENTO EMAILJS IMMEDIATO (STESSO METODO DEL TEST)
+if (typeof window !== 'undefined' && !window.emailjs) {
+  console.log('🚀 CARICAMENTO EMAILJS IMMEDIATO...');
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
+  script.onload = () => {
+    console.log('📦 EMAILJS SCRIPT CARICATO');
+    setTimeout(() => {
+      if (window.emailjs) {
+        window.emailjs.init('ME0ru3KkNko0P6d2Y');
+        console.log('✅ EMAILJS INIZIALIZZATO SUBITO!');
+      }
+    }, 500);
+  };
+  document.head.appendChild(script);
 }
 
 // Funzione per calcolare la data minima di ritiro
@@ -209,41 +219,6 @@ export default function Home() {
     ? meals 
     : meals.filter(meal => meal.category === selectedCategory);
 
-  // ✅ INIZIALIZZAZIONE EMAILJS SEMPLIFICATA
-  useEffect(() => {
-    console.log('🚀 INIZIALIZZAZIONE EMAILJS INIZIATA');
-    
-    const loadEmailJS = () => {
-      // Carica script EmailJS
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
-      script.async = true;
-      
-      script.onload = () => {
-        console.log('📦 SCRIPT EMAILJS CARICATO');
-        
-        // Inizializza con delay
-        setTimeout(() => {
-          if (window.emailjs) {
-            window.emailjs.init('ME0ru3KkNko0P6d2Y');
-            console.log('✅ EMAILJS INIZIALIZZATO CORRETTAMENTE');
-            console.log('📧 EmailJS disponibile:', window.emailjs);
-          } else {
-            console.error('❌ EMAILJS NON TROVATO DOPO CARICAMENTO');
-          }
-        }, 500);
-      };
-      
-      script.onerror = () => {
-        console.error('❌ ERRORE CARICAMENTO SCRIPT EMAILJS');
-      };
-      
-      document.head.appendChild(script);
-    };
-
-    loadEmailJS();
-  }, []);
-
   // Inizializza le date al mount del componente
   useEffect(() => {
     const minDate = calculateMinPickupDate();
@@ -363,34 +338,29 @@ export default function Home() {
     sessionStorage.setItem('lastOrder', JSON.stringify(orderData));
   };
 
-  // ✅ INVIO NOTIFICA EMAIL SEMPLIFICATO
+  // ✅ INVIO NOTIFICA EMAIL - METODO IDENTICO AL TEST MANUALE
   const sendOrderNotification = async (method: string) => {
     console.log('📧 === INIZIO INVIO NOTIFICA ORDINE ===');
-    console.log('📧 Metodo pagamento:', method);
-    console.log('📧 EmailJS disponibile?', !!window.emailjs);
     
+    // Assicurati che EmailJS sia disponibile
     if (!window.emailjs) {
-      console.error('❌ EMAILJS NON DISPONIBILE - CARICAMENTO FORZATO');
+      console.log('⚠️ EmailJS non trovato, caricamento forzato...');
       
-      // Caricamento forzato
-      try {
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
-        document.head.appendChild(script);
-        
-        await new Promise((resolve, reject) => {
-          script.onload = () => {
-            window.emailjs.init('ME0ru3KkNko0P6d2Y');
-            console.log('✅ EMAILJS CARICATO FORZATAMENTE');
-            resolve(true);
-          };
-          script.onerror = () => reject(new Error('Errore caricamento'));
-          setTimeout(() => reject(new Error('Timeout')), 5000);
-        });
-      } catch (error) {
-        console.error('❌ FALLIMENTO CARICAMENTO FORZATO:', error);
-        return;
-      }
+      // Caricamento identico al test manuale
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
+      document.head.appendChild(script);
+      
+      await new Promise((resolve, reject) => {
+        script.onload = () => {
+          console.log('📦 EmailJS caricato forzatamente');
+          window.emailjs.init('ME0ru3KkNko0P6d2Y');
+          console.log('✅ EmailJS inizializzato forzatamente');
+          resolve(true);
+        };
+        script.onerror = () => reject(new Error('Errore caricamento'));
+        setTimeout(() => reject(new Error('Timeout')), 5000);
+      });
     }
 
     const orderDetails = cart.map(item => 
@@ -411,11 +381,10 @@ export default function Home() {
       order_id: `ORD-${Date.now()}`
     };
 
-    console.log('📧 PARAMETRI EMAIL:', templateParams);
-    console.log('📧 SERVICE ID:', 'service_v6bw2m4');
-    console.log('📧 TEMPLATE ID:', 'template_lqxqdze');
+    console.log('📧 Parametri email:', templateParams);
 
     try {
+      // INVIO IDENTICO AL TEST MANUALE CHE HA FUNZIONATO
       const result = await window.emailjs.send(
         'service_v6bw2m4',
         'template_lqxqdze',
@@ -504,7 +473,7 @@ export default function Home() {
     }
   };
 
-  // PAGAMENTO CONTANTI - ✅ FIX DUPLICATO
+  // PAGAMENTO CONTANTI
   const handleCashOrder = async () => {
     if (!validateForm()) return;
     
@@ -514,7 +483,7 @@ export default function Home() {
     try {
       console.log('💰 ELABORAZIONE ORDINE CONTANTI...');
       
-      // ✅ SOLO API CALL - NON SALVARE SU FIREBASE (lo fa l'API)
+      // API call per salvare su Firebase
       const response = await fetch('/api/cash-order', {
         method: 'POST',
         headers: {
@@ -536,9 +505,9 @@ export default function Home() {
         throw new Error('Errore nell\'invio dell\'ordine');
       }
 
-      console.log('✅ ORDINE INVIATO TRAMITE API');
+      console.log('✅ ORDINE SALVATO TRAMITE API');
       
-      // ✅ INVIA SOLO EMAIL DI NOTIFICA
+      // Invia email di notifica
       await sendOrderNotification('cash');
       
       saveOrderForSuccess();
