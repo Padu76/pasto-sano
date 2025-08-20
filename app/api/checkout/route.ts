@@ -73,8 +73,22 @@ export async function POST(request: NextRequest) {
         name: item.name,
         price: item.price,
         quantity: item.quantity,
+        image: item.image,
         description: item.description?.substring(0, 50) + '...'
       });
+      
+      // 🔧 FIX IMMAGINI - Converti path relativi in URL assoluti o rimuovi
+      let productImages: string[] = [];
+      if (item.image && item.image.startsWith('http')) {
+        // URL assoluto - OK
+        productImages = [item.image];
+      } else if (item.image && item.image.startsWith('/')) {
+        // Path relativo - converti in assoluto
+        productImages = [`${baseUrl}${item.image}`];
+      }
+      // Se non c'è immagine valida, array vuoto
+      
+      console.log(`🖼️ Immagini per ${item.name}:`, productImages);
       
       return {
         price_data: {
@@ -82,7 +96,7 @@ export async function POST(request: NextRequest) {
           product_data: {
             name: item.name,
             description: item.description,
-            images: item.image ? [item.image] : [],
+            images: productImages, // Usa array di immagini processate
           },
           unit_amount: Math.round(item.price * 100), // Stripe usa centesimi
         },
