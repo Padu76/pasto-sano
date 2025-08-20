@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { addOrder } from '@/lib/firebase';
+import { addOrderAdmin } from '@/lib/firebase'; // ⚡ CAMBIATO DA addOrder A addOrderAdmin
 
 // Inizializza Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -12,7 +12,7 @@ export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   console.log('🚀 === WEBHOOK STRIPE RICEVUTO ===');
-  console.log('🕒 Timestamp:', new Date().toISOString());
+  console.log('🕐 Timestamp:', new Date().toISOString());
   
   try {
     // Ottieni il body raw e la signature
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     const signature = request.headers.get('stripe-signature');
 
     console.log('📦 Body length:', body.length);
-    console.log('🔐 Signature presente:', !!signature);
+    console.log('🔏 Signature presente:', !!signature);
     console.log('🔑 STRIPE_WEBHOOK_SECRET configurato:', !!process.env.STRIPE_WEBHOOK_SECRET);
 
     if (!signature) {
@@ -251,9 +251,9 @@ async function processOrder(orderData: any) {
     discountPercent
   });
 
-  // 🔥 SALVA ORDINE SU FIREBASE
+  // 🔥 SALVA ORDINE SU FIREBASE CON ADMIN SDK
   try {
-    console.log('🔥 === INIZIO SALVATAGGIO SU FIREBASE ===');
+    console.log('🔥 === INIZIO SALVATAGGIO SU FIREBASE CON ADMIN SDK ===');
     
     const firebaseOrderData = {
       customerName,
@@ -281,11 +281,12 @@ async function processOrder(orderData: any) {
       paymentMethod: firebaseOrderData.paymentMethod
     });
     
-    await addOrder(firebaseOrderData);
+    // ⚡ USA ADMIN SDK INVECE DI CLIENT SDK
+    await addOrderAdmin(firebaseOrderData);
     
-    console.log('✅ === ORDINE SALVATO SU FIREBASE CON SUCCESSO! ===');
+    console.log('✅ === ORDINE SALVATO SU FIREBASE CON ADMIN SDK! ===');
   } catch (firebaseError) {
-    console.error('❌ === ERRORE SALVATAGGIO FIREBASE ===');
+    console.error('❌ === ERRORE SALVATAGGIO FIREBASE ADMIN ===');
     console.error('Errore completo:', firebaseError);
     console.error('Tipo errore:', typeof firebaseError);
     console.error('Stack trace:', firebaseError instanceof Error ? firebaseError.stack : 'N/A');
@@ -617,10 +618,11 @@ export async function GET() {
   return NextResponse.json({
     status: allConfigured ? 'active' : 'partial',
     endpoint: '/api/stripe-webhook',
-    message: 'Stripe webhook endpoint status - EmailJS Server Compatible',
+    message: 'Stripe webhook endpoint status - EmailJS Server Compatible + Firebase Admin SDK',
     configuration: config,
     timestamp: new Date().toISOString(),
     ready: allConfigured,
-    emailjs_methods: ['form-send', 'iframe-simulation', 'standard-headers']
+    emailjs_methods: ['form-send', 'iframe-simulation', 'standard-headers'],
+    firebase_sdk: 'admin' // ⚡ NUOVO: INDICA CHE USA ADMIN SDK
   });
 }
