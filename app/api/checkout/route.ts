@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
   
   try {
     // 🔧 VERIFICA VARIABILI D'AMBIENTE
-    console.log('🔐 Verifica variabili d\'ambiente:');
+    console.log('🔍 Verifica variabili d\'ambiente:');
     console.log('STRIPE_SECRET_KEY:', process.env.STRIPE_SECRET_KEY ? '✅ Configurata' : '❌ MANCANTE');
     console.log('APP_URL:', process.env.APP_URL ? `✅ ${process.env.APP_URL}` : '❌ MANCANTE');
     console.log('NEXT_PUBLIC_APP_URL:', process.env.NEXT_PUBLIC_APP_URL ? `✅ ${process.env.NEXT_PUBLIC_APP_URL}` : '❌ MANCANTE');
@@ -36,44 +36,104 @@ export async function POST(request: NextRequest) {
     
     console.log('🔗 URL base utilizzato:', baseUrl);
 
-    // 📦 PARSING REQUEST BODY
+    // 📦 PARSING REQUEST BODY CON NUOVO FORMATO
     console.log('📦 Parsing request body...');
     const body = await request.json();
     console.log('📦 Body ricevuto:', JSON.stringify(body, null, 2));
     
+    // ✅ LETTURA DATI DAL NUOVO FORMATO CON METADATA
     const { 
       items, 
       customerEmail, 
       customerName, 
-      customerAddress, 
       customerPhone,
-      pickupDate,
-      notes,
-      appliedDiscount,
-      originalAmount,
-      totalAmount
+      customerAddress,
+      metadata  // ← NUOVO CAMPO METADATA
     } = body;
+
+    // ✅ SE ESISTONO METADATA, USA QUELLI (FORMATO NUOVO)
+    let finalCustomerName = customerName;
+    let finalCustomerEmail = customerEmail;
+    let finalCustomerPhone = customerPhone;
+    let finalCustomerAddress = customerAddress;
+    let pickupDate = '';
+    let orderNotes = '';
+    let discountCode = '';
+    let discountPercent = 0;
+    let originalAmount = 0;
+    let orderItems = [];
+
+    if (metadata) {
+      console.log('✅ === USANDO FORMATO NUOVO CON METADATA ===');
+      console.log('📋 Metadata ricevuti:', Object.keys(metadata));
+      
+      // Usa i dati dai metadata
+      finalCustomerName = metadata.customerName || customerName;
+      finalCustomerEmail = metadata.customerEmail || customerEmail;
+      finalCustomerPhone = metadata.customerPhone || customerPhone;
+      finalCustomerAddress = metadata.customerAddress || customerAddress;
+      pickupDate = metadata.pickupDate || '';
+      orderNotes = metadata.orderNotes || '';
+      discountCode = metadata.discountCode || '';
+      discountPercent = parseFloat(metadata.discountPercent || '0');
+      originalAmount = parseFloat(metadata.originalAmount || '0');
+      
+      // Parse orderItems dai metadata
+      if (metadata.orderItems) {
+        try {
+          orderItems = JSON.parse(metadata.orderItems);
+          console.log('✅ Order items parsati dai metadata:', orderItems.length, 'articoli');
+        } catch (e) {
+          console.error('❌ Errore parsing orderItems dai metadata:', e);
+          orderItems = items || []; // Fallback agli items diretti
+        }
+      } else {
+        orderItems = items || [];
+      }
+    } else {
+      console.log('⚠️ === USANDO FORMATO VECCHIO SENZA METADATA ===');
+      // Formato vecchio - usa i dati diretti
+      const {
+        pickupDate: oldPickupDate,
+        notes,
+        appliedDiscount,
+        originalAmount: oldOriginalAmount,
+        totalAmount
+      } = body;
+      
+      pickupDate = oldPickupDate || '';
+      orderNotes = notes || '';
+      
+      if (appliedDiscount) {
+        discountCode = appliedDiscount.code || '';
+        discountPercent = appliedDiscount.percent || 0;
+      }
+      
+      originalAmount = oldOriginalAmount || 0;
+      orderItems = items || [];
+    }
     
-    // 🔍 VALIDAZIONE DATI
-    console.log('🔍 Validazione dati:');
-    console.log('items:', items?.length || 0, 'articoli');
-    console.log('customerEmail:', customerEmail || 'Non fornita');
-    console.log('customerName:', customerName || 'Non fornito');
-    console.log('customerPhone:', customerPhone || 'Non fornito');
-    console.log('pickupDate:', pickupDate || 'Non fornita');
-    console.log('appliedDiscount:', appliedDiscount || 'Nessuno sconto');
-    console.log('originalAmount:', originalAmount || 'Non fornito');
-    console.log('totalAmount:', totalAmount || 'Non fornito');
+    // 🔍 VALIDAZIONE DATI FINALI
+    console.log('🔍 Dati finali estratti:');
+    console.log('finalCustomerName:', finalCustomerName);
+    console.log('finalCustomerEmail:', finalCustomerEmail);
+    console.log('finalCustomerPhone:', finalCustomerPhone);
+    console.log('finalCustomerAddress:', finalCustomerAddress);
+    console.log('pickupDate:', pickupDate);
+    console.log('discountCode:', discountCode);
+    console.log('discountPercent:', discountPercent);
+    console.log('originalAmount:', originalAmount);
+    console.log('orderItems count:', orderItems.length);
     
-    if (!items || items.length === 0) {
-      console.error('❌ Carrello vuoto');
+    if (!orderItems || orderItems.length === 0) {
+      console.error('❌ Carrello vuoto dopo parsing');
       return NextResponse.json(
         { error: 'Carrello vuoto' },
         { status: 400 }
       );
     }
     
-    if (!customerName) {
+    if (!finalCustomerName) {
       console.error('❌ Nome cliente mancante');
       return NextResponse.json(
         { error: 'Nome cliente richiesto' },
@@ -81,27 +141,52 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 🛒 CREAZIONE LINE ITEMS CON SCONTI
+    // 🛒 CALCOLO PREZZI CON SCONTI
+    console.log('🛒 Calcolo prezzi e sconti...');
+    
+    // Calcola totale originale dai dati ricevuti
+    let calculatedOriginal = 0;
+    orderItems.forEach((item: any) => {
+      calculatedOriginal += (item.price || 0) * (item.quantity || 1);
+    });
+    
+    // Usa originalAmount se fornito, altrimenti calcola
+    const finalOriginalAmount = originalAmount > 0 ? originalAmount : calculatedOriginal;
+    
+    // Calcola importo finale con sconto
+    let finalTotalAmount = finalOriginalAmount;
+    let discountAmount = 0;
+    
+    if (discountPercent > 0) {
+      discountAmount = (finalOriginalAmount * discountPercent) / 100;
+      finalTotalAmount = Math.max(0, finalOriginalAmount - discountAmount);
+    }
+    
+    console.log('💰 Calcoli finali:');
+    console.log('Original Amount:', finalOriginalAmount.toFixed(2));
+    console.log('Discount Percent:', discountPercent + '%');
+    console.log('Discount Amount:', discountAmount.toFixed(2));
+    console.log('Final Total:', finalTotalAmount.toFixed(2));
+
+    // 🛒 CREAZIONE LINE ITEMS CON SCONTI APPLICATI
     console.log('🛒 Creazione line items per Stripe...');
     
-    // Se c'è uno sconto, applica il prezzo scontato ai line items
-    const lineItems = items.map((item: any, index: number) => {
-      // Calcola prezzo unitario scontato se applicabile
-      let finalPrice = item.price;
-      if (appliedDiscount && appliedDiscount.percent > 0) {
-        finalPrice = item.price * (1 - appliedDiscount.percent / 100);
+    const lineItems = orderItems.map((item: any, index: number) => {
+      // Calcola prezzo unitario scontato
+      let unitPrice = item.price || 0;
+      if (discountPercent > 0) {
+        unitPrice = unitPrice * (1 - discountPercent / 100);
       }
       
       console.log(`Item ${index + 1}:`, {
         name: item.name,
         originalPrice: item.price,
-        finalPrice: finalPrice.toFixed(2),
+        finalPrice: unitPrice.toFixed(2),
         quantity: item.quantity,
-        image: item.image,
-        discount: appliedDiscount ? `${appliedDiscount.percent}%` : 'Nessuno'
+        discount: discountCode ? `${discountPercent}%` : 'Nessuno'
       });
       
-      // 🔧 FIX IMMAGINI - Converti path relativi in URL assoluti o rimuovi
+      // 🔧 FIX IMMAGINI - Converti path relativi in URL assoluti
       let productImages: string[] = [];
       if (item.image && item.image.startsWith('http')) {
         // URL assoluto - OK
@@ -110,7 +195,6 @@ export async function POST(request: NextRequest) {
         // Path relativo - converti in assoluto
         productImages = [`${baseUrl}${item.image}`];
       }
-      // Se non c'è immagine valida, array vuoto
       
       console.log(`🖼️ Immagini per ${item.name}:`, productImages);
       
@@ -119,40 +203,56 @@ export async function POST(request: NextRequest) {
           currency: 'eur',
           product_data: {
             name: item.name,
-            description: item.description + (appliedDiscount ? ` (Sconto ${appliedDiscount.description})` : ''),
-            images: productImages, // Usa array di immagini processate
+            description: (item.description || '') + (discountCode ? ` (Sconto ${discountCode} -${discountPercent}%)` : ''),
+            images: productImages,
           },
-          unit_amount: Math.round(finalPrice * 100), // Stripe usa centesimi con prezzo scontato
+          unit_amount: Math.round(unitPrice * 100), // Stripe usa centesimi
         },
-        quantity: item.quantity,
+        quantity: item.quantity || 1,
       };
     });
     
     console.log('✅ Line items creati:', lineItems.length);
 
-    // 📝 PREPARAZIONE METADATA CON SCONTI
-    console.log('📝 Preparazione metadata...');
-    const metadata = {
-      customerName,
-      customerAddress: customerAddress || 'Ritiro presso Pasto Sano',
-      customerPhone: customerPhone || '',
-      customerEmail: customerEmail || '',
+    // 📝 PREPARAZIONE METADATA COMPLETI PER WEBHOOK
+    console.log('📝 Preparazione metadata per webhook...');
+    
+    const stripeMetadata = {
+      // Dati cliente
+      customerName: finalCustomerName,
+      customerEmail: finalCustomerEmail || '',
+      customerPhone: finalCustomerPhone || '',
+      customerAddress: finalCustomerAddress || 'Ritiro presso Pasto Sano',
+      
+      // Dati ordine
       pickupDate: pickupDate || '',
-      orderNotes: notes || '',
-      orderItems: JSON.stringify(items.map((item: any) => ({
+      orderNotes: orderNotes || '',
+      
+      // Dati sconto
+      discountCode: discountCode || '',
+      discountPercent: discountPercent.toString(),
+      
+      // Dati importi
+      originalAmount: finalOriginalAmount.toFixed(2),
+      discountAmount: discountAmount.toFixed(2),
+      totalAmount: finalTotalAmount.toFixed(2),
+      
+      // Lista articoli come JSON string per il webhook
+      orderItems: JSON.stringify(orderItems.map((item: any) => ({
         name: item.name,
-        quantity: item.quantity,
-        price: item.price
-      }))),
-      // ✅ AGGIUNTI DATI SCONTO NEI METADATA
-      discountCode: appliedDiscount?.code || '',
-      discountPercent: appliedDiscount?.percent?.toString() || '',
-      discountAmount: appliedDiscount?.amount?.toFixed(2) || '',
-      originalAmount: originalAmount?.toFixed(2) || '',
-      totalAmount: totalAmount?.toFixed(2) || ''
+        description: item.description || '',
+        price: item.price || 0,
+        quantity: item.quantity || 1
+      })))
     };
     
-    console.log('📝 Metadata preparati:', Object.keys(metadata));
+    console.log('📝 Metadata preparati per webhook:', Object.keys(stripeMetadata));
+    console.log('📝 Metadata values:', {
+      customerName: stripeMetadata.customerName,
+      orderItemsLength: orderItems.length,
+      discountCode: stripeMetadata.discountCode,
+      totalAmount: stripeMetadata.totalAmount
+    });
 
     // 🔗 URL CONFIGURAZIONE
     const successUrl = `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}`;
@@ -162,35 +262,44 @@ export async function POST(request: NextRequest) {
     console.log('Success URL:', successUrl);
     console.log('Cancel URL:', cancelUrl);
 
-    // 🎯 CHIAMATA STRIPE API
-    console.log('🎯 Creazione sessione Stripe...');
+    // 🎯 CONFIGURAZIONE SESSIONE STRIPE
+    console.log('🎯 Configurazione sessione Stripe...');
     const sessionConfig: Stripe.Checkout.SessionCreateParams = {
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
       success_url: successUrl,
       cancel_url: cancelUrl,
-      customer_email: customerEmail || undefined,
-      metadata,
-      // ❌ RIMOSSO shipping_address_collection - non serve per ritiro
+      customer_email: finalCustomerEmail || undefined,
+      metadata: stripeMetadata,
+      // Non serve shipping per ritiro in sede
     };
     
-    console.log('🎯 Configurazione sessione:', {
+    console.log('🎯 Configurazione sessione finale:', {
       payment_method_types: sessionConfig.payment_method_types,
       mode: sessionConfig.mode,
       line_items_count: sessionConfig.line_items?.length || 0,
       customer_email: sessionConfig.customer_email || 'Non fornita',
-      metadata_keys: Object.keys(sessionConfig.metadata || {})
+      metadata_keys: Object.keys(sessionConfig.metadata || {}),
+      total_amount_expected: finalTotalAmount
     });
 
+    // 🚀 CREAZIONE SESSIONE STRIPE
+    console.log('🚀 Creazione sessione Stripe...');
     const session = await stripe.checkout.sessions.create(sessionConfig);
     
-    console.log('✅ Sessione Stripe creata con successo!');
+    console.log('✅ === SESSIONE STRIPE CREATA CON SUCCESSO! ===');
     console.log('Session ID:', session.id);
     console.log('Session URL:', session.url);
+    console.log('Amount Total (centesimi):', session.amount_total);
+    console.log('Amount Total (euro):', session.amount_total ? (session.amount_total / 100).toFixed(2) : 'N/A');
 
     console.log('🎉 === STRIPE CHECKOUT COMPLETATO ===');
-    return NextResponse.json({ sessionId: session.id });
+    return NextResponse.json({ 
+      sessionId: session.id,
+      amount: session.amount_total ? (session.amount_total / 100) : finalTotalAmount,
+      discount: discountCode ? { code: discountCode, percent: discountPercent, amount: discountAmount } : null
+    });
 
   } catch (error: any) {
     console.error('💥 === ERRORE STRIPE CHECKOUT ===');
