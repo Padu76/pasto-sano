@@ -112,10 +112,10 @@ export async function POST(request: NextRequest) {
 
     // 🎯 CHIAMATA STRIPE API
     console.log('🎯 Creazione sessione Stripe...');
-    const sessionConfig = {
+    const sessionConfig: Stripe.Checkout.SessionCreateParams = {
       payment_method_types: ['card'],
       line_items: lineItems,
-      mode: 'payment' as const,
+      mode: 'payment',
       success_url: successUrl,
       cancel_url: cancelUrl,
       customer_email: customerEmail || undefined,
