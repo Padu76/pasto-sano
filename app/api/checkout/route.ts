@@ -128,9 +128,9 @@ export async function POST(request: NextRequest) {
     console.log('🎯 Configurazione sessione:', {
       payment_method_types: sessionConfig.payment_method_types,
       mode: sessionConfig.mode,
-      line_items_count: sessionConfig.line_items.length,
+      line_items_count: sessionConfig.line_items?.length || 0,
       customer_email: sessionConfig.customer_email || 'Non fornita',
-      metadata_keys: Object.keys(sessionConfig.metadata)
+      metadata_keys: Object.keys(sessionConfig.metadata || {})
     });
 
     const session = await stripe.checkout.sessions.create(sessionConfig);
