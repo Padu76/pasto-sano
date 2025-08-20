@@ -462,7 +462,7 @@ export default function Home() {
     }
   };
 
-  // 🔧 PAGAMENTO STRIPE - FIX DATI
+  // 🔧 PAGAMENTO STRIPE - FIX DATI CON SCONTI
   const handleStripeCheckout = async () => {
     if (!validateForm()) return;
     
@@ -470,7 +470,7 @@ export default function Home() {
     setError(null);
     
     try {
-      // ✅ FORMATO CORRETTO PER API STRIPE
+      // ✅ FORMATO CORRETTO PER API STRIPE CON SCONTI
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: {
@@ -487,7 +487,18 @@ export default function Home() {
           customerEmail,
           customerName,
           customerAddress: 'Ritiro presso Pasto Sano',
-          customerPhone
+          customerPhone,
+          pickupDate,
+          notes: appliedDiscount ? `${notes || ''}\n\nSconto applicato: ${appliedDiscount.description} (-€${getDiscountAmount().toFixed(2)})` : notes,
+          // ✅ AGGIUNTI DATI SCONTO
+          appliedDiscount: appliedDiscount ? {
+            code: appliedDiscount.code,
+            percent: appliedDiscount.percent,
+            description: appliedDiscount.description,
+            amount: getDiscountAmount()
+          } : null,
+          originalAmount: getOriginalPrice(),
+          totalAmount: getTotalPrice()
         }),
       });
 
