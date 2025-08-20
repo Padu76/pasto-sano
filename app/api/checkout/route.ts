@@ -12,6 +12,7 @@ export async function POST(request: NextRequest) {
     // 🔧 VERIFICA VARIABILI D'AMBIENTE
     console.log('🔐 Verifica variabili d\'ambiente:');
     console.log('STRIPE_SECRET_KEY:', process.env.STRIPE_SECRET_KEY ? '✅ Configurata' : '❌ MANCANTE');
+    console.log('APP_URL:', process.env.APP_URL ? `✅ ${process.env.APP_URL}` : '❌ MANCANTE');
     console.log('NEXT_PUBLIC_APP_URL:', process.env.NEXT_PUBLIC_APP_URL ? `✅ ${process.env.NEXT_PUBLIC_APP_URL}` : '❌ MANCANTE');
     
     if (!process.env.STRIPE_SECRET_KEY) {
@@ -22,13 +23,18 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    if (!process.env.NEXT_PUBLIC_APP_URL) {
-      console.error('❌ NEXT_PUBLIC_APP_URL non configurata');
+    // Usa APP_URL se disponibile, altrimenti NEXT_PUBLIC_APP_URL
+    const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL;
+    
+    if (!baseUrl) {
+      console.error('❌ Nessun URL configurato');
       return NextResponse.json(
         { error: 'URL app non configurata' },
         { status: 500 }
       );
     }
+    
+    console.log('🔗 URL base utilizzato:', baseUrl);
 
     // 📦 PARSING REQUEST BODY
     console.log('📦 Parsing request body...');
@@ -103,8 +109,8 @@ export async function POST(request: NextRequest) {
     console.log('📝 Metadata preparati:', Object.keys(metadata));
 
     // 🔗 URL CONFIGURAZIONE
-    const successUrl = `${process.env.NEXT_PUBLIC_APP_URL}/success?session_id={CHECKOUT_SESSION_ID}`;
-    const cancelUrl = `${process.env.NEXT_PUBLIC_APP_URL}/`;
+    const successUrl = `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${baseUrl}/`;
     
     console.log('🔗 URLs configurati:');
     console.log('Success URL:', successUrl);
