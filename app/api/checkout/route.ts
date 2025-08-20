@@ -216,42 +216,62 @@ export async function POST(request: NextRequest) {
     // 📝 PREPARAZIONE METADATA COMPLETI PER WEBHOOK
     console.log('📝 Preparazione metadata per webhook...');
     
-    const stripeMetadata = {
-      // Dati cliente
-      customerName: finalCustomerName,
-      customerEmail: finalCustomerEmail || '',
-      customerPhone: finalCustomerPhone || '',
-      customerAddress: finalCustomerAddress || 'Ritiro presso Pasto Sano',
+    // ✅ STRIPE HA LIMITE 500 CARATTERI PER METADATA VALUE - OTTIMIZZIAMO
+    const stripeMetadata: { [key: string]: string } = {
+      // Dati cliente (massimo 50 char ognuno)
+      customerName: (finalCustomerName || '').substring(0, 50),
+      customerEmail: (finalCustomerEmail || '').substring(0, 50),
+      customerPhone: (finalCustomerPhone || '').substring(0, 20),
+      customerAddress: 'Ritiro presso Pasto Sano',
       
       // Dati ordine
-      pickupDate: pickupDate || '',
-      orderNotes: orderNotes || '',
+      pickupDate: (pickupDate || '').substring(0, 20),
+      orderNotes: (orderNotes || '').substring(0, 100),
       
       // Dati sconto
-      discountCode: discountCode || '',
+      discountCode: (discountCode || '').substring(0, 20),
       discountPercent: discountPercent.toString(),
       
       // Dati importi
       originalAmount: finalOriginalAmount.toFixed(2),
       discountAmount: discountAmount.toFixed(2),
-      totalAmount: finalTotalAmount.toFixed(2),
-      
-      // Lista articoli come JSON string per il webhook
-      orderItems: JSON.stringify(orderItems.map((item: any) => ({
-        name: item.name,
-        description: item.description || '',
+      totalAmount: finalTotalAmount.toFixed(2)
+    };
+
+    // ✅ ORDERITEMS SEPARATI - STRIPE METADATA LIMITATION WORKAROUND
+    const orderItemsJson = JSON.stringify(orderItems.map((item: any) => ({
+      name: (item.name || '').substring(0, 50),
+      description: (item.description || '').substring(0, 100), 
+      price: item.price || 0,
+      quantity: item.quantity || 1
+    })));
+
+    // Se orderItems è troppo lungo (>500 char), dividi in chunks
+    if (orderItemsJson.length <= 500) {
+      stripeMetadata.orderItems = orderItemsJson;
+    } else {
+      // Versione ridotta per metadata
+      stripeMetadata.orderItems = JSON.stringify(orderItems.map((item: any) => ({
+        name: (item.name || '').substring(0, 30),
         price: item.price || 0,
         quantity: item.quantity || 1
-      })))
-    };
+      })));
+      
+      // Se ancora troppo lungo, solo conteggio
+      if (stripeMetadata.orderItems.length > 500) {
+        stripeMetadata.orderItems = `${orderItems.length} items`;
+        stripeMetadata.itemCount = orderItems.length.toString();
+      }
+    }
     
     console.log('📝 Metadata preparati per webhook:', Object.keys(stripeMetadata));
     console.log('📝 Metadata values:', {
       customerName: stripeMetadata.customerName,
-      orderItemsLength: orderItems.length,
+      orderItemsLength: stripeMetadata.orderItems?.length || 0,
       discountCode: stripeMetadata.discountCode,
       totalAmount: stripeMetadata.totalAmount
     });
+    console.log('📝 DEBUG - orderItems content preview:', stripeMetadata.orderItems?.substring(0, 100) + '...');
 
     // 🔗 URL CONFIGURAZIONE
     const successUrl = `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}`;
@@ -280,7 +300,14 @@ export async function POST(request: NextRequest) {
       line_items_count: sessionConfig.line_items?.length || 0,
       customer_email: sessionConfig.customer_email || 'Non fornita',
       metadata_keys: Object.keys(sessionConfig.metadata || {}),
+      metadata_count: Object.keys(sessionConfig.metadata || {}).length,
       total_amount_expected: finalTotalAmount
+    });
+
+    // ✅ VERIFICA METADATA PRIMA DELL'INVIO
+    console.log('🔍 === VERIFICA METADATA FINALE ===');
+    Object.entries(sessionConfig.metadata || {}).forEach(([key, value]) => {
+      console.log(`${key}: ${typeof value === 'string' ? value.substring(0, 50) : value}... (${typeof value} - ${typeof value === 'string' ? value.length : 0} chars)`);
     });
 
     // 🚀 CREAZIONE SESSIONE STRIPE
