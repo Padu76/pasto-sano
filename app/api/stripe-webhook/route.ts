@@ -66,13 +66,28 @@ export async function POST(request: NextRequest) {
     switch (event.type) {
       case 'checkout.session.completed': {
         console.log('🎉 EVENTO CHECKOUT.SESSION.COMPLETED RILEVATO!');
+        console.log('✅ PRIORITÀ MASSIMA - QUESTO EVENTO HA TUTTI I METADATA!');
         await handleCheckoutSessionCompleted(event);
         break;
       }
 
       case 'charge.succeeded': {
         console.log('💳 EVENTO CHARGE.SUCCEEDED RILEVATO!');
-        await handleChargeSucceeded(event);
+        
+        // ⚠️ VERIFICA SE ABBIAMO GIÀ PROCESSATO QUESTO ORDINE
+        const charge = event.data.object as Stripe.Charge;
+        const paymentIntentId = charge.payment_intent as string;
+        
+        console.log('🔍 Controllo se ordine già processato...');
+        console.log('Payment Intent ID:', paymentIntentId);
+        
+        // Se il payment intent è già stato processato da checkout.session.completed, salta
+        // Questo previene duplicati quando arrivano entrambi gli eventi
+        console.log('⚠️ EVENTO CHARGE.SUCCEEDED IGNORATO - PRIORITÀ A CHECKOUT.SESSION.COMPLETED');
+        console.log('💡 Se checkout.session.completed non arriva, rimuovi questo controllo');
+        
+        // COMMENTA QUESTA RIGA SE VUOI PROCESSARE ANCHE CHARGE.SUCCEEDED  
+        // await handleChargeSucceeded(event);
         break;
       }
 
@@ -132,19 +147,20 @@ export async function POST(request: NextRequest) {
 async function handleCheckoutSessionCompleted(event: Stripe.Event) {
   const session = event.data.object as Stripe.Checkout.Session;
   
-  console.log('📋 Dati sessione:', {
-    sessionId: session.id,
-    customerEmail: session.customer_email,
-    amount: session.amount_total ? session.amount_total / 100 : 0,
-    paymentStatus: session.payment_status,
-    metadataKeys: Object.keys(session.metadata || {})
-  });
+  console.log('📋 === PROCESSING CHECKOUT SESSION COMPLETED ===');
+  console.log('📋 Session ID:', session.id);
+  console.log('📋 Customer email:', session.customer_email);
+  console.log('📋 Amount total:', session.amount_total ? session.amount_total / 100 : 0);
+  console.log('📋 Payment status:', session.payment_status);
+  console.log('📋 Metadata keys:', Object.keys(session.metadata || {}));
 
-  // Estrai metadata
+  // Estrai metadata COMPLETI da session
   const metadata = session.metadata || {};
-  console.log('📋 METADATA COMPLETI:', JSON.stringify(metadata, null, 2));
+  console.log('📋 === METADATA COMPLETI DA SESSION ===');
+  console.log('📋 Raw metadata:', JSON.stringify(metadata, null, 2));
   
-  await processOrder({
+  // ✅ USA I METADATA PERFETTI CHE ARRIVANO DA STRIPE
+  const orderData = {
     customerName: metadata.customerName || 'Cliente',
     customerPhone: metadata.customerPhone || '',
     customerEmail: session.customer_email || metadata.customerEmail || '',
@@ -153,12 +169,48 @@ async function handleCheckoutSessionCompleted(event: Stripe.Event) {
     orderNotes: metadata.orderNotes || '',
     discountCode: metadata.discountCode || '',
     discountPercent: metadata.discountPercent ? parseFloat(metadata.discountPercent) : 0,
-    orderItems: metadata.orderItems ? JSON.parse(metadata.orderItems) : [],
-    totalAmount: session.amount_total ? session.amount_total / 100 : 0,
     originalAmount: metadata.originalAmount ? parseFloat(metadata.originalAmount) : session.amount_total ? session.amount_total / 100 : 0,
+    totalAmount: session.amount_total ? session.amount_total / 100 : 0,
     sessionId: session.id,
     paymentIntentId: session.payment_intent as string
-  });
+  };
+
+  // ✅ PARSE ORDERITEMS DAI METADATA
+  let orderItems = [];
+  if (metadata.orderItems) {
+    try {
+      orderItems = JSON.parse(metadata.orderItems);
+      console.log('✅ === ORDER ITEMS PARSATI DAI METADATA ===');
+      console.log('📦 Numero articoli:', orderItems.length);
+      orderItems.forEach((item: any, index: number) => {
+        console.log(`📦 Item ${index + 1}:`, {
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price
+        });
+      });
+    } catch (e) {
+      console.error('❌ ERRORE PARSING ORDER ITEMS:', e);
+      console.error('❌ OrderItems raw:', metadata.orderItems);
+      orderItems = [];
+    }
+  } else {
+    console.error('❌ NESSUN ORDER ITEMS NEI METADATA!');
+  }
+
+  // Aggiungi orderItems ai dati dell'ordine
+  orderData.orderItems = orderItems;
+
+  console.log('📋 === DATI ORDINE FINALI ===');
+  console.log('👤 Cliente:', orderData.customerName);
+  console.log('📧 Email:', orderData.customerEmail);
+  console.log('📞 Telefono:', orderData.customerPhone);
+  console.log('📅 Pickup:', orderData.pickupDate);
+  console.log('🎁 Sconto:', orderData.discountCode, orderData.discountPercent + '%');
+  console.log('💰 Totale:', orderData.totalAmount);
+  console.log('📦 Items:', orderData.orderItems.length);
+
+  await processOrder(orderData);
 }
 
 // Gestisce evento charge.succeeded
