@@ -214,51 +214,6 @@ async function handleCheckoutSessionCompleted(event: Stripe.Event) {
   await processOrder(orderData);
 }
 
-// Gestisce evento charge.succeeded (BACKUP - NON USATO AL MOMENTO)
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function handleChargeSucceeded(event: Stripe.Event) {
-  const charge = event.data.object as Stripe.Charge;
-  
-  console.log('💳 Dati charge:', {
-    chargeId: charge.id,
-    amount: charge.amount / 100,
-    currency: charge.currency,
-    status: charge.status,
-    metadataKeys: Object.keys(charge.metadata || {})
-  });
-
-  // Per charge.succeeded, i metadata potrebbero essere nel payment_intent
-  let metadata = charge.metadata || {};
-  
-  // Se non ci sono metadata nel charge, prova a recuperarli dal payment_intent
-  if (Object.keys(metadata).length === 0 && charge.payment_intent) {
-    try {
-      console.log('🔍 Recupero metadata da payment_intent...');
-      const paymentIntent = await stripe.paymentIntents.retrieve(charge.payment_intent as string);
-      metadata = paymentIntent.metadata || {};
-      console.log('📋 METADATA DA PAYMENT_INTENT:', JSON.stringify(metadata, null, 2));
-    } catch (error) {
-      console.error('❌ Errore recupero payment_intent:', error);
-    }
-  }
-
-  await processOrder({
-    customerName: metadata.customerName || charge.billing_details?.name || 'Cliente',
-    customerPhone: metadata.customerPhone || charge.billing_details?.phone || '',
-    customerEmail: metadata.customerEmail || charge.billing_details?.email || '',
-    customerAddress: metadata.customerAddress || 'Ritiro presso Pasto Sano',
-    pickupDate: metadata.pickupDate || 'Da concordare',
-    orderNotes: metadata.orderNotes || '',
-    discountCode: metadata.discountCode || '',
-    discountPercent: metadata.discountPercent ? parseFloat(metadata.discountPercent) : 0,
-    orderItems: metadata.orderItems ? JSON.parse(metadata.orderItems) : [],
-    totalAmount: charge.amount / 100,
-    originalAmount: metadata.originalAmount ? parseFloat(metadata.originalAmount) : charge.amount / 100,
-    sessionId: charge.id,
-    paymentIntentId: charge.payment_intent as string
-  });
-}
-
 // Funzione comune per processare l'ordine
 async function processOrder(orderData: any) {
   const {
