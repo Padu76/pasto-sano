@@ -15,20 +15,78 @@ export async function POST(request: NextRequest) {
   console.log('🕐 Timestamp:', new Date().toISOString());
   
   try {
-    // Ottieni il body raw e la signature
+    // 🔍 DEBUG COMPLETO HEADERS RICEVUTI
+    console.log('🔍 === DEBUG HEADERS COMPLETI ===');
+    const allHeaders: { [key: string]: string } = {};
+    request.headers.forEach((value, key) => {
+      allHeaders[key] = value;
+      console.log(`Header ${key}:`, value.substring(0, 100) + (value.length > 100 ? '...' : ''));
+    });
+    
+    // Ottieni il body raw e la signature con metodi alternativi
     const body = await request.text();
-    const signature = request.headers.get('stripe-signature');
-
     console.log('📦 Body length:', body.length);
-    console.log('🔏 Signature presente:', !!signature);
+    console.log('📦 Body preview:', body.substring(0, 200) + '...');
+    
+    // 🔍 TENTATIVO MULTIPLO DI LETTURA SIGNATURE
+    let signature: string | null = null;
+    
+    // Metodo 1: Header standard
+    signature = request.headers.get('stripe-signature');
+    console.log('🔏 Signature (metodo 1 - stripe-signature):', signature ? signature.substring(0, 50) + '...' : 'NULL');
+    
+    // Metodo 2: Header alternativo
+    if (!signature) {
+      signature = request.headers.get('Stripe-Signature');
+      console.log('🔏 Signature (metodo 2 - Stripe-Signature):', signature ? signature.substring(0, 50) + '...' : 'NULL');
+    }
+    
+    // Metodo 3: Cerca tra tutti gli headers
+    if (!signature) {
+      for (const [key, value] of Object.entries(allHeaders)) {
+        if (key.toLowerCase().includes('stripe') && key.toLowerCase().includes('signature')) {
+          signature = value;
+          console.log(`🔏 Signature (metodo 3 - ${key}):`, signature.substring(0, 50) + '...');
+          break;
+        }
+      }
+    }
+    
+    // Metodo 4: Headers con pattern diversi
+    if (!signature) {
+      const possibleKeys = [
+        'x-stripe-signature',
+        'stripe_signature', 
+        'stripeSignature',
+        'webhook-signature',
+        'x-webhook-signature'
+      ];
+      
+      for (const key of possibleKeys) {
+        const value = request.headers.get(key);
+        if (value) {
+          signature = value;
+          console.log(`🔏 Signature (metodo 4 - ${key}):`, signature.substring(0, 50) + '...');
+          break;
+        }
+      }
+    }
+
     console.log('🔑 STRIPE_WEBHOOK_SECRET configurato:', !!process.env.STRIPE_WEBHOOK_SECRET);
+    console.log('🔑 STRIPE_WEBHOOK_SECRET preview:', process.env.STRIPE_WEBHOOK_SECRET ? 
+      process.env.STRIPE_WEBHOOK_SECRET.substring(0, 10) + '...' : 'MANCANTE');
 
     if (!signature) {
-      console.error('❌ Manca la signature Stripe');
-      return NextResponse.json(
-        { error: 'Missing stripe signature' },
-        { status: 400 }
-      );
+      console.error('❌ === NESSUNA SIGNATURE TROVATA CON TUTTI I METODI ===');
+      console.error('🔍 Headers disponibili:', Object.keys(allHeaders));
+      console.error('🔍 Headers che contengono "stripe":', 
+        Object.keys(allHeaders).filter(k => k.toLowerCase().includes('stripe')));
+      
+      return NextResponse.json({
+        error: 'Missing stripe signature - tried all methods',
+        available_headers: Object.keys(allHeaders),
+        stripe_headers: Object.keys(allHeaders).filter(k => k.toLowerCase().includes('stripe'))
+      }, { status: 400 });
     }
 
     // Verifica che il webhook secret sia configurato
@@ -43,29 +101,58 @@ export async function POST(request: NextRequest) {
     let event: Stripe.Event;
 
     try {
+      // ⚡ TENTATIVO VERIFICA SIGNATURE CON DEBUG AGGIUNTIVO
+      console.log('🔐 === TENTATIVO VERIFICA SIGNATURE ===');
+      console.log('🔐 Body type:', typeof body);
+      console.log('🔐 Body length:', body.length);
+      console.log('🔐 Signature found:', !!signature);
+      console.log('🔐 Webhook secret configured:', !!process.env.STRIPE_WEBHOOK_SECRET);
+      
       // Verifica la signature del webhook
       event = stripe.webhooks.constructEvent(
         body,
         signature,
         process.env.STRIPE_WEBHOOK_SECRET
       );
-      console.log('✅ Signature verificata con successo!');
+      console.log('✅ === SIGNATURE VERIFICATA CON SUCCESSO! ===');
       console.log('🎯 Event type ricevuto:', event.type);
       console.log('🆔 Event ID:', event.id);
+      console.log('📅 Event created:', new Date(event.created * 1000).toISOString());
+      
     } catch (err: any) {
-      console.error(`❌ Errore verifica webhook: ${err.message}`);
-      return NextResponse.json(
-        { error: `Webhook Error: ${err.message}` },
-        { status: 400 }
-      );
+      console.error('❌ === ERRORE VERIFICA SIGNATURE ===');
+      console.error('Errore completo:', err);
+      console.error('Errore messaggio:', err.message);
+      console.error('Errore tipo:', err.type);
+      console.error('Errore code:', err.code);
+      
+      // ⚡ DEBUG AGGIUNTIVO PER SIGNATURE
+      console.error('🔍 DEBUG SIGNATURE FAILURE:');
+      console.error('- Signature lunghezza:', signature?.length);
+      console.error('- Signature formato:', signature?.includes('t=') && signature?.includes('v1=') ? 'STRIPE_FORMAT' : 'UNKNOWN_FORMAT');
+      console.error('- Body è stringa:', typeof body === 'string');
+      console.error('- Body encoding:', body.includes('\\') ? 'ESCAPED' : 'CLEAN');
+      
+      return NextResponse.json({
+        error: `Webhook signature verification failed: ${err.message}`,
+        details: {
+          signature_found: !!signature,
+          signature_length: signature?.length,
+          signature_format: signature?.includes('t=') && signature?.includes('v1=') ? 'stripe_format' : 'unknown',
+          body_type: typeof body,
+          body_length: body.length,
+          error_type: err.type,
+          error_code: err.code
+        }
+      }, { status: 400 });
     }
 
-    console.log('🔍 Inizio elaborazione evento...');
+    console.log('🔍 === ELABORAZIONE EVENTO STRIPE ===');
 
     // Gestisci i diversi tipi di eventi
     switch (event.type) {
       case 'checkout.session.completed': {
-        console.log('🎉 EVENTO CHECKOUT.SESSION.COMPLETED RILEVATO!');
+        console.log('🎉 === EVENTO CHECKOUT.SESSION.COMPLETED RILEVATO! ===');
         console.log('✅ PRIORITÀ MASSIMA - QUESTO EVENTO HA TUTTI I METADATA!');
         await handleCheckoutSessionCompleted(event);
         break;
@@ -74,20 +161,12 @@ export async function POST(request: NextRequest) {
       case 'charge.succeeded': {
         console.log('💳 EVENTO CHARGE.SUCCEEDED RILEVATO!');
         
-        // ⚠️ VERIFICA SE ABBIAMO GIÀ PROCESSATO QUESTO ORDINE
         const charge = event.data.object as Stripe.Charge;
         const paymentIntentId = charge.payment_intent as string;
         
         console.log('🔍 Controllo se ordine già processato...');
         console.log('Payment Intent ID:', paymentIntentId);
-        
-        // Se il payment intent è già stato processato da checkout.session.completed, salta
-        // Questo previene duplicati quando arrivano entrambi gli eventi
         console.log('⚠️ EVENTO CHARGE.SUCCEEDED IGNORATO - PRIORITÀ A CHECKOUT.SESSION.COMPLETED');
-        console.log('💡 Se checkout.session.completed non arriva, rimuovi questo controllo');
-        
-        // COMMENTA QUESTA RIGA SE VUOI PROCESSARE ANCHE CHARGE.SUCCEEDED  
-        // await handleChargeSucceeded(event);
         break;
       }
 
@@ -123,23 +202,33 @@ export async function POST(request: NextRequest) {
 
       default:
         console.log(`⚠️ === EVENTO NON GESTITO: ${event.type} ===`);
-        console.log('Event data:', JSON.stringify(event.data, null, 2));
+        console.log('Event data preview:', JSON.stringify(event.data, null, 2).substring(0, 500) + '...');
     }
 
     console.log('🎉 === WEBHOOK STRIPE COMPLETATO CON SUCCESSO ===');
     
     // Rispondi a Stripe per confermare la ricezione
-    return NextResponse.json({ received: true, eventType: event.type });
+    return NextResponse.json({ 
+      received: true, 
+      eventType: event.type,
+      eventId: event.id,
+      timestamp: new Date().toISOString()
+    });
 
   } catch (error) {
     console.error('❌ === ERRORE GENERALE WEBHOOK ===');
-    console.error('Errore:', error);
-    console.error('Tipo errore:', typeof error);
-    console.error('Stack:', error instanceof Error ? error.stack : 'N/A');
-    return NextResponse.json(
-      { error: 'Webhook handler failed' },
-      { status: 500 }
-    );
+    console.error('Errore tipo:', typeof error);
+    console.error('Errore nome:', error instanceof Error ? error.name : 'UNKNOWN');
+    console.error('Errore messaggio:', error instanceof Error ? error.message : 'NO_MESSAGE');
+    console.error('Errore stack:', error instanceof Error ? error.stack?.substring(0, 500) + '...' : 'NO_STACK');
+    
+    return NextResponse.json({
+      error: 'Webhook handler failed',
+      details: error instanceof Error ? {
+        name: error.name,
+        message: error.message
+      } : 'Unknown error'
+    }, { status: 500 });
   }
 }
 
@@ -618,11 +707,12 @@ export async function GET() {
   return NextResponse.json({
     status: allConfigured ? 'active' : 'partial',
     endpoint: '/api/stripe-webhook',
-    message: 'Stripe webhook endpoint status - EmailJS Server Compatible + Firebase Admin SDK',
+    message: 'Stripe webhook endpoint status - EmailJS Server Compatible + Firebase Admin SDK + Enhanced Signature Debug',
     configuration: config,
     timestamp: new Date().toISOString(),
     ready: allConfigured,
     emailjs_methods: ['form-send', 'iframe-simulation', 'standard-headers'],
-    firebase_sdk: 'admin' // ⚡ NUOVO: INDICA CHE USA ADMIN SDK
+    firebase_sdk: 'admin',
+    signature_debug: 'enhanced' // ⚡ NUOVO: Debug signature migliorato
   });
 }
