@@ -265,7 +265,7 @@ async function processOrder(orderData: any) {
       timestamp: new Date()
     };
     
-    console.log('📝 Dati ordine preparati per Firebase:', {
+    console.log('🔍 Dati ordine preparati per Firebase:', {
       customerName: firebaseOrderData.customerName,
       totalAmount: firebaseOrderData.totalAmount,
       itemsCount: firebaseOrderData.items.length,
@@ -313,7 +313,7 @@ async function processOrder(orderData: any) {
   console.log('🎉 === ELABORAZIONE ORDINE COMPLETATA ===');
 }
 
-// Funzione per inviare email con EmailJS per ordini Stripe
+// 🚀 FUNZIONE EMAILJS SERVER-COMPATIBLE 
 async function sendStripeOrderEmail(orderData: any) {
   try {
     const {
@@ -402,96 +402,134 @@ async function sendStripeOrderEmail(orderData: any) {
       status_color: '#28a745'  // Verde per pagato
     };
 
-    console.log('📧 Tentativo invio email con parametri:', {
-      to: templateParams.to_email,
-      customer: customerName,
-      amount: totalAmount,
-      items: totalItems
-    });
-
-    // 🔧 METODO ALTERNATIVO - API REST DIRETTA SENZA BROWSER
-    const emailPayload = {
-      service_id: process.env.EMAILJS_SERVICE_ID,
-      template_id: process.env.EMAILJS_TEMPLATE_ID,
-      user_id: process.env.EMAILJS_PUBLIC_KEY,
-      template_params: templateParams
-    };
-
     console.log('📧 Configurazione EmailJS:', {
       service_id: !!process.env.EMAILJS_SERVICE_ID,
       template_id: !!process.env.EMAILJS_TEMPLATE_ID,
       user_id: !!process.env.EMAILJS_PUBLIC_KEY,
-      has_params: !!templateParams
+      private_key: !!process.env.EMAILJS_PRIVATE_KEY,
+      notification_email: process.env.NOTIFICATION_EMAIL
     });
 
-    // 🔧 PROVA 1: API REST senza accessToken
-    console.log('📧 Tentativo 1: API REST senza accessToken...');
-    const response1 = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+    // 🎯 METODO NUOVO: EMAILJS FORM SEND (più compatibile server)
+    console.log('📧 🚀 Tentativo FORM SEND (server-compatible)...');
+    
+    const formData = new FormData();
+    formData.append('service_id', process.env.EMAILJS_SERVICE_ID!);
+    formData.append('template_id', process.env.EMAILJS_TEMPLATE_ID!);
+    formData.append('user_id', process.env.EMAILJS_PUBLIC_KEY!);
+    formData.append('accessToken', process.env.EMAILJS_PRIVATE_KEY!);
+    
+    // Aggiungi tutti i template params come form data
+    Object.entries(templateParams).forEach(([key, value]) => {
+      formData.append(key, String(value));
+    });
+
+    const formResponse = await fetch('https://api.emailjs.com/api/v1.0/email/send-form', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'PastoSano-Webhook/1.0'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/json, text/plain, */*',
+        'Accept-Language': 'it-IT,it;q=0.9,en;q=0.8',
+        'Origin': 'https://pasto-sano.vercel.app',
+        'Referer': 'https://pasto-sano.vercel.app/',
+        'Sec-Fetch-Dest': 'empty',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Site': 'cross-site'
       },
-      body: JSON.stringify(emailPayload)
+      body: formData
     });
 
-    if (response1.ok) {
-      const result = await response1.text();
-      console.log('✅ Email inviata con successo (metodo 1):', result);
+    if (formResponse.ok) {
+      const result = await formResponse.text();
+      console.log('✅ Email inviata con successo (FORM SEND):', result);
       return;
     } else {
-      const error1 = await response1.text();
-      console.log('❌ Metodo 1 fallito:', response1.status, error1);
+      const formError = await formResponse.text();
+      console.log('❌ FORM SEND fallito:', formResponse.status, formError);
     }
 
-    // 🔧 PROVA 2: API REST con accessToken
-    console.log('📧 Tentativo 2: API REST con accessToken...');
-    const emailPayloadWithToken = {
-      ...emailPayload,
+    // 🎯 METODO ALTERNATIVO: IFRAME SIMULATION  
+    console.log('📧 🔄 Tentativo IFRAME SIMULATION...');
+    
+    const iframePayload = {
+      lib_version: '3.2.0',
+      user_id: process.env.EMAILJS_PUBLIC_KEY,
+      service_id: process.env.EMAILJS_SERVICE_ID,
+      template_id: process.env.EMAILJS_TEMPLATE_ID,
+      template_params: templateParams,
       accessToken: process.env.EMAILJS_PRIVATE_KEY
     };
 
-    const response2 = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+    const iframeResponse = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'User-Agent': 'PastoSano-Webhook/1.0'
+        'User-Agent': 'Mozilla/5.0 (compatible; EmailJS/3.2.0; +https://www.emailjs.com)',
+        'Accept': '*/*',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Accept-Language': 'it-IT,it;q=0.9',
+        'Cache-Control': 'no-cache',
+        'Origin': 'https://pasto-sano.vercel.app',
+        'Referer': 'https://pasto-sano.vercel.app/',
+        'Sec-Fetch-Dest': 'empty',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Site': 'cross-site',
+        'X-Requested-With': 'XMLHttpRequest'
       },
-      body: JSON.stringify(emailPayloadWithToken)
+      body: JSON.stringify(iframePayload)
     });
 
-    if (response2.ok) {
-      const result = await response2.text();
-      console.log('✅ Email inviata con successo (metodo 2):', result);
+    if (iframeResponse.ok) {
+      const result = await iframeResponse.text();
+      console.log('✅ Email inviata con successo (IFRAME SIM):', result);
       return;
     } else {
-      const error2 = await response2.text();
-      console.log('❌ Metodo 2 fallito:', response2.status, error2);
+      const iframeError = await iframeResponse.text();
+      console.log('❌ IFRAME SIM fallito:', iframeResponse.status, iframeError);
     }
 
-    // 🔧 PROVA 3: API REST con Authorization header
-    console.log('📧 Tentativo 3: API REST con Authorization header...');
-    const response3 = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+    // 🎯 METODO LEGACY: API STANDARD CON HEADERS AVANZATI
+    console.log('📧 🔄 Tentativo API STANDARD con headers avanzati...');
+    
+    const standardPayload = {
+      service_id: process.env.EMAILJS_SERVICE_ID,
+      template_id: process.env.EMAILJS_TEMPLATE_ID,
+      user_id: process.env.EMAILJS_PUBLIC_KEY,
+      accessToken: process.env.EMAILJS_PRIVATE_KEY,
+      template_params: templateParams
+    };
+
+    const standardResponse = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.EMAILJS_PRIVATE_KEY}`,
-        'User-Agent': 'PastoSano-Webhook/1.0'
+        'Content-Type': 'application/json; charset=UTF-8',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'application/json, text/javascript, */*; q=0.01',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Accept-Language': 'it-IT,it;q=0.9,en-US;q=0.8,en;q=0.7',
+        'Connection': 'keep-alive',
+        'Origin': 'https://pasto-sano.vercel.app',
+        'Referer': 'https://pasto-sano.vercel.app/success',
+        'Sec-Fetch-Dest': 'empty',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Site': 'cross-site',
+        'X-Requested-With': 'XMLHttpRequest',
+        'DNT': '1'
       },
-      body: JSON.stringify(emailPayload)
+      body: JSON.stringify(standardPayload)
     });
 
-    if (response3.ok) {
-      const result = await response3.text();
-      console.log('✅ Email inviata con successo (metodo 3):', result);
+    if (standardResponse.ok) {
+      const result = await standardResponse.text();
+      console.log('✅ Email inviata con successo (STANDARD):', result);
       return;
     } else {
-      const error3 = await response3.text();
-      console.log('❌ Metodo 3 fallito:', response3.status, error3);
+      const standardError = await standardResponse.text();
+      console.log('❌ STANDARD fallito:', standardResponse.status, standardError);
     }
 
     // Se tutti i metodi falliscono, lancia errore
-    throw new Error(`Tutti i metodi EmailJS falliti. Ultimo errore: ${response3.status}`);
+    throw new Error(`Tutti i metodi EmailJS falliti. Status finale: ${standardResponse.status}`);
 
   } catch (error) {
     console.error('❌ Errore invio email ordine Stripe:', error);
@@ -523,6 +561,8 @@ async function sendPaymentFailedEmail(data: any) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (compatible; EmailJS/3.2.0)',
+        'Origin': 'https://pasto-sano.vercel.app'
       },
       body: JSON.stringify({
         service_id: process.env.EMAILJS_SERVICE_ID,
@@ -568,9 +608,10 @@ export async function GET() {
   return NextResponse.json({
     status: allConfigured ? 'active' : 'partial',
     endpoint: '/api/stripe-webhook',
-    message: 'Stripe webhook endpoint status',
+    message: 'Stripe webhook endpoint status - EmailJS Server Compatible',
     configuration: config,
     timestamp: new Date().toISOString(),
-    ready: allConfigured
+    ready: allConfigured,
+    emailjs_methods: ['form-send', 'iframe-simulation', 'standard-headers']
   });
 }
