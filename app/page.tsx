@@ -20,7 +20,8 @@ import {
   Info,
   Mail,
   MessageCircle,
-  Globe
+  Globe,
+  Tag
 } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
@@ -43,6 +44,13 @@ declare global {
     emailjs: any;
   }
 }
+
+// ✅ CODICI SCONTO
+const DISCOUNT_CODES = {
+  'SCONTO5': { percent: 5, description: '5% di sconto' },
+  'SCONTO10': { percent: 10, description: '10% di sconto' },
+  'OMAGGIO': { percent: 100, description: 'Ordine gratuito' }
+};
 
 // ✅ CARICAMENTO EMAILJS IMMEDIATO (STESSO METODO DEL TEST)
 if (typeof window !== 'undefined' && !window.emailjs) {
@@ -210,6 +218,11 @@ export default function Home() {
   const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'paypal' | 'cash' | null>(null);
   const [error, setError] = useState<string | null>(null);
   
+  // ✅ STATI PER CODICI SCONTO
+  const [discountCode, setDiscountCode] = useState('');
+  const [appliedDiscount, setAppliedDiscount] = useState<{ code: string; percent: number; description: string } | null>(null);
+  const [discountError, setDiscountError] = useState('');
+  
   // Dati cliente
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerName, setCustomerName] = useState('');
@@ -276,12 +289,53 @@ export default function Home() {
     }).filter(Boolean));
   };
 
-  const getTotalPrice = () => {
+  // ✅ CALCOLO TOTALE ORIGINALE
+  const getOriginalPrice = () => {
     return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+  };
+
+  // ✅ CALCOLO SCONTO
+  const getDiscountAmount = () => {
+    if (!appliedDiscount) return 0;
+    return (getOriginalPrice() * appliedDiscount.percent) / 100;
+  };
+
+  // ✅ CALCOLO TOTALE FINALE
+  const getTotalPrice = () => {
+    return Math.max(0, getOriginalPrice() - getDiscountAmount());
   };
 
   const getTotalItems = () => {
     return cart.reduce((total, item) => total + item.quantity, 0);
+  };
+
+  // ✅ APPLICAZIONE CODICE SCONTO
+  const applyDiscountCode = () => {
+    const code = discountCode.toUpperCase().trim();
+    
+    if (!code) {
+      setDiscountError('Inserisci un codice sconto');
+      return;
+    }
+
+    if (DISCOUNT_CODES[code]) {
+      setAppliedDiscount({
+        code,
+        ...DISCOUNT_CODES[code]
+      });
+      setDiscountError('');
+      setDiscountCode('');
+    } else {
+      setDiscountError('Codice sconto non valido');
+      setAppliedDiscount(null);
+    }
+  };
+
+  // ✅ RIMOZIONE SCONTO
+  const removeDiscount = () => {
+    setAppliedDiscount(null);
+    setDiscountCode('');
+    setDiscountError('');
   };
 
   // Validazione form con controllo weekend
@@ -337,7 +391,10 @@ export default function Home() {
       customerAddress: 'Ritiro presso Pasto Sano',
       pickupDate,
       items: cart,
+      originalAmount: getOriginalPrice(),
+      discountAmount: getDiscountAmount(),
       totalAmount: getTotalPrice(),
+      appliedDiscount,
       paymentMethod: paymentMethod || 'unknown',
       notes,
       orderDate: new Date().toISOString()
@@ -380,7 +437,7 @@ export default function Home() {
       customer_phone: customerPhone,
       customer_address: 'Ritiro presso Pasto Sano',
       order_details: orderDetails,
-      total_amount: getTotalPrice().toFixed(2),
+      total_amount: `€${getOriginalPrice().toFixed(2)}${appliedDiscount ? ` (Sconto ${appliedDiscount.description}: -€${getDiscountAmount().toFixed(2)}) = €${getTotalPrice().toFixed(2)}` : ''}`,
       payment_method: method === 'cash' ? 'Contanti al ritiro' : method === 'paypal' ? 'PayPal' : 'Carta di credito',
       pickup_date: pickupDate,
       notes: notes || 'Nessuna nota',
@@ -425,7 +482,11 @@ export default function Home() {
           customerAddress: 'Ritiro presso Pasto Sano',
           customerPhone,
           pickupDate,
-          notes
+          notes,
+          originalAmount: getOriginalPrice(),
+          discountAmount: getDiscountAmount(),
+          totalAmount: getTotalPrice(),
+          appliedDiscount
         }),
       });
 
@@ -503,7 +564,10 @@ export default function Home() {
           customerAddress: 'Ritiro presso Pasto Sano',
           pickupDate,
           items: cart,
+          originalAmount: getOriginalPrice(),
+          discountAmount: getDiscountAmount(),
           totalAmount: getTotalPrice(),
+          appliedDiscount,
           notes
         }),
       });
@@ -543,7 +607,10 @@ export default function Home() {
         customerPhone,
         customerAddress: 'Ritiro presso Pasto Sano',
         items: cart,
+        originalAmount: getOriginalPrice(),
+        discountAmount: getDiscountAmount(),
         totalAmount: getTotalPrice(),
+        appliedDiscount,
         paymentMethod: method,
         paymentMethodName: method === 'cash' ? 'Contanti alla consegna' : method === 'paypal' ? 'PayPal' : 'Carta di credito',
         paymentStatus: method === 'cash' ? 'pending' : 'paid',
@@ -744,12 +811,28 @@ export default function Home() {
                   </div>
 
                   <div className="sticky bottom-0 bg-white border-t p-4 shadow-lg">
-                    <div className="flex justify-between items-center mb-4">
-                      <span className="text-lg md:text-xl font-bold">Totale:</span>
-                      <span className="text-xl md:text-2xl font-bold text-orange-600">
-                        €{getTotalPrice().toFixed(2)}
-                      </span>
+                    {/* ✅ VISUALIZZAZIONE TOTALI CON SCONTO */}
+                    <div className="space-y-2 mb-4">
+                      <div className="flex justify-between items-center text-sm">
+                        <span>Subtotale:</span>
+                        <span>€{getOriginalPrice().toFixed(2)}</span>
+                      </div>
+                      
+                      {appliedDiscount && (
+                        <div className="flex justify-between items-center text-sm text-green-600">
+                          <span>Sconto ({appliedDiscount.description}):</span>
+                          <span>-€{getDiscountAmount().toFixed(2)}</span>
+                        </div>
+                      )}
+                      
+                      <div className="flex justify-between items-center border-t pt-2">
+                        <span className="text-lg md:text-xl font-bold">Totale:</span>
+                        <span className="text-xl md:text-2xl font-bold text-orange-600">
+                          €{getTotalPrice().toFixed(2)}
+                        </span>
+                      </div>
                     </div>
+                    
                     <button
                       onClick={() => {
                         setShowCheckout(true);
@@ -817,6 +900,68 @@ export default function Home() {
                         onChange={(e) => setCustomerEmail(e.target.value)}
                         className="w-full p-3 border rounded-lg focus:outline-none focus:border-green-500"
                       />
+                    </div>
+                    
+                    {/* ✅ SEZIONE CODICE SCONTO */}
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Tag className="w-5 h-5 text-green-600" />
+                        <label className="text-sm font-medium text-gray-700">
+                          Codice Sconto
+                        </label>
+                      </div>
+                      
+                      {!appliedDiscount ? (
+                        <div className="space-y-2">
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={discountCode}
+                              onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                              placeholder="Inserisci codice sconto"
+                              className="flex-1 p-2 border rounded-lg focus:outline-none focus:border-green-500"
+                            />
+                            <button
+                              onClick={applyDiscountCode}
+                              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                            >
+                              Applica
+                            </button>
+                          </div>
+                          
+                          {discountError && (
+                            <p className="text-red-600 text-sm">{discountError}</p>
+                          )}
+                          
+                          <div className="text-xs text-gray-600">
+                            <p className="font-medium mb-1">Codici disponibili per test:</p>
+                            <div className="flex flex-wrap gap-2">
+                              <span className="bg-gray-100 px-2 py-1 rounded text-xs">SCONTO5 (5%)</span>
+                              <span className="bg-gray-100 px-2 py-1 rounded text-xs">SCONTO10 (10%)</span>
+                              <span className="bg-gray-100 px-2 py-1 rounded text-xs">OMAGGIO (100%)</span>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="bg-white rounded-lg p-3">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium text-green-700">
+                                ✓ Sconto applicato: {appliedDiscount.description}
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                Risparmio: €{getDiscountAmount().toFixed(2)}
+                              </p>
+                            </div>
+                            <button
+                              onClick={removeDiscount}
+                              className="text-red-500 hover:text-red-700 p-1"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                     
                     {/* Sezione Data Ritiro Migliorata */}
@@ -894,6 +1039,31 @@ export default function Home() {
                     </div>
                   )}
 
+                  {/* ✅ RIEPILOGO TOTALI PRIMA DEL PAGAMENTO */}
+                  <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                    <h4 className="font-semibold mb-3">Riepilogo Ordine</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Subtotale:</span>
+                        <span>€{getOriginalPrice().toFixed(2)}</span>
+                      </div>
+                      {appliedDiscount && (
+                        <div className="flex justify-between text-green-600">
+                          <span>Sconto ({appliedDiscount.description}):</span>
+                          <span>-€{getDiscountAmount().toFixed(2)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between font-bold text-lg border-t pt-2">
+                        <span>Totale da pagare:</span>
+                        <span className="text-orange-600">€{getTotalPrice().toFixed(2)}</span>
+                      </div>
+                      <div className="text-xs text-gray-600 mt-2">
+                        <p>Articoli: {getTotalItems()}</p>
+                        <p>Ritiro: {pickupDate ? new Date(pickupDate).toLocaleDateString('it-IT') : 'Da definire'}</p>
+                      </div>
+                    </div>
+                  </div>
+
                   <h3 className="text-lg font-semibold mb-4">Scegli il metodo di pagamento</h3>
                   <div className="space-y-3">
                     <button
@@ -945,9 +1115,24 @@ export default function Home() {
                   <p className="text-gray-600">Verrai reindirizzato a Stripe per completare il pagamento in sicurezza.</p>
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <p className="font-semibold mb-2">Riepilogo Ordine:</p>
-                    <p>Totale: €{getTotalPrice().toFixed(2)}</p>
-                    <p>Articoli: {getTotalItems()}</p>
-                    <p>Ritiro: {pickupDate ? new Date(pickupDate).toLocaleDateString('it-IT') : 'Da definire'}</p>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span>Subtotale:</span>
+                        <span>€{getOriginalPrice().toFixed(2)}</span>
+                      </div>
+                      {appliedDiscount && (
+                        <div className="flex justify-between text-green-600">
+                          <span>Sconto:</span>
+                          <span>-€{getDiscountAmount().toFixed(2)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between font-bold border-t pt-1">
+                        <span>Totale:</span>
+                        <span>€{getTotalPrice().toFixed(2)}</span>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-2">Articoli: {getTotalItems()}</p>
+                    <p className="text-sm text-gray-600">Ritiro: {pickupDate ? new Date(pickupDate).toLocaleDateString('it-IT') : 'Da definire'}</p>
                   </div>
                   <div className="flex gap-3">
                     <button
@@ -984,9 +1169,24 @@ export default function Home() {
                   <p className="text-gray-600">Usa il tuo account PayPal per completare il pagamento.</p>
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <p className="font-semibold mb-2">Riepilogo Ordine:</p>
-                    <p>Totale: €{getTotalPrice().toFixed(2)}</p>
-                    <p>Articoli: {getTotalItems()}</p>
-                    <p>Ritiro: {pickupDate ? new Date(pickupDate).toLocaleDateString('it-IT') : 'Da definire'}</p>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span>Subtotale:</span>
+                        <span>€{getOriginalPrice().toFixed(2)}</span>
+                      </div>
+                      {appliedDiscount && (
+                        <div className="flex justify-between text-green-600">
+                          <span>Sconto:</span>
+                          <span>-€{getDiscountAmount().toFixed(2)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between font-bold border-t pt-1">
+                        <span>Totale:</span>
+                        <span>€{getTotalPrice().toFixed(2)}</span>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-2">Articoli: {getTotalItems()}</p>
+                    <p className="text-sm text-gray-600">Ritiro: {pickupDate ? new Date(pickupDate).toLocaleDateString('it-IT') : 'Da definire'}</p>
                   </div>
                   <PayPalButtons
                     createOrder={(_data, actions) => {
@@ -1027,9 +1227,24 @@ export default function Home() {
                   </div>
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <p className="font-semibold mb-2">Riepilogo Ordine:</p>
-                    <p>Totale da pagare: €{getTotalPrice().toFixed(2)}</p>
-                    <p>Articoli: {getTotalItems()}</p>
-                    <p>Ritiro: {pickupDate ? `${getDayName(new Date(pickupDate))}, ${new Date(pickupDate).toLocaleDateString('it-IT')}` : 'Da definire'}</p>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span>Subtotale:</span>
+                        <span>€{getOriginalPrice().toFixed(2)}</span>
+                      </div>
+                      {appliedDiscount && (
+                        <div className="flex justify-between text-green-600">
+                          <span>Sconto:</span>
+                          <span>-€{getDiscountAmount().toFixed(2)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between font-bold border-t pt-1">
+                        <span>Totale da pagare:</span>
+                        <span>€{getTotalPrice().toFixed(2)}</span>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-2">Articoli: {getTotalItems()}</p>
+                    <p className="text-sm text-gray-600">Ritiro: {pickupDate ? `${getDayName(new Date(pickupDate))}, ${new Date(pickupDate).toLocaleDateString('it-IT')}` : 'Da definire'}</p>
                     <p className="text-sm text-gray-600 mt-2">📍 Presso: Pasto Sano</p>
                   </div>
                   <div className="flex gap-3">
