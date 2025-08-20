@@ -482,11 +482,8 @@ export default function Home() {
           customerAddress: 'Ritiro presso Pasto Sano',
           customerPhone,
           pickupDate,
-          notes,
-          originalAmount: getOriginalPrice(),
-          discountAmount: getDiscountAmount(),
-          totalAmount: getTotalPrice(),
-          appliedDiscount
+          notes: appliedDiscount ? `${notes || ''}\n\nSconto applicato: ${appliedDiscount.description} (-€${getDiscountAmount().toFixed(2)})` : notes,
+          totalAmount: getTotalPrice()
         }),
       });
 
@@ -564,11 +561,8 @@ export default function Home() {
           customerAddress: 'Ritiro presso Pasto Sano',
           pickupDate,
           items: cart,
-          originalAmount: getOriginalPrice(),
-          discountAmount: getDiscountAmount(),
           totalAmount: getTotalPrice(),
-          appliedDiscount,
-          notes
+          notes: appliedDiscount ? `${notes || ''}\n\nSconto applicato: ${appliedDiscount.description} (-€${getDiscountAmount().toFixed(2)})` : notes
         }),
       });
 
@@ -607,16 +601,13 @@ export default function Home() {
         customerPhone,
         customerAddress: 'Ritiro presso Pasto Sano',
         items: cart,
-        originalAmount: getOriginalPrice(),
-        discountAmount: getDiscountAmount(),
         totalAmount: getTotalPrice(),
-        appliedDiscount,
         paymentMethod: method,
         paymentMethodName: method === 'cash' ? 'Contanti alla consegna' : method === 'paypal' ? 'PayPal' : 'Carta di credito',
         paymentStatus: method === 'cash' ? 'pending' : 'paid',
         orderStatus: 'confirmed',
         pickupDate,
-        notes,
+        notes: appliedDiscount ? `${notes || ''}\n\nSconto applicato: ${appliedDiscount.description} (-€${getDiscountAmount().toFixed(2)})` : notes,
         source: 'website',
         timestamp: new Date()
       });
