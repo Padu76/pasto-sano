@@ -23,7 +23,6 @@ import {
   Globe
 } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
-import emailjs from '@emailjs/browser';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { addOrder } from '@/lib/firebase';
 
@@ -204,24 +203,52 @@ export default function Home() {
     ? meals 
     : meals.filter(meal => meal.category === selectedCategory);
 
-  // ✅ INIZIALIZZAZIONE EMAILJS CORRETTA
+  // ✅ INIZIALIZZAZIONE EMAILJS ROBUSTA
   useEffect(() => {
-    const initEmailJS = async () => {
+    const loadEmailJS = async () => {
       try {
-        const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
-        if (publicKey) {
-          emailjs.init(publicKey);
-          setEmailJSReady(true);
-          console.log('✅ EmailJS inizializzato correttamente');
-        } else {
-          console.error('❌ Chiave EmailJS non trovata');
-        }
+        console.log('🔄 Caricamento EmailJS...');
+        
+        // 1. Carica lo script EmailJS
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
+        script.async = true;
+        
+        script.onload = () => {
+          console.log('📦 Script EmailJS caricato');
+          
+          // 2. Inizializza EmailJS
+          setTimeout(() => {
+            try {
+              const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+              console.log('🔑 Chiave pubblica:', publicKey ? 'PRESENTE' : 'MANCANTE');
+              
+              if (publicKey && (window as any).emailjs) {
+                (window as any).emailjs.init(publicKey);
+                setEmailJSReady(true);
+                console.log('✅ EmailJS inizializzato con successo!');
+                console.log('📧 EmailJS pronto:', (window as any).emailjs);
+              } else {
+                console.error('❌ EmailJS o chiave pubblica mancante');
+              }
+            } catch (error) {
+              console.error('❌ Errore inizializzazione EmailJS:', error);
+            }
+          }, 1000);
+        };
+        
+        script.onerror = () => {
+          console.error('❌ Errore caricamento script EmailJS');
+        };
+        
+        document.head.appendChild(script);
+        
       } catch (error) {
-        console.error('❌ Errore inizializzazione EmailJS:', error);
+        console.error('❌ Errore generale EmailJS:', error);
       }
     };
 
-    initEmailJS();
+    loadEmailJS();
   }, []);
 
   // Inizializza le date al mount del componente
@@ -496,12 +523,35 @@ export default function Home() {
     }
   };
 
-  // ✅ INVIO NOTIFICA ORDINE (SOLO A TE)
+  // ✅ INVIO NOTIFICA ORDINE MIGLIORATO
   const sendOrderNotification = async (method: string) => {
+    console.log('📧 Tentativo invio notifica ordine...');
+    console.log('📊 EmailJS Ready:', emailJSReady);
+    console.log('📊 EmailJS disponibile:', !!(window as any).emailjs);
+    
     // Verifica che EmailJS sia pronto
-    if (!emailJSReady) {
-      console.error('❌ EmailJS non è ancora inizializzato');
-      return;
+    if (!emailJSReady || !(window as any).emailjs) {
+      console.error('❌ EmailJS non è pronto o non disponibile');
+      console.log('🔄 Tentativo caricamento manuale EmailJS...');
+      
+      // Tentativo di caricamento manuale
+      try {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
+        document.head.appendChild(script);
+        
+        await new Promise((resolve) => {
+          script.onload = () => {
+            (window as any).emailjs.init(process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!);
+            resolve(true);
+          };
+        });
+        
+        console.log('✅ EmailJS caricato manualmente');
+      } catch (error) {
+        console.error('❌ Fallito caricamento manuale EmailJS:', error);
+        return;
+      }
     }
 
     const orderDetails = cart.map(item => 
@@ -519,22 +569,24 @@ export default function Home() {
       pickup_date: pickupDate,
       notes: notes || 'Nessuna nota',
       order_date: new Date().toLocaleString('it-IT'),
-      order_id: `ORD-${Date.now()}` // ID ordine unico
+      order_id: `ORD-${Date.now()}`
     };
 
     try {
-      console.log('📧 Invio notifica nuovo ordine al gestore...');
+      console.log('📧 Invio email con parametri:', templateParams);
+      console.log('📧 Service ID:', process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID);
+      console.log('📧 Template ID:', process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID);
       
-      const result = await emailjs.send(
+      const result = await (window as any).emailjs.send(
         process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
         process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
         templateParams,
         process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
       );
       
-      console.log('✅ Notifica ordine inviata con successo:', result);
+      console.log('✅ NOTIFICA ORDINE INVIATA CON SUCCESSO!', result);
     } catch (error) {
-      console.error('❌ Errore invio notifica ordine:', error);
+      console.error('❌ ERRORE INVIO NOTIFICA ORDINE:', error);
       // Non bloccare il processo se l'email fallisce
     }
   };
