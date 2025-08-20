@@ -1,4 +1,14 @@
-import { NextRequest, NextResponse }
+import { NextRequest, NextResponse } from 'next/server';
+import Stripe from 'stripe';
+import { addOrder } from '@/lib/firebase'; // ✅ AGGIUNTO IMPORT FIREBASE
+
+// Inizializza Stripe
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2023-10-16',
+});
+
+// Disabilita il body parsing per i webhook Stripe
+export const runtime = 'nodejs';
 
 // Gestisce evento checkout.session.completed
 async function handleCheckoutSessionCompleted(event: Stripe.Event) {
