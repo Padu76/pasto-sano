@@ -33,7 +33,7 @@ export async function GET() {
     
     console.log('📋 Variabili ambiente:', envVars);
 
-    if (!envVars.FIREBASE_PROJECT_ID || !envVars.FIREBASE_CLIENT_EMAIL || !envVars.FIREBASE_PRIVATE_KEY) {
+    if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !process.env.FIREBASE_PRIVATE_KEY) {
       results.tests.firebase_admin_import = { status: 'SKIP', reason: 'Missing environment variables' };
       results.tests.firebase_initialization = { status: 'SKIP', reason: 'Missing environment variables' };
       results.tests.database_connection = { status: 'SKIP', reason: 'Missing environment variables' };
@@ -42,6 +42,11 @@ export async function GET() {
       return NextResponse.json({
         success: false,
         message: 'VARIABILI FIREBASE MANCANTI - Configura su Vercel',
+        missing_vars: [
+          !process.env.FIREBASE_PROJECT_ID ? 'FIREBASE_PROJECT_ID' : null,
+          !process.env.FIREBASE_CLIENT_EMAIL ? 'FIREBASE_CLIENT_EMAIL' : null,
+          !process.env.FIREBASE_PRIVATE_KEY ? 'FIREBASE_PRIVATE_KEY' : null
+        ].filter(Boolean),
         ...results
       });
     }
@@ -69,17 +74,28 @@ export async function GET() {
       if (getAdminApps().length === 0) {
         console.log('🚀 Inizializzazione nuova app Admin...');
         
+        // ⚡ FIX TYPESCRIPT - Controllo sicuro delle variabili
+        const projectId = process.env.FIREBASE_PROJECT_ID;
+        const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+        const privateKeyRaw = process.env.FIREBASE_PRIVATE_KEY;
+        
+        if (!projectId || !clientEmail || !privateKeyRaw) {
+          throw new Error('Variabili Firebase mancanti dopo verifica iniziale');
+        }
+        
         const credentials = {
-          projectId: process.env.FIREBASE_PROJECT_ID,
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+          projectId: projectId,
+          clientEmail: clientEmail,
+          privateKey: privateKeyRaw.replace(/\\n/g, '\n')
         };
         
         console.log('🔑 Credenziali preparate:', {
           projectId: credentials.projectId,
           clientEmail: credentials.clientEmail,
           privateKeyLength: credentials.privateKey.length,
-          privateKeyStartsWith: credentials.privateKey.substring(0, 30)
+          privateKeyStartsWith: credentials.privateKey.substring(0, 30),
+          privateKeyHasNewlines: credentials.privateKey.includes('\n'),
+          privateKeyFormat: credentials.privateKey.startsWith('-----BEGIN') ? 'PEM_FORMAT' : 'UNKNOWN_FORMAT'
         });
         
         adminApp = initializeAdminApp({
@@ -97,7 +113,8 @@ export async function GET() {
       results.tests.firebase_initialization = {
         status: 'PASS',
         message: 'Firebase Admin inizializzato correttamente',
-        project_id: process.env.FIREBASE_PROJECT_ID
+        project_id: process.env.FIREBASE_PROJECT_ID,
+        existing_apps: getAdminApps().length
       };
       
       console.log('✅ Firestore Admin inizializzato');
@@ -124,7 +141,9 @@ export async function GET() {
           status: 'FAIL',
           message: 'Errore connessione database',
           error: dbError.message,
-          code: dbError.code
+          error_code: dbError.code,
+          error_type: typeof dbError,
+          error_stack: dbError.stack?.substring(0, 200) + '...'
         };
         
         console.error('❌ Errore connessione database:', dbError);
@@ -135,21 +154,22 @@ export async function GET() {
       
       try {
         const testOrder = {
-          customerName: 'TEST USER',
-          customerEmail: 'test@test.com',
+          customerName: 'TEST USER - FIREBASE TEST',
+          customerEmail: 'test@firebase-test.com',
           customerPhone: '123456789',
-          customerAddress: 'Test Address',
+          customerAddress: 'Test Address Firebase',
           items: [{
-            name: 'Test Item',
+            name: 'Test Item Firebase',
             quantity: 1,
             price: 9.99
           }],
           totalAmount: 9.99,
-          paymentMethod: 'test',
+          paymentMethod: 'test-firebase',
+          paymentMethodName: 'Test Firebase Admin',
           paymentStatus: 'test',
-          orderStatus: 'test',
-          notes: 'TEST ORDER - SAFE TO DELETE',
-          source: 'firebase-test',
+          orderStatus: 'test-firebase',
+          notes: 'TEST ORDER FIREBASE ADMIN - SAFE TO DELETE',
+          source: 'firebase-admin-test',
           timestamp: new Date(),
           createdAt: new Date(),
           updatedAt: new Date()
@@ -162,7 +182,13 @@ export async function GET() {
         // Prova a leggere l'ordine appena scritto
         const docSnap = await docRef.get();
         if (docSnap.exists) {
+          const data = docSnap.data();
           console.log('✅ Ordine test letto correttamente');
+          console.log('📋 Dati ordine:', {
+            customerName: data?.customerName,
+            totalAmount: data?.totalAmount,
+            timestamp: data?.timestamp
+          });
           
           // Cancella l'ordine test
           await docRef.delete();
@@ -171,7 +197,9 @@ export async function GET() {
           results.tests.write_test = {
             status: 'PASS',
             message: 'Scrittura, lettura e cancellazione riuscite',
-            test_document_id: docRef.id
+            test_document_id: docRef.id,
+            data_written: testOrder.customerName,
+            data_read: data?.customerName
           };
           
         } else {
@@ -187,7 +215,9 @@ export async function GET() {
           status: 'FAIL',
           message: 'Errore nella scrittura',
           error: writeError.message,
-          code: writeError.code
+          error_code: writeError.code,
+          error_type: typeof writeError,
+          error_stack: writeError.stack?.substring(0, 200) + '...'
         };
         
         console.error('❌ Errore scrittura:', writeError);
@@ -197,7 +227,9 @@ export async function GET() {
       results.tests.firebase_admin_import = {
         status: 'FAIL',
         message: 'Errore import Firebase Admin SDK',
-        error: importError.message
+        error: importError.message,
+        error_code: importError.code,
+        error_type: typeof importError
       };
       
       results.tests.firebase_initialization = { status: 'SKIP', reason: 'Import failed' };
@@ -218,7 +250,7 @@ export async function GET() {
       passed: passedTests,
       failed: failedTests,
       skipped: skippedTests,
-      success_rate: `${Math.round((passedTests / (passedTests + failedTests)) * 100)}%`,
+      success_rate: passedTests + failedTests > 0 ? `${Math.round((passedTests / (passedTests + failedTests)) * 100)}%` : '0%',
       overall_status: failedTests === 0 && passedTests > 0 ? 'SUCCESS' : 'FAILED'
     };
     
@@ -228,8 +260,8 @@ export async function GET() {
     return NextResponse.json({
       success: results.summary.overall_status === 'SUCCESS',
       message: results.summary.overall_status === 'SUCCESS' ? 
-        'TUTTI I TEST FIREBASE SUPERATI!' : 
-        'ALCUNI TEST FIREBASE FALLITI',
+        '🎉 TUTTI I TEST FIREBASE SUPERATI! FIREBASE FUNZIONA CORRETTAMENTE!' : 
+        '⚠️ ALCUNI TEST FIREBASE FALLITI - CONTROLLA I DETTAGLI',
       ...results
     });
 
@@ -238,11 +270,12 @@ export async function GET() {
     
     return NextResponse.json({
       success: false,
-      message: 'ERRORE GENERALE NEL TEST',
+      message: 'ERRORE GENERALE NEL TEST FIREBASE',
       error: {
         message: error.message,
-        stack: error.stack,
-        type: typeof error
+        stack: error.stack?.substring(0, 500) + '...',
+        type: typeof error,
+        name: error.name
       },
       ...results
     }, { status: 500 });
@@ -255,6 +288,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     console.log('🔍 === TEST POST CON DATI SPECIFICI ===');
     
+    // Verifica variabili
+    if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !process.env.FIREBASE_PRIVATE_KEY) {
+      return NextResponse.json({
+        success: false,
+        message: 'Variabili Firebase mancanti'
+      }, { status: 500 });
+    }
+    
     // Import Firebase Admin
     const { initializeApp: initializeAdminApp, cert, getApps: getAdminApps } = await import('firebase-admin/app');
     const { getFirestore: getAdminFirestore } = await import('firebase-admin/firestore');
@@ -266,7 +307,7 @@ export async function POST(request: NextRequest) {
         credential: cert({
           projectId: process.env.FIREBASE_PROJECT_ID,
           clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n')
+          privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
         })
       });
       adminDb = getAdminFirestore(adminApp);
@@ -285,16 +326,21 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json({
       success: true,
-      message: 'Dati salvati correttamente',
+      message: 'Dati salvati correttamente nel test POST',
       document_id: docRef.id,
+      collection: 'test_orders',
       data: testData
     });
     
   } catch (error: any) {
     return NextResponse.json({
       success: false,
-      message: 'Errore salvataggio dati',
-      error: error.message
+      message: 'Errore salvataggio dati POST',
+      error: {
+        message: error.message,
+        type: typeof error,
+        stack: error.stack?.substring(0, 200) + '...'
+      }
     }, { status: 500 });
   }
 }
