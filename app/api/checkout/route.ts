@@ -97,8 +97,7 @@ export async function POST(request: NextRequest) {
         pickupDate: oldPickupDate,
         notes,
         appliedDiscount,
-        originalAmount: oldOriginalAmount,
-        totalAmount
+        originalAmount: oldOriginalAmount
       } = body;
       
       pickupDate = oldPickupDate || '';
