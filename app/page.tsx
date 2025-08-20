@@ -46,10 +46,10 @@ declare global {
 }
 
 // ✅ CODICI SCONTO
-const DISCOUNT_CODES = {
+const DISCOUNT_CODES: { [key: string]: { percent: number; description: string } } = {
   'SCONTO5': { percent: 5, description: '5% di sconto' },
   'SCONTO10': { percent: 10, description: '10% di sconto' },
-  'OMAGGIO': { percent: 100, description: 'Ordine gratuito' }
+  'OMAGGIO2025': { percent: 100, description: 'Ordine gratuito' }
 };
 
 // ✅ CARICAMENTO EMAILJS IMMEDIATO (STESSO METODO DEL TEST)
@@ -938,7 +938,7 @@ export default function Home() {
                             <div className="flex flex-wrap gap-2">
                               <span className="bg-gray-100 px-2 py-1 rounded text-xs">SCONTO5 (5%)</span>
                               <span className="bg-gray-100 px-2 py-1 rounded text-xs">SCONTO10 (10%)</span>
-                              <span className="bg-gray-100 px-2 py-1 rounded text-xs">OMAGGIO (100%)</span>
+                              <span className="bg-gray-100 px-2 py-1 rounded text-xs">OMAGGIO2025 (100%)</span>
                             </div>
                           </div>
                         </div>
