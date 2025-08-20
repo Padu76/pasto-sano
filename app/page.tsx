@@ -399,8 +399,8 @@ export default function Home() {
       // Salva ordine su Firebase
       await saveOrderToFirebase('paypal');
       
-      // Invia email
-      await sendOrderEmail('paypal');
+      // Invia email di notifica
+      await sendOrderNotification('paypal');
       
       saveOrderForSuccess();
       setOrderComplete(true);
@@ -449,10 +449,9 @@ export default function Home() {
       }
 
       // NON salvare di nuovo su Firebase - l'API route lo fa già!
-      // await saveOrderToFirebase('cash'); // ❌ RIMOSSO - QUESTO CAUSAVA IL DUPLICATO
       
-      // Invia email di conferma
-      await sendOrderEmail('cash');
+      // Invia email di notifica
+      await sendOrderNotification('cash');
       
       saveOrderForSuccess();
       setOrderComplete(true);
@@ -497,8 +496,8 @@ export default function Home() {
     }
   };
 
-  // ✅ INVIO EMAIL MIGLIORATO CON CONTROLLI
-  const sendOrderEmail = async (method: string) => {
+  // ✅ INVIO NOTIFICA ORDINE (SOLO A TE)
+  const sendOrderNotification = async (method: string) => {
     // Verifica che EmailJS sia pronto
     if (!emailJSReady) {
       console.error('❌ EmailJS non è ancora inizializzato');
@@ -511,7 +510,7 @@ export default function Home() {
 
     const templateParams = {
       customer_name: customerName,
-      customer_email: customerEmail,
+      customer_email: customerEmail || 'Non fornita',
       customer_phone: customerPhone,
       customer_address: 'Ritiro presso Pasto Sano',
       order_details: orderDetails,
@@ -519,11 +518,12 @@ export default function Home() {
       payment_method: method === 'cash' ? 'Contanti al ritiro' : method === 'paypal' ? 'PayPal' : 'Carta di credito',
       pickup_date: pickupDate,
       notes: notes || 'Nessuna nota',
-      order_date: new Date().toLocaleString('it-IT')
+      order_date: new Date().toLocaleString('it-IT'),
+      order_id: `ORD-${Date.now()}` // ID ordine unico
     };
 
     try {
-      console.log('📧 Invio email con parametri:', templateParams);
+      console.log('📧 Invio notifica nuovo ordine al gestore...');
       
       const result = await emailjs.send(
         process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
@@ -532,9 +532,9 @@ export default function Home() {
         process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
       );
       
-      console.log('✅ Email inviata con successo:', result);
+      console.log('✅ Notifica ordine inviata con successo:', result);
     } catch (error) {
-      console.error('❌ Errore invio email:', error);
+      console.error('❌ Errore invio notifica ordine:', error);
       // Non bloccare il processo se l'email fallisce
     }
   };
