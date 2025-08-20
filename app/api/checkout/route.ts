@@ -140,9 +140,7 @@ export async function POST(request: NextRequest) {
       cancel_url: cancelUrl,
       customer_email: customerEmail || undefined,
       metadata,
-      shipping_address_collection: {
-        allowed_countries: ['IT'],
-      },
+      // ❌ RIMOSSO shipping_address_collection - non serve per ritiro
     };
     
     console.log('🎯 Configurazione sessione:', {
