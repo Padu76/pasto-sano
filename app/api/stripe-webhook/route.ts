@@ -12,14 +12,16 @@ export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   console.log('🚀 === WEBHOOK STRIPE RICEVUTO ===');
+  console.log('🕒 Timestamp:', new Date().toISOString());
   
   try {
     // Ottieni il body raw e la signature
     const body = await request.text();
     const signature = request.headers.get('stripe-signature');
 
-    console.log('🔐 Verifica signature...');
-    console.log('STRIPE_WEBHOOK_SECRET configurato:', !!process.env.STRIPE_WEBHOOK_SECRET);
+    console.log('📦 Body length:', body.length);
+    console.log('🔐 Signature presente:', !!signature);
+    console.log('🔑 STRIPE_WEBHOOK_SECRET configurato:', !!process.env.STRIPE_WEBHOOK_SECRET);
 
     if (!signature) {
       console.error('❌ Manca la signature Stripe');
@@ -47,7 +49,9 @@ export async function POST(request: NextRequest) {
         signature,
         process.env.STRIPE_WEBHOOK_SECRET
       );
-      console.log('✅ Signature verificata, evento:', event.type);
+      console.log('✅ Signature verificata con successo!');
+      console.log('🎯 Event type ricevuto:', event.type);
+      console.log('🆔 Event ID:', event.id);
     } catch (err: any) {
       console.error(`❌ Errore verifica webhook: ${err.message}`);
       return NextResponse.json(
@@ -56,21 +60,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log('🔍 Inizio elaborazione evento...');
+
     // Gestisci i diversi tipi di eventi
     switch (event.type) {
       case 'checkout.session.completed': {
+        console.log('🎉 EVENTO CHECKOUT.SESSION.COMPLETED RILEVATO!');
+        
         const session = event.data.object as Stripe.Checkout.Session;
         
-        console.log('✅ Pagamento Stripe completato:', {
+        console.log('📋 Dati sessione:', {
           sessionId: session.id,
           customerEmail: session.customer_email,
           amount: session.amount_total ? session.amount_total / 100 : 0,
-          paymentStatus: session.payment_status
+          paymentStatus: session.payment_status,
+          metadataKeys: Object.keys(session.metadata || {})
         });
 
-        // ✅ ESTRAI METADATA CON LOG
+        // ✅ ESTRAI METADATA CON LOG DETTAGLIATO
         const metadata = session.metadata || {};
-        console.log('📋 Metadata ricevuti:', metadata);
+        console.log('📋 METADATA COMPLETI:', JSON.stringify(metadata, null, 2));
         
         const customerName = metadata.customerName || 'Cliente';
         const customerPhone = metadata.customerPhone || '';
@@ -81,11 +90,21 @@ export async function POST(request: NextRequest) {
         const discountCode = metadata.discountCode || '';
         const discountPercent = metadata.discountPercent ? parseFloat(metadata.discountPercent) : 0;
         
+        console.log('👤 Dati cliente estratti:', {
+          customerName,
+          customerEmail,
+          customerPhone,
+          pickupDate,
+          discountCode,
+          discountPercent
+        });
+        
         // Parse order items dai metadata
         let orderItems = [];
         try {
           orderItems = metadata.orderItems ? JSON.parse(metadata.orderItems) : [];
-          console.log('📦 Articoli ordinati:', orderItems);
+          console.log('📦 Articoli ordinati estratti:', orderItems.length, 'items');
+          console.log('📦 Primo articolo:', orderItems[0] || 'Nessuno');
         } catch (e) {
           console.error('❌ Errore parsing orderItems:', e);
           orderItems = [];
@@ -105,9 +124,9 @@ export async function POST(request: NextRequest) {
 
         // 🔥 SALVA ORDINE SU FIREBASE
         try {
-          console.log('🔥 Inizio salvataggio su Firebase...');
+          console.log('🔥 === INIZIO SALVATAGGIO SU FIREBASE ===');
           
-          await addOrder({
+          const orderData = {
             customerName,
             customerEmail,
             customerPhone,
@@ -124,17 +143,29 @@ export async function POST(request: NextRequest) {
               `${orderNotes || ''}\n\nStripe Session: ${session.id}`,
             source: 'website',
             timestamp: new Date()
+          };
+          
+          console.log('📝 Dati ordine preparati per Firebase:', {
+            customerName: orderData.customerName,
+            totalAmount: orderData.totalAmount,
+            itemsCount: orderData.items.length,
+            paymentMethod: orderData.paymentMethod
           });
           
-          console.log('✅ ORDINE SALVATO SU FIREBASE CON SUCCESSO!');
+          await addOrder(orderData);
+          
+          console.log('✅ === ORDINE SALVATO SU FIREBASE CON SUCCESSO! ===');
         } catch (firebaseError) {
-          console.error('❌ ERRORE SALVATAGGIO FIREBASE:', firebaseError);
+          console.error('❌ === ERRORE SALVATAGGIO FIREBASE ===');
+          console.error('Errore completo:', firebaseError);
+          console.error('Tipo errore:', typeof firebaseError);
+          console.error('Stack trace:', firebaseError instanceof Error ? firebaseError.stack : 'N/A');
           // Non blocchiamo il webhook se Firebase fallisce
         }
 
         // 📧 INVIA EMAIL DI NOTIFICA
         try {
-          console.log('📧 Inizio invio email...');
+          console.log('📧 === INIZIO INVIO EMAIL ===');
           
           await sendStripeOrderEmail({
             customerName,
@@ -152,12 +183,14 @@ export async function POST(request: NextRequest) {
             paymentIntentId: session.payment_intent as string
           });
           
-          console.log('✅ EMAIL DI NOTIFICA INVIATA CON SUCCESSO!');
+          console.log('✅ === EMAIL DI NOTIFICA INVIATA CON SUCCESSO! ===');
         } catch (emailError) {
-          console.error('❌ ERRORE INVIO EMAIL:', emailError);
+          console.error('❌ === ERRORE INVIO EMAIL ===');
+          console.error('Errore email:', emailError);
           // Non bloccare il webhook se l'email fallisce
         }
 
+        console.log('🎉 === ELABORAZIONE CHECKOUT COMPLETATA ===');
         break;
       }
 
@@ -192,17 +225,20 @@ export async function POST(request: NextRequest) {
       }
 
       default:
-        console.log(`⚠️ Evento non gestito: ${event.type}`);
+        console.log(`⚠️ === EVENTO NON GESTITO: ${event.type} ===`);
+        console.log('Event data:', JSON.stringify(event.data, null, 2));
     }
 
     console.log('🎉 === WEBHOOK STRIPE COMPLETATO CON SUCCESSO ===');
     
     // Rispondi a Stripe per confermare la ricezione
-    return NextResponse.json({ received: true });
+    return NextResponse.json({ received: true, eventType: event.type });
 
   } catch (error) {
     console.error('❌ === ERRORE GENERALE WEBHOOK ===');
     console.error('Errore:', error);
+    console.error('Tipo errore:', typeof error);
+    console.error('Stack:', error instanceof Error ? error.stack : 'N/A');
     return NextResponse.json(
       { error: 'Webhook handler failed' },
       { status: 500 }
