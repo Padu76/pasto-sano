@@ -462,7 +462,7 @@ export default function Home() {
     }
   };
 
-  // PAGAMENTO STRIPE
+  // 🔧 PAGAMENTO STRIPE - FIX DATI
   const handleStripeCheckout = async () => {
     if (!validateForm()) return;
     
@@ -470,24 +470,30 @@ export default function Home() {
     setError(null);
     
     try {
+      // ✅ FORMATO CORRETTO PER API STRIPE
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          items: cart,
+          items: cart.map(item => ({
+            name: item.name,
+            description: item.description,
+            image: item.image,
+            price: item.price,
+            quantity: item.quantity
+          })),
           customerEmail,
           customerName,
           customerAddress: 'Ritiro presso Pasto Sano',
-          customerPhone,
-          pickupDate,
-          notes: appliedDiscount ? `${notes || ''}\n\nSconto applicato: ${appliedDiscount.description} (-€${getDiscountAmount().toFixed(2)})` : notes,
-          totalAmount: getTotalPrice()
+          customerPhone
         }),
       });
 
       if (!response.ok) {
+        const errorData = await response.text();
+        console.error('Errore API checkout:', errorData);
         throw new Error('Errore nella creazione del checkout');
       }
 
@@ -621,10 +627,10 @@ export default function Home() {
   return (
     <PayPalScriptProvider options={initialPayPalOptions}>
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">
-        {/* Header Mobile Optimized */}
+        {/* Header Mobile Optimized - SENZA CARRELLO */}
         <header className="bg-gradient-to-r from-amber-50 to-orange-50 shadow-lg sticky top-0 z-40 border-b-2 border-orange-200">
           <div className="container mx-auto px-3 py-3 md:px-4 md:py-4">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-center items-center">
               <div className="flex items-center space-x-2 md:space-x-3">
                 <Image 
                   src="/images/logo.png" 
@@ -640,20 +646,25 @@ export default function Home() {
                   <p className="text-[10px] md:text-xs text-amber-700 hidden sm:block">La soluzione per stare in forma</p>
                 </div>
               </div>
-              <button 
-                onClick={() => setIsCartOpen(true)}
-                className="relative bg-gradient-to-r from-orange-500 to-amber-500 text-white p-2.5 md:p-3 rounded-full hover:shadow-lg transition-all duration-300 hover:scale-105"
-              >
-                <ShoppingCart className="w-5 h-5 md:w-6 md:h-6" />
-                {getTotalItems() > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] md:text-xs rounded-full w-5 h-5 md:w-6 md:h-6 flex items-center justify-center animate-pulse font-bold">
-                    {getTotalItems()}
-                  </span>
-                )}
-              </button>
             </div>
           </div>
         </header>
+
+        {/* 🛒 FLOATING CART BUTTON - FISSO IN BASSO A DESTRA */}
+        <button 
+          onClick={() => setIsCartOpen(true)}
+          className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-orange-500 to-amber-500 text-white p-4 rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-110 animate-pulse"
+          style={{ 
+            boxShadow: '0 8px 32px rgba(249, 115, 22, 0.4)',
+          }}
+        >
+          <ShoppingCart className="w-6 h-6 md:w-7 md:h-7" />
+          {getTotalItems() > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 md:w-7 md:h-7 flex items-center justify-center animate-bounce border-2 border-white">
+              {getTotalItems()}
+            </span>
+          )}
+        </button>
 
         {/* Hero Section Mobile Optimized */}
         <div className="bg-gradient-to-br from-amber-700 via-orange-600 to-amber-800 text-white py-8 md:py-16">
