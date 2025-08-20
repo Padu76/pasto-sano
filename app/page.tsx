@@ -462,7 +462,7 @@ export default function Home() {
     }
   };
 
-  // 🔧 PAGAMENTO STRIPE - FIX DATI CON SCONTI
+  // 🔧 PAGAMENTO STRIPE - FIX FORMATO METADATA COMPLETO
   const handleStripeCheckout = async () => {
     if (!validateForm()) return;
     
@@ -470,56 +470,82 @@ export default function Home() {
     setError(null);
     
     try {
-      // ✅ FORMATO CORRETTO PER API STRIPE CON SCONTI
+      console.log('🔧 === INVIO DATI STRIPE CORRETTI ===');
+      
+      // ✅ FORMATO CORRETTO PER WEBHOOK - METADATA STRUTTURATI
+      const stripeData = {
+        items: cart.map(item => ({
+          name: item.name,
+          description: item.description,
+          image: item.image,
+          price: item.price,
+          quantity: item.quantity
+        })),
+        customerEmail,
+        customerName,
+        customerPhone,
+        customerAddress: 'Ritiro presso Pasto Sano',
+        // ✅ METADATA CORRETTAMENTE FORMATTATI PER IL WEBHOOK
+        metadata: {
+          customerName,
+          customerEmail: customerEmail || '',
+          customerPhone,
+          customerAddress: 'Ritiro presso Pasto Sano',
+          pickupDate,
+          orderNotes: notes || '',
+          // ✅ SCONTO NEI METADATA
+          discountCode: appliedDiscount ? appliedDiscount.code : '',
+          discountPercent: appliedDiscount ? appliedDiscount.percent.toString() : '0',
+          originalAmount: getOriginalPrice().toString(),
+          // ✅ ORDINE ITEMS COME STRINGA JSON
+          orderItems: JSON.stringify(cart.map(item => ({
+            name: item.name,
+            description: item.description,
+            price: item.price,
+            quantity: item.quantity
+          })))
+        }
+      };
+
+      console.log('📋 Dati inviati a Stripe:', {
+        customerName: stripeData.customerName,
+        itemsCount: stripeData.items.length,
+        totalItems: getTotalItems(),
+        originalAmount: getOriginalPrice(),
+        finalAmount: getTotalPrice(),
+        hasDiscount: !!appliedDiscount,
+        metadataKeys: Object.keys(stripeData.metadata)
+      });
+
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          items: cart.map(item => ({
-            name: item.name,
-            description: item.description,
-            image: item.image,
-            price: item.price,
-            quantity: item.quantity
-          })),
-          customerEmail,
-          customerName,
-          customerAddress: 'Ritiro presso Pasto Sano',
-          customerPhone,
-          pickupDate,
-          notes: appliedDiscount ? `${notes || ''}\n\nSconto applicato: ${appliedDiscount.description} (-€${getDiscountAmount().toFixed(2)})` : notes,
-          // ✅ AGGIUNTI DATI SCONTO
-          appliedDiscount: appliedDiscount ? {
-            code: appliedDiscount.code,
-            percent: appliedDiscount.percent,
-            description: appliedDiscount.description,
-            amount: getDiscountAmount()
-          } : null,
-          originalAmount: getOriginalPrice(),
-          totalAmount: getTotalPrice()
-        }),
+        body: JSON.stringify(stripeData),
       });
 
       if (!response.ok) {
         const errorData = await response.text();
-        console.error('Errore API checkout:', errorData);
+        console.error('❌ Errore API checkout:', errorData);
         throw new Error('Errore nella creazione del checkout');
       }
 
       const { sessionId } = await response.json();
+      console.log('✅ Session ID ricevuto:', sessionId);
+      
       const stripe = await stripePromise;
       
       if (stripe) {
         saveOrderForSuccess();
+        console.log('🚀 Redirect a Stripe...');
         const { error } = await stripe.redirectToCheckout({ sessionId });
         if (error) {
           throw new Error(error.message);
         }
       }
     } catch (error: any) {
-      console.error('Errore Stripe:', error);
+      console.error('❌ Errore Stripe:', error);
       setError(error.message || 'Errore durante il pagamento');
     } finally {
       setIsLoading(false);
@@ -1381,3 +1407,4 @@ export default function Home() {
     </PayPalScriptProvider>
   );
 }
+                
