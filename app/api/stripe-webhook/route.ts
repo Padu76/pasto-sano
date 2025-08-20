@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { addOrder } from '@/lib/firebase'; // ✅ AGGIUNTO IMPORT FIREBASE
+import { addOrder } from '@/lib/firebase';
 
 // Inizializza Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -9,6 +9,124 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 // Disabilita il body parsing per i webhook Stripe
 export const runtime = 'nodejs';
+
+export async function POST(request: NextRequest) {
+  console.log('🚀 === WEBHOOK STRIPE RICEVUTO ===');
+  console.log('🕒 Timestamp:', new Date().toISOString());
+  
+  try {
+    // Ottieni il body raw e la signature
+    const body = await request.text();
+    const signature = request.headers.get('stripe-signature');
+
+    console.log('📦 Body length:', body.length);
+    console.log('🔐 Signature presente:', !!signature);
+    console.log('🔑 STRIPE_WEBHOOK_SECRET configurato:', !!process.env.STRIPE_WEBHOOK_SECRET);
+
+    if (!signature) {
+      console.error('❌ Manca la signature Stripe');
+      return NextResponse.json(
+        { error: 'Missing stripe signature' },
+        { status: 400 }
+      );
+    }
+
+    // Verifica che il webhook secret sia configurato
+    if (!process.env.STRIPE_WEBHOOK_SECRET) {
+      console.error('❌ STRIPE_WEBHOOK_SECRET non configurato');
+      return NextResponse.json(
+        { error: 'Webhook secret not configured' },
+        { status: 500 }
+      );
+    }
+
+    let event: Stripe.Event;
+
+    try {
+      // Verifica la signature del webhook
+      event = stripe.webhooks.constructEvent(
+        body,
+        signature,
+        process.env.STRIPE_WEBHOOK_SECRET
+      );
+      console.log('✅ Signature verificata con successo!');
+      console.log('🎯 Event type ricevuto:', event.type);
+      console.log('🆔 Event ID:', event.id);
+    } catch (err: any) {
+      console.error(`❌ Errore verifica webhook: ${err.message}`);
+      return NextResponse.json(
+        { error: `Webhook Error: ${err.message}` },
+        { status: 400 }
+      );
+    }
+
+    console.log('🔍 Inizio elaborazione evento...');
+
+    // Gestisci i diversi tipi di eventi
+    switch (event.type) {
+      case 'checkout.session.completed': {
+        console.log('🎉 EVENTO CHECKOUT.SESSION.COMPLETED RILEVATO!');
+        await handleCheckoutSessionCompleted(event);
+        break;
+      }
+
+      case 'charge.succeeded': {
+        console.log('💳 EVENTO CHARGE.SUCCEEDED RILEVATO!');
+        await handleChargeSucceeded(event);
+        break;
+      }
+
+      case 'payment_intent.succeeded': {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        console.log('💰 PaymentIntent succeeded:', paymentIntent.id);
+        break;
+      }
+
+      case 'payment_intent.payment_failed': {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        console.log('❌ Payment failed:', paymentIntent.id);
+        
+        // Invia notifica di pagamento fallito
+        if (paymentIntent.metadata && paymentIntent.metadata.customer_email) {
+          await sendPaymentFailedEmail({
+            customerEmail: paymentIntent.metadata.customer_email,
+            customerName: paymentIntent.metadata.customer_name || 'Cliente',
+            amount: paymentIntent.amount / 100,
+            errorMessage: paymentIntent.last_payment_error?.message || 'Pagamento non riuscito'
+          });
+        }
+        break;
+      }
+
+      case 'customer.subscription.created':
+      case 'customer.subscription.updated':
+      case 'customer.subscription.deleted': {
+        // Gestisci eventi di subscription se necessario
+        console.log(`📊 Subscription event: ${event.type}`);
+        break;
+      }
+
+      default:
+        console.log(`⚠️ === EVENTO NON GESTITO: ${event.type} ===`);
+        console.log('Event data:', JSON.stringify(event.data, null, 2));
+    }
+
+    console.log('🎉 === WEBHOOK STRIPE COMPLETATO CON SUCCESSO ===');
+    
+    // Rispondi a Stripe per confermare la ricezione
+    return NextResponse.json({ received: true, eventType: event.type });
+
+  } catch (error) {
+    console.error('❌ === ERRORE GENERALE WEBHOOK ===');
+    console.error('Errore:', error);
+    console.error('Tipo errore:', typeof error);
+    console.error('Stack:', error instanceof Error ? error.stack : 'N/A');
+    return NextResponse.json(
+      { error: 'Webhook handler failed' },
+      { status: 500 }
+    );
+  }
+}
 
 // Gestisce evento checkout.session.completed
 async function handleCheckoutSessionCompleted(event: Stripe.Event) {
@@ -193,134 +311,6 @@ async function processOrder(orderData: any) {
   }
 
   console.log('🎉 === ELABORAZIONE ORDINE COMPLETATA ===');
-} from 'next/server';
-import Stripe from 'stripe';
-import { addOrder } from '@/lib/firebase'; // ✅ AGGIUNTO IMPORT FIREBASE
-
-// Inizializza Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16',
-});
-
-// Disabilita il body parsing per i webhook Stripe
-export const runtime = 'nodejs';
-
-export async function POST(request: NextRequest) {
-  console.log('🚀 === WEBHOOK STRIPE RICEVUTO ===');
-  console.log('🕒 Timestamp:', new Date().toISOString());
-  
-  try {
-    // Ottieni il body raw e la signature
-    const body = await request.text();
-    const signature = request.headers.get('stripe-signature');
-
-    console.log('📦 Body length:', body.length);
-    console.log('🔐 Signature presente:', !!signature);
-    console.log('🔑 STRIPE_WEBHOOK_SECRET configurato:', !!process.env.STRIPE_WEBHOOK_SECRET);
-
-    if (!signature) {
-      console.error('❌ Manca la signature Stripe');
-      return NextResponse.json(
-        { error: 'Missing stripe signature' },
-        { status: 400 }
-      );
-    }
-
-    // Verifica che il webhook secret sia configurato
-    if (!process.env.STRIPE_WEBHOOK_SECRET) {
-      console.error('❌ STRIPE_WEBHOOK_SECRET non configurato');
-      return NextResponse.json(
-        { error: 'Webhook secret not configured' },
-        { status: 500 }
-      );
-    }
-
-    let event: Stripe.Event;
-
-    try {
-      // Verifica la signature del webhook
-      event = stripe.webhooks.constructEvent(
-        body,
-        signature,
-        process.env.STRIPE_WEBHOOK_SECRET
-      );
-      console.log('✅ Signature verificata con successo!');
-      console.log('🎯 Event type ricevuto:', event.type);
-      console.log('🆔 Event ID:', event.id);
-    } catch (err: any) {
-      console.error(`❌ Errore verifica webhook: ${err.message}`);
-      return NextResponse.json(
-        { error: `Webhook Error: ${err.message}` },
-        { status: 400 }
-      );
-    }
-
-    console.log('🔍 Inizio elaborazione evento...');
-
-    // Gestisci i diversi tipi di eventi
-    switch (event.type) {
-      case 'checkout.session.completed': {
-        console.log('🎉 EVENTO CHECKOUT.SESSION.COMPLETED RILEVATO!');
-        await handleCheckoutSessionCompleted(event);
-        break;
-      }
-
-      case 'charge.succeeded': {
-        console.log('💳 EVENTO CHARGE.SUCCEEDED RILEVATO!');
-        await handleChargeSucceeded(event);
-        break;
-      }
-
-      case 'payment_intent.succeeded': {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        console.log('💰 PaymentIntent succeeded:', paymentIntent.id);
-        break;
-      }
-
-      case 'payment_intent.payment_failed': {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        console.log('❌ Payment failed:', paymentIntent.id);
-        
-        // Invia notifica di pagamento fallito
-        if (paymentIntent.metadata && paymentIntent.metadata.customer_email) {
-          await sendPaymentFailedEmail({
-            customerEmail: paymentIntent.metadata.customer_email,
-            customerName: paymentIntent.metadata.customer_name || 'Cliente',
-            amount: paymentIntent.amount / 100,
-            errorMessage: paymentIntent.last_payment_error?.message || 'Pagamento non riuscito'
-          });
-        }
-        break;
-      }
-
-      case 'customer.subscription.created':
-      case 'customer.subscription.updated':
-      case 'customer.subscription.deleted': {
-        // Gestisci eventi di subscription se necessario
-        console.log(`📊 Subscription event: ${event.type}`);
-        break;
-      }
-
-      default:
-        console.log(`⚠️ === EVENTO NON GESTITO: ${event.type} ===`);
-        console.log('Event data:', JSON.stringify(event.data, null, 2));
-    }
-
-    console.log('🎉 === WEBHOOK STRIPE COMPLETATO CON SUCCESSO ===');
-    
-    // Rispondi a Stripe per confermare la ricezione
-    return NextResponse.json({ received: true, eventType: event.type });
-
-  } catch (error) {
-    console.error('❌ === ERRORE GENERALE WEBHOOK ===');
-    console.error('Errore:', error);
-    console.error('Tipo errore:', typeof error);
-    console.error('Stack:', error instanceof Error ? error.stack : 'N/A');
-    return NextResponse.json(
-      { error: 'Webhook handler failed' },
-      { status: 500 }
-    );
-  }
 }
 
 // Funzione per inviare email con EmailJS per ordini Stripe
@@ -511,7 +501,10 @@ export async function GET() {
     emailjs_template: !!process.env.EMAILJS_TEMPLATE_ID,
     emailjs_public: !!process.env.EMAILJS_PUBLIC_KEY,
     emailjs_private: !!process.env.EMAILJS_PRIVATE_KEY,
-    notification_email: process.env.NOTIFICATION_EMAIL || 'non configurata'
+    notification_email: process.env.NOTIFICATION_EMAIL || 'non configurata',
+    firebase_project: !!process.env.FIREBASE_PROJECT_ID,
+    firebase_key: !!process.env.FIREBASE_PRIVATE_KEY,
+    firebase_email: !!process.env.FIREBASE_CLIENT_EMAIL
   };
 
   const allConfigured = Object.values(config).every(v => v === true || typeof v === 'string');
