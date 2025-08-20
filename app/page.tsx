@@ -37,6 +37,13 @@ const initialPayPalOptions = {
   locale: "it_IT"
 };
 
+// ✅ DICHIARAZIONE TYPESCRIPT PER EMAILJS
+declare global {
+  interface Window {
+    emailjs: any;
+  }
+}
+
 // ✅ CARICAMENTO EMAILJS IMMEDIATO (STESSO METODO DEL TEST)
 if (typeof window !== 'undefined' && !window.emailjs) {
   console.log('🚀 CARICAMENTO EMAILJS IMMEDIATO...');
