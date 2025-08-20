@@ -17,10 +17,6 @@ import {
 import { getAuth } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 
-// ⚡ FIREBASE ADMIN SDK PER SERVER-SIDE (webhook)
-import { initializeApp as initializeAdminApp, cert, getApps as getAdminApps } from 'firebase-admin/app';
-import { getFirestore as getAdminFirestore } from 'firebase-admin/firestore';
-
 // Configurazione Firebase - USA SOLO ENVIRONMENT VARIABLES
 // NESSUNA CHIAVE HARDCODED PER SICUREZZA
 const firebaseConfig = {
@@ -95,55 +91,6 @@ try {
 } catch (error) {
   console.error('❌ Errore inizializzazione Firebase:', error);
   // Non bloccare l'app se Firebase fallisce
-}
-
-// 🔥 FIREBASE ADMIN SDK SETUP PER WEBHOOK SERVER-SIDE
-let adminApp: any;
-let adminDb: any;
-
-// Inizializza Firebase Admin per webhook
-export function initializeFirebaseAdmin() {
-  try {
-    console.log('🔥 === INIZIALIZZAZIONE FIREBASE ADMIN SDK ===');
-    
-    // Verifica variabili Admin
-    console.log('🔍 Verifica variabili Admin:', {
-      projectId: !!process.env.FIREBASE_PROJECT_ID,
-      clientEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: !!process.env.FIREBASE_PRIVATE_KEY
-    });
-    
-    if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !process.env.FIREBASE_PRIVATE_KEY) {
-      throw new Error('❌ Variabili Firebase Admin mancanti');
-    }
-    
-    if (getAdminApps().length === 0) {
-      console.log('🚀 Inizializzazione nuova app Admin...');
-      
-      adminApp = initializeAdminApp({
-        credential: cert({
-          projectId: process.env.FIREBASE_PROJECT_ID,
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
-        })
-      });
-      
-      adminDb = getAdminFirestore(adminApp);
-      console.log('✅ Firebase Admin SDK inizializzato con progetto:', process.env.FIREBASE_PROJECT_ID);
-    } else {
-      console.log('✅ Firebase Admin già inizializzato');
-      adminApp = getAdminApps()[0];
-      adminDb = getAdminFirestore(adminApp);
-    }
-    
-    return adminDb;
-    
-  } catch (error: any) {
-    console.error('❌ === ERRORE FIREBASE ADMIN INIT ===');
-    console.error('Errore:', error.message);
-    console.error('Stack:', error.stack);
-    throw error;
-  }
 }
 
 // Esporta servizi Firebase
@@ -244,12 +191,42 @@ export async function addOrder(order: Omit<Order, 'id'>): Promise<string> {
   }
 }
 
-// 🚀 FUNZIONE FIREBASE ADMIN SDK (SERVER-SIDE WEBHOOK)
+// 🚀 FUNZIONE FIREBASE ADMIN SDK (SERVER-SIDE WEBHOOK) - IMPORT DINAMICO
 export async function addOrderAdmin(order: Omit<Order, 'id'>): Promise<string> {
   try {
     console.log('🔥 === INIZIO SALVATAGGIO CON ADMIN SDK ===');
     
-    const adminDb = initializeFirebaseAdmin();
+    // ⚡ IMPORT DINAMICO - SOLO SERVER-SIDE
+    const { initializeApp: initializeAdminApp, cert, getApps: getAdminApps } = await import('firebase-admin/app');
+    const { getFirestore: getAdminFirestore } = await import('firebase-admin/firestore');
+    
+    console.log('✅ Firebase Admin SDK importato dinamicamente');
+    
+    let adminDb: any;
+    
+    // Inizializza Firebase Admin
+    if (getAdminApps().length === 0) {
+      console.log('🚀 Inizializzazione nuova app Admin...');
+      
+      if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !process.env.FIREBASE_PRIVATE_KEY) {
+        throw new Error('❌ Variabili Firebase Admin mancanti');
+      }
+      
+      const adminApp = initializeAdminApp({
+        credential: cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+        })
+      });
+      
+      adminDb = getAdminFirestore(adminApp);
+      console.log('✅ Firebase Admin SDK inizializzato con progetto:', process.env.FIREBASE_PROJECT_ID);
+    } else {
+      console.log('✅ Firebase Admin già inizializzato');
+      const adminApp = getAdminApps()[0];
+      adminDb = getAdminFirestore(adminApp);
+    }
     
     console.log('📝 Preparazione dati ordine Admin:', {
       customerName: order.customerName,
