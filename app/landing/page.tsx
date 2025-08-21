@@ -13,8 +13,6 @@ import {
   Flame,
   Heart,
   MessageCircle,
-  ArrowRight,
-  ExternalLink,
   CheckCircle,
   XCircle,
   Home,
@@ -23,9 +21,7 @@ import {
   AlertCircle,
   Sparkles,
   ChefHat,
-  Zap,
-  Play,
-  ArrowDown
+  Zap
 } from 'lucide-react';
 
 export default function LandingPage() {
@@ -449,7 +445,7 @@ export default function LandingPage() {
                 className="bg-white/20 backdrop-blur-sm border-2 border-white/30 text-white px-8 py-4 rounded-full font-bold hover:bg-white hover:text-amber-900 transition-all duration-300 flex items-center gap-2"
               >
                 Scopri i Vantaggi
-                <Play className="w-5 h-5" />
+                <span className="text-sm">▶️</span>
               </button>
             </div>
             
@@ -463,7 +459,7 @@ export default function LandingPage() {
 
         {/* Scroll Indicator */}
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-          <ArrowDown className="w-8 h-8 text-white" />
+          <span className="w-8 h-8 text-white text-2xl">⬇️</span>
         </div>
       </section>
 
@@ -507,7 +503,7 @@ export default function LandingPage() {
           {/* Animated Arrow */}
           <div className="text-center mb-16">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full animate-bounce shadow-xl">
-              <ArrowDown className="w-8 h-8" />
+              <span className="text-2xl">⬇️</span>
             </div>
           </div>
           
@@ -652,7 +648,7 @@ export default function LandingPage() {
             >
               <ShoppingCart className="w-8 h-8 group-hover:animate-bounce" />
               Scopri Tutto il Menu
-              <ExternalLink className="w-6 h-6 group-hover:rotate-45 transition-transform duration-300" />
+              <span className="text-xl">🔗</span>
             </Link>
             <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-8 py-3 rounded-full font-semibold inline-block animate-pulse shadow-xl">
               🔥 Offerta: Ordina 5 pasti e il 6° è GRATIS!
