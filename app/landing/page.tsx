@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { 
   ShoppingCart, 
   Clock, 
@@ -20,7 +21,9 @@ import {
   AlertCircle,
   Sparkles,
   ChefHat,
-  Zap
+  Zap,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 
 export default function LandingPage() {
@@ -28,7 +31,7 @@ export default function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [timeLeft, setTimeLeft] = useState('');
   const [availableSpots, setAvailableSpots] = useState(8);
-  const [currentTestimonial, setCurrentTestimonial] = useState(0);
+  const [openFAQ, setOpenFAQ] = useState<number | null>(null);
 
   const testimonials = [
     {
@@ -95,18 +98,12 @@ export default function LandingPage() {
       setAvailableSpots(prev => prev > 3 ? prev - 1 : prev);
     }, 45000);
     
-    // Testimonials rotation
-    const testimonialInterval = setInterval(() => {
-      setCurrentTestimonial(prev => (prev + 1) % testimonials.length);
-    }, 4000);
-    
     return () => {
       window.removeEventListener('scroll', handleScroll);
       clearInterval(countdownInterval);
       clearInterval(spotsInterval);
-      clearInterval(testimonialInterval);
     };
-  }, [testimonials.length]);
+  }, []);
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
@@ -116,24 +113,28 @@ export default function LandingPage() {
     }
   };
 
+  const toggleFAQ = (index: number) => {
+    setOpenFAQ(openFAQ === index ? null : index);
+  };
+
   const problems = [
     {
-      image: "https://images.unsplash.com/photo-1551218808-94e220e084d2?w=400&q=80",
+      image: "https://images.unsplash.com/photo-1551218808-94e220e084d2?w=600&q=80",
       text: "Torni a casa stanco e non sai cosa mangiare",
       gradient: "from-red-500 to-orange-500"
     },
     {
-      image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&q=80",
+      image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=600&q=80",
       text: "Mangi sempre le stesse cose in gastronomia",
       gradient: "from-orange-500 to-yellow-500"
     },
     {
-      image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=80",
+      image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&q=80",
       text: "Spesa dell'ultimo minuto e sprechi",
       gradient: "from-yellow-500 to-green-500"
     },
     {
-      image: "https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400&q=80",
+      image: "https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=600&q=80",
       text: "Cibo pesante che ti rallenta",
       gradient: "from-green-500 to-blue-500"
     }
@@ -141,25 +142,25 @@ export default function LandingPage() {
 
   const solutions = [
     {
-      image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80",
+      image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&q=80",
       title: "Pasto Pronto in 2 Minuti",
       description: "Torni a casa e il pranzo è già pronto",
       gradient: "from-emerald-400 to-teal-500"
     },
     {
-      image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=80",
+      image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&q=80",
       title: "Zero Stress",
       description: "Niente spesa, niente cucina, solo relax",
       gradient: "from-blue-400 to-indigo-500"
     },
     {
-      image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&q=80",
+      image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=600&q=80",
       title: "Leggero e Nutriente",
       description: "Ti senti energico tutto il giorno",
       gradient: "from-purple-400 to-pink-500"
     },
     {
-      image: "https://images.unsplash.com/photo-1551218808-94e220e084d2?w=400&q=80",
+      image: "https://images.unsplash.com/photo-1551218808-94e220e084d2?w=600&q=80",
       title: "Tempo per Te",
       description: "Recuperi 1 ora al giorno",
       gradient: "from-pink-400 to-rose-500"
@@ -189,7 +190,7 @@ export default function LandingPage() {
       icon: <Scale className="w-8 h-8" />
     },
     {
-      image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=600&q=80",
+      image: "https://images.unsplash.com/photo-1558818498-28c1e002b655?w=600&q=80",
       title: "Cottura Perfetta",
       description: "Vapore per preservare i nutrienti",
       badge: "CHEF",
@@ -214,7 +215,7 @@ export default function LandingPage() {
   const menuHighlights = [
     {
       name: "Fusilli e Manzo",
-      image: "https://images.unsplash.com/photo-1621996346565-e3dbc613d5b3?w=400&q=80",
+      image: "https://images.unsplash.com/photo-1551892374-ecf8754cf8b4?w=400&q=80",
       price: "8.50",
       oldPrice: "10.00",
       badge: "BESTSELLER",
@@ -245,28 +246,28 @@ export default function LandingPage() {
 
   const steps = [
     { 
-      icon: <ShoppingCart className="w-8 h-8" />, 
+      icon: <ShoppingCart className="w-12 h-12" />, 
       title: "Scegli", 
       desc: "Dal menu online",
-      image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=300&q=80"
+      image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=80"
     },
     { 
-      icon: <Timer className="w-8 h-8" />, 
+      icon: <Timer className="w-12 h-12" />, 
       title: "Ordina", 
       desc: "Paghi online o al ritiro",
-      image: "https://images.unsplash.com/photo-1556742393-d75f468bfcb0?w=300&q=80"
+      image: "https://images.unsplash.com/photo-1556742393-d75f468bfcb0?w=400&q=80"
     },
     { 
-      icon: <Clock className="w-8 h-8" />, 
+      icon: <Clock className="w-12 h-12" />, 
       title: "Aspetta", 
       desc: "2 giorni lavorativi",
-      image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&q=80"
+      image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=80"
     },
     { 
-      icon: <CheckCircle className="w-8 h-8" />, 
+      icon: <CheckCircle className="w-12 h-12" />, 
       title: "Ritira", 
       desc: "Via Albere 27/B",
-      image: "https://images.unsplash.com/photo-1556742111-a301076d9d18?w=300&q=80"
+      image: "https://images.unsplash.com/photo-1556742111-a301076d9d18?w=400&q=80"
     }
   ];
 
@@ -386,17 +387,18 @@ export default function LandingPage() {
         </nav>
       </header>
 
-      {/* Modern Hero Section */}
-      <section id="home" className="relative h-screen flex items-center justify-center overflow-hidden">
-        {/* Background Image */}
+      {/* Modern Hero Section - RIDOTTA IN ALTEZZA */}
+      <section id="home" className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
+        {/* Background Image - NITIDA */}
         <div className="absolute inset-0">
-          <div className="w-full h-full bg-gradient-to-br from-amber-900/90 via-orange-800/90 to-red-900/90 relative">
-            <img 
-              src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1920&q=80"
-              alt="Healthy Food Background"
-              className="w-full h-full object-cover opacity-40"
-            />
-          </div>
+          <Image 
+            src="/images/landing/hero-meal.jpg"
+            alt="Healthy Food Background"
+            fill
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-amber-900/80 via-orange-800/80 to-red-900/80"></div>
         </div>
 
         {/* Floating Particles */}
@@ -462,7 +464,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Problems & Solutions Section */}
+      {/* Problems & Solutions Section - IMMAGINI PIÙ GRANDI E CENTRATE */}
       <section id="vantaggi" className="py-20 bg-white relative overflow-hidden">
         <div className="container mx-auto px-4 lg:px-8 relative z-10">
           <div className="text-center mb-16">
@@ -472,26 +474,27 @@ export default function LandingPage() {
             <p className="text-xl text-gray-600">Hai mai vissuto queste situazioni?</p>
           </div>
           
-          {/* Problems with Images */}
+          {/* Problems with Images - IMMAGINI PIÙ GRANDI */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
             {problems.map((problem, index) => (
               <div 
                 key={index}
                 className="group relative overflow-hidden rounded-2xl transform hover:scale-105 transition-all duration-500"
               >
-                <div className="relative h-64">
-                  <img 
+                <div className="relative h-80">
+                  <Image 
                     src={problem.image}
                     alt={problem.text}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    fill
+                    className="object-cover group-hover:scale-110 transition-transform duration-700"
                   />
-                  <div className={`absolute inset-0 bg-gradient-to-br ${problem.gradient} opacity-80 group-hover:opacity-90 transition-opacity duration-300`}></div>
+                  <div className={`absolute inset-0 bg-gradient-to-br ${problem.gradient} opacity-75 group-hover:opacity-85 transition-opacity duration-300`}></div>
                   
-                  {/* Content Overlay */}
-                  <div className="absolute inset-0 flex items-end p-6">
-                    <div className="text-white">
-                      <XCircle className="w-8 h-8 mb-3 text-red-200" />
-                      <p className="font-semibold text-lg">{problem.text}</p>
+                  {/* Content Overlay - CENTRATO */}
+                  <div className="absolute inset-0 flex items-center justify-center p-6">
+                    <div className="text-white text-center">
+                      <XCircle className="w-12 h-12 mb-4 text-red-200 mx-auto" />
+                      <p className="font-bold text-xl leading-tight">{problem.text}</p>
                     </div>
                   </div>
                 </div>
@@ -506,7 +509,7 @@ export default function LandingPage() {
             </div>
           </div>
           
-          {/* Solutions */}
+          {/* Solutions - IMMAGINI NITIDE */}
           <div className="text-center mb-12">
             <h3 className="text-4xl lg:text-5xl font-bold mb-4">
               <span className="text-green-600">Ecco la Soluzione!</span> ✨
@@ -521,12 +524,13 @@ export default function LandingPage() {
                 className="group relative overflow-hidden rounded-2xl bg-white shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-500"
               >
                 <div className="relative h-48">
-                  <img 
+                  <Image 
                     src={solution.image}
                     alt={solution.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    fill
+                    className="object-cover"
                   />
-                  <div className={`absolute inset-0 bg-gradient-to-br ${solution.gradient} opacity-80 group-hover:opacity-70 transition-opacity duration-300`}></div>
+                  <div className={`absolute inset-0 bg-gradient-to-br ${solution.gradient} opacity-60 group-hover:opacity-50 transition-opacity duration-300`}></div>
                 </div>
                 
                 <div className="p-6">
@@ -563,10 +567,11 @@ export default function LandingPage() {
                 
                 {/* Image */}
                 <div className="relative h-64 overflow-hidden">
-                  <img 
+                  <Image 
                     src={feature.image}
                     alt={feature.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    fill
+                    className="object-cover group-hover:scale-110 transition-transform duration-700"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent group-hover:from-black/30 transition-all duration-300"></div>
                 </div>
@@ -610,10 +615,11 @@ export default function LandingPage() {
                 
                 {/* Image */}
                 <div className="relative h-56 overflow-hidden">
-                  <img 
+                  <Image 
                     src={item.image}
                     alt={item.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    fill
+                    className="object-cover group-hover:scale-110 transition-transform duration-700"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent group-hover:from-black/40 transition-all duration-300"></div>
                   
@@ -656,7 +662,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Testimonials */}
+      {/* Testimonials - AFFIANCATE */}
       <section className="py-20 bg-white relative overflow-hidden">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="text-center mb-16">
@@ -674,77 +680,66 @@ export default function LandingPage() {
             </div>
           </div>
           
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 rounded-3xl p-12 shadow-2xl relative overflow-hidden">
-              {/* Background Pattern */}
-              <div className="absolute inset-0 opacity-10">
-                <div className="absolute top-0 left-0 w-32 h-32 bg-amber-400 rounded-full -translate-x-16 -translate-y-16"></div>
-                <div className="absolute bottom-0 right-0 w-40 h-40 bg-orange-400 rounded-full translate-x-20 translate-y-20"></div>
-              </div>
-              
-              {/* Quote Icon */}
-              <div className="absolute -top-6 left-12 bg-gradient-to-r from-amber-500 to-orange-500 text-white w-12 h-12 rounded-full flex items-center justify-center text-2xl font-bold shadow-xl">
-                "
-              </div>
-              
-              {/* Testimonial Content */}
-              <div className="text-center relative z-10">
-                <div className="flex justify-center mb-6">
-                  {[...Array(testimonials[currentTestimonial].rating)].map((_, i) => (
-                    <Star key={i} className="w-8 h-8 text-amber-500 fill-current" />
+          {/* Testimonials Grid - AFFIANCATE */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {testimonials.map((testimonial, index) => (
+              <div 
+                key={index}
+                className="bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden"
+              >
+                {/* Quote Icon */}
+                <div className="absolute -top-2 -right-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold shadow-lg">
+                  "
+                </div>
+                
+                {/* Stars */}
+                <div className="flex justify-center mb-4">
+                  {[...Array(testimonial.rating)].map((_, i) => (
+                    <Star key={i} className="w-5 h-5 text-amber-500 fill-current" />
                   ))}
                 </div>
                 
-                <p className="text-gray-700 text-2xl mb-8 italic leading-relaxed">
-                  "{testimonials[currentTestimonial].text}"
+                {/* Text */}
+                <p className="text-gray-700 text-sm mb-6 italic leading-relaxed text-center">
+                  "{testimonial.text}"
                 </p>
                 
-                <div className="flex items-center justify-center gap-4">
-                  <img 
-                    src={testimonials[currentTestimonial].image}
-                    alt={testimonials[currentTestimonial].name}
-                    className="w-16 h-16 rounded-full object-cover border-4 border-white shadow-lg"
+                {/* User Info */}
+                <div className="flex items-center justify-center gap-3">
+                  <Image 
+                    src={testimonial.image}
+                    alt={testimonial.name}
+                    width={48}
+                    height={48}
+                    className="rounded-full object-cover border-2 border-white shadow-md"
                   />
-                  <div>
-                    <div className="font-bold text-xl text-gray-900">
-                      {testimonials[currentTestimonial].name}
+                  <div className="text-center">
+                    <div className="font-bold text-gray-900">
+                      {testimonial.name}
                     </div>
-                    <div className="text-amber-600 font-semibold">
-                      {testimonials[currentTestimonial].role}
+                    <div className="text-amber-600 text-sm font-semibold">
+                      {testimonial.role}
                     </div>
                   </div>
                 </div>
               </div>
-              
-              {/* Dots */}
-              <div className="flex justify-center gap-3 mt-8">
-                {testimonials.map((_, index) => (
-                  <button 
-                    key={index}
-                    onClick={() => setCurrentTestimonial(index)}
-                    className={`w-4 h-4 rounded-full transition-all duration-300 ${
-                      index === currentTestimonial 
-                        ? 'bg-amber-500 w-12 shadow-lg' 
-                        : 'bg-gray-300 hover:bg-amber-300'
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Chi Sono Section */}
+      {/* Chi Sono Section - IMMAGINE LOCALE */}
       <section id="chi-sono" className="py-20 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Image */}
             <div className="relative">
               <div className="relative rounded-3xl overflow-hidden shadow-2xl transform hover:scale-105 transition-all duration-700">
-                <img 
-                  src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80"
+                <Image 
+                  src="/images/landing/andrea.jpg"
                   alt="Andrea Padoan"
+                  width={800}
+                  height={600}
                   className="w-full h-auto"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-amber-900/30 to-transparent"></div>
@@ -815,7 +810,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Come Funziona */}
+      {/* Come Funziona - RIQUADRI INGRANDITI */}
       <section className="py-20 bg-white relative overflow-hidden">
         <div className="container mx-auto px-4 lg:px-8">
           <h2 className="text-4xl lg:text-5xl font-bold text-center text-gray-900 mb-4">
@@ -828,32 +823,33 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {steps.map((step, i) => (
               <div key={i} className="group text-center">
-                {/* Step with Image */}
-                <div className="relative mb-6">
-                  <div className="w-32 h-32 mx-auto rounded-2xl overflow-hidden shadow-xl group-hover:shadow-2xl transition-all duration-500">
-                    <img 
+                {/* Step with Image - INGRANDITI */}
+                <div className="relative mb-8">
+                  <div className="w-48 h-48 mx-auto rounded-3xl overflow-hidden shadow-2xl group-hover:shadow-3xl transition-all duration-500">
+                    <Image 
                       src={step.image}
                       alt={step.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-700"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-amber-900/50 to-transparent"></div>
                   </div>
                   
                   {/* Step Number */}
-                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
+                  <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center font-bold text-xl shadow-xl">
                     {i + 1}
                   </div>
                   
                   {/* Icon Overlay */}
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-amber-600 group-hover:scale-110 transition-all duration-300">
+                    <div className="w-20 h-20 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-amber-600 group-hover:scale-110 transition-all duration-300 shadow-lg">
                       {step.icon}
                     </div>
                   </div>
                 </div>
                 
-                <h3 className="font-bold text-xl text-gray-900 mb-2">{step.title}</h3>
-                <p className="text-gray-600">{step.desc}</p>
+                <h3 className="font-bold text-2xl text-gray-900 mb-3">{step.title}</h3>
+                <p className="text-gray-600 text-lg">{step.desc}</p>
               </div>
             ))}
           </div>
@@ -923,7 +919,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* FAQ Section */}
+      {/* FAQ Section - ACCORDION */}
       <section className="py-20 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="text-center mb-16">
@@ -934,18 +930,37 @@ export default function LandingPage() {
           </div>
 
           <div className="max-w-4xl mx-auto">
-            <div className="grid gap-6">
+            <div className="space-y-4">
               {faqData.map((faq, index) => (
-                <div key={index} className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                    <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                      Q
+                <div key={index} className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                  <button
+                    onClick={() => toggleFAQ(index)}
+                    className="w-full p-6 text-left flex items-center justify-between hover:bg-gray-50 transition-colors duration-200"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+                        Q
+                      </div>
+                      <h3 className="text-lg font-bold text-gray-900">
+                        {faq.question}
+                      </h3>
                     </div>
-                    {faq.question}
-                  </h3>
-                  <p className="text-gray-700 leading-relaxed pl-11">
-                    {faq.answer}
-                  </p>
+                    {openFAQ === index ? (
+                      <ChevronUp className="w-6 h-6 text-amber-600 flex-shrink-0" />
+                    ) : (
+                      <ChevronDown className="w-6 h-6 text-amber-600 flex-shrink-0" />
+                    )}
+                  </button>
+                  
+                  {openFAQ === index && (
+                    <div className="px-6 pb-6 pt-0">
+                      <div className="pl-12 border-l-2 border-amber-200 ml-4">
+                        <p className="text-gray-700 leading-relaxed">
+                          {faq.answer}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
