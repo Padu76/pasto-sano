@@ -144,26 +144,22 @@ export default function LandingPage() {
     {
       image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&q=80",
       title: "Pasto Pronto in 2 Minuti",
-      description: "Torni a casa e il pranzo è già pronto",
-      gradient: "from-emerald-400 to-teal-500"
+      description: "Torni a casa e il pranzo è già pronto"
     },
     {
       image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&q=80",
       title: "Zero Stress",
-      description: "Niente spesa, niente cucina, solo relax",
-      gradient: "from-blue-400 to-indigo-500"
+      description: "Niente spesa, niente cucina, solo relax"
     },
     {
-      image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=600&q=80",
+      image: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=600&q=80",
       title: "Leggero e Nutriente",
-      description: "Ti senti energico tutto il giorno",
-      gradient: "from-purple-400 to-pink-500"
+      description: "Ti senti energico tutto il giorno"
     },
     {
       image: "https://images.unsplash.com/photo-1551218808-94e220e084d2?w=600&q=80",
       title: "Tempo per Te",
-      description: "Recuperi 1 ora al giorno",
-      gradient: "from-pink-400 to-rose-500"
+      description: "Recuperi 1 ora al giorno"
     }
   ];
 
@@ -215,7 +211,7 @@ export default function LandingPage() {
   const menuHighlights = [
     {
       name: "Fusilli e Manzo",
-      image: "https://images.unsplash.com/photo-1551892374-ecf8754cf8b4?w=400&q=80",
+      image: "/images/meals/fusilli-manzo-zucchine-melanzane.jpg",
       price: "8.50",
       oldPrice: "10.00",
       badge: "BESTSELLER",
@@ -389,7 +385,7 @@ export default function LandingPage() {
 
       {/* Modern Hero Section - RIDOTTA IN ALTEZZA */}
       <section id="home" className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
-        {/* Background Image - NITIDA */}
+        {/* Background Image - NITIDA SENZA SFOCATURA */}
         <div className="absolute inset-0">
           <Image 
             src="/images/landing/hero-meal.jpg"
@@ -398,7 +394,7 @@ export default function LandingPage() {
             className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-amber-900/80 via-orange-800/80 to-red-900/80"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-amber-900/60 via-orange-800/60 to-red-900/60"></div>
         </div>
 
         {/* Floating Particles */}
@@ -474,7 +470,7 @@ export default function LandingPage() {
             <p className="text-xl text-gray-600">Hai mai vissuto queste situazioni?</p>
           </div>
           
-          {/* Problems with Images - IMMAGINI PIÙ GRANDI */}
+          {/* Problems with Images - IMMAGINI PIÙ GRANDI E NITIDE */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
             {problems.map((problem, index) => (
               <div 
@@ -488,12 +484,12 @@ export default function LandingPage() {
                     fill
                     className="object-cover group-hover:scale-110 transition-transform duration-700"
                   />
-                  <div className={`absolute inset-0 bg-gradient-to-br ${problem.gradient} opacity-75 group-hover:opacity-85 transition-opacity duration-300`}></div>
+                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-all duration-300"></div>
                   
-                  {/* Content Overlay - CENTRATO */}
-                  <div className="absolute inset-0 flex items-center justify-center p-6">
+                  {/* Content Overlay - FRASE SOTTO */}
+                  <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
                     <div className="text-white text-center">
-                      <XCircle className="w-12 h-12 mb-4 text-red-200 mx-auto" />
+                      <XCircle className="w-12 h-12 mb-4 text-red-400 mx-auto" />
                       <p className="font-bold text-xl leading-tight">{problem.text}</p>
                     </div>
                   </div>
@@ -528,9 +524,9 @@ export default function LandingPage() {
                     src={solution.image}
                     alt={solution.title}
                     fill
-                    className="object-cover"
+                    className="object-cover group-hover:scale-110 transition-transform duration-700"
                   />
-                  <div className={`absolute inset-0 bg-gradient-to-br ${solution.gradient} opacity-60 group-hover:opacity-50 transition-opacity duration-300`}></div>
+                  <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-all duration-300"></div>
                 </div>
                 
                 <div className="p-6">
@@ -658,72 +654,6 @@ export default function LandingPage() {
             <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-8 py-3 rounded-full font-semibold inline-block animate-pulse shadow-xl">
               🔥 Offerta: Ordina 5 pasti e il 6° è GRATIS!
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials - AFFIANCATE */}
-      <section className="py-20 bg-white relative overflow-hidden">
-        <div className="container mx-auto px-4 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              Cosa Dicono i Nostri <span className="text-amber-600">Clienti</span>
-            </h2>
-            <div className="flex justify-center items-center gap-3 text-amber-500">
-              <Users className="w-6 h-6" />
-              <span className="font-bold text-lg">Oltre 500 clienti soddisfatti</span>
-              <div className="flex gap-1">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 text-amber-500 fill-current" />
-                ))}
-              </div>
-            </div>
-          </div>
-          
-          {/* Testimonials Grid - AFFIANCATE */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <div 
-                key={index}
-                className="bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden"
-              >
-                {/* Quote Icon */}
-                <div className="absolute -top-2 -right-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold shadow-lg">
-                  "
-                </div>
-                
-                {/* Stars */}
-                <div className="flex justify-center mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 text-amber-500 fill-current" />
-                  ))}
-                </div>
-                
-                {/* Text */}
-                <p className="text-gray-700 text-sm mb-6 italic leading-relaxed text-center">
-                  "{testimonial.text}"
-                </p>
-                
-                {/* User Info */}
-                <div className="flex items-center justify-center gap-3">
-                  <Image 
-                    src={testimonial.image}
-                    alt={testimonial.name}
-                    width={48}
-                    height={48}
-                    className="rounded-full object-cover border-2 border-white shadow-md"
-                  />
-                  <div className="text-center">
-                    <div className="font-bold text-gray-900">
-                      {testimonial.name}
-                    </div>
-                    <div className="text-amber-600 text-sm font-semibold">
-                      {testimonial.role}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </section>
@@ -985,6 +915,72 @@ export default function LandingPage() {
                 </a>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials - AFFIANCATE (SPOSTATO ALLA FINE) */}
+      <section className="py-20 bg-white relative overflow-hidden">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+              Cosa Dicono i Nostri <span className="text-amber-600">Clienti</span>
+            </h2>
+            <div className="flex justify-center items-center gap-3 text-amber-500">
+              <Users className="w-6 h-6" />
+              <span className="font-bold text-lg">Oltre 500 clienti soddisfatti</span>
+              <div className="flex gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-5 h-5 text-amber-500 fill-current" />
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          {/* Testimonials Grid - AFFIANCATE */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {testimonials.map((testimonial, index) => (
+              <div 
+                key={index}
+                className="bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden"
+              >
+                {/* Quote Icon */}
+                <div className="absolute -top-2 -right-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold shadow-lg">
+                  "
+                </div>
+                
+                {/* Stars */}
+                <div className="flex justify-center mb-4">
+                  {[...Array(testimonial.rating)].map((_, i) => (
+                    <Star key={i} className="w-5 h-5 text-amber-500 fill-current" />
+                  ))}
+                </div>
+                
+                {/* Text */}
+                <p className="text-gray-700 text-sm mb-6 italic leading-relaxed text-center">
+                  "{testimonial.text}"
+                </p>
+                
+                {/* User Info */}
+                <div className="flex items-center justify-center gap-3">
+                  <Image 
+                    src={testimonial.image}
+                    alt={testimonial.name}
+                    width={48}
+                    height={48}
+                    className="rounded-full object-cover border-2 border-white shadow-md"
+                  />
+                  <div className="text-center">
+                    <div className="font-bold text-gray-900">
+                      {testimonial.name}
+                    </div>
+                    <div className="text-amber-600 text-sm font-semibold">
+                      {testimonial.role}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
