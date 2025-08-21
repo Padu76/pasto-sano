@@ -15,7 +15,6 @@ import {
   MessageCircle,
   CheckCircle,
   XCircle,
-  Home,
   Timer,
   Users,
   AlertCircle,
