@@ -258,12 +258,16 @@ export default function LandingPage() {
     { 
       icon: <CheckCircle className="w-12 h-12" />, 
       title: "Ritira", 
-      desc: "Via Albere 27/B",
+      desc: "Via Albere 27/B, Verona",
       image: "https://images.unsplash.com/photo-1556742111-a301076d9d18?w=400&q=80"
     }
   ];
 
   const faqData = [
+    {
+      question: "Dove avviene il ritiro?",
+      answer: "Al momento puoi ritirare presso Tribu Personal Training Studio - Via Albere 27B, 37138 Verona."
+    },
     {
       question: "Posso congelare il prodotto?",
       answer: "Sì! Gli ingredienti sono tutti freschi, quindi puoi congelare le vaschette senza problemi per conservarle più a lungo."
@@ -882,9 +886,24 @@ export default function LandingPage() {
                   {openFAQ === index && (
                     <div className="px-6 pb-6 pt-0">
                       <div className="pl-12 border-l-2 border-amber-200 ml-4">
-                        <p className="text-gray-700 leading-relaxed">
-                          {faq.answer}
-                        </p>
+                        {index === 0 ? (
+                          <p className="text-gray-700 leading-relaxed">
+                            Al momento puoi ritirare presso{' '}
+                            <a 
+                              href="https://maps.google.com/?q=Tribu+Personal+Training+Studio,+Via+Albere+27B,+37138+Verona"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-amber-600 font-semibold hover:text-amber-700 underline"
+                            >
+                              Tribu Personal Training Studio - Via Albere 27B, 37138 Verona
+                            </a>
+                            .
+                          </p>
+                        ) : (
+                          <p className="text-gray-700 leading-relaxed">
+                            {faq.answer}
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}
@@ -1050,9 +1069,14 @@ export default function LandingPage() {
             <div>
               <h3 className="text-yellow-400 font-bold text-lg mb-6">Ritiro</h3>
               <div className="space-y-3">
-                <p className="text-white/80">
-                  📍 Via Albere 27/B
-                </p>
+                <a 
+                  href="https://maps.google.com/?q=Tribu+Personal+Training+Studio,+Via+Albere+27B,+37138+Verona"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white/80 hover:text-amber-400 transition-colors flex items-center gap-2"
+                >
+                  📍 Via Albere 27/B, Verona
+                </a>
                 <p className="text-white/80">
                   Lun-Ven (concordare orario)
                 </p>
