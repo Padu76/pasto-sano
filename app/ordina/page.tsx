@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { 
   ShoppingCart, 
   Plus, 
@@ -21,7 +22,8 @@ import {
   Mail,
   MessageCircle,
   Globe,
-  Tag
+  Tag,
+  ArrowLeft
 } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
@@ -208,7 +210,7 @@ const meals = [
   }
 ];
 
-export default function Home() {
+export default function OrdinaPage() {
   const [cart, setCart] = useState<any[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('tutti');
@@ -664,10 +666,20 @@ export default function Home() {
   return (
     <PayPalScriptProvider options={initialPayPalOptions}>
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">
-        {/* Header Mobile Optimized - SENZA CARRELLO */}
+        {/* Header con link di ritorno alla homepage */}
         <header className="bg-gradient-to-r from-amber-50 to-orange-50 shadow-lg sticky top-0 z-40 border-b-2 border-orange-200">
           <div className="container mx-auto px-3 py-3 md:px-4 md:py-4">
-            <div className="flex justify-center items-center">
+            <div className="flex justify-between items-center">
+              {/* Link di ritorno alla homepage */}
+              <Link 
+                href="/"
+                className="flex items-center space-x-2 text-amber-700 hover:text-amber-900 transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5" />
+                <span className="text-sm font-medium">Torna alla Homepage</span>
+              </Link>
+              
+              {/* Logo centrale */}
               <div className="flex items-center space-x-2 md:space-x-3">
                 <Image 
                   src="/images/logo.png" 
@@ -683,6 +695,9 @@ export default function Home() {
                   <p className="text-[10px] md:text-xs text-amber-700 hidden sm:block">La soluzione per stare in forma</p>
                 </div>
               </div>
+              
+              {/* Spazio per bilanciare il layout */}
+              <div className="w-20"></div>
             </div>
           </div>
         </header>
@@ -1406,34 +1421,4 @@ export default function Home() {
       </div>
     </PayPalScriptProvider>
   );
-}'use client';
-
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { 
-  ShoppingCart, 
-  Plus, 
-  Minus, 
-  X, 
-  Check, 
-  CreditCard, 
-  Smartphone, 
-  Clock, 
-  Star,
-  Banknote,
-  AlertCircle,
-  Loader2,
-  Calendar,
-  MapPin,
-  Info,
-  Mail,
-  MessageCircle,
-  Globe,
-  Tag
-} from 'lucide-react';
-import { loadStripe } from '@stripe/stripe-js';
-import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
-import { addOrder } from '@/lib/firebase';
-
-// Inizializza Stripe
-const stripePromise = loadStripe(process.env
+}
