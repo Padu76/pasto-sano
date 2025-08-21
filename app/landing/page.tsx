@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   ShoppingCart, 
@@ -34,11 +34,6 @@ export default function LandingPage() {
   const [timeLeft, setTimeLeft] = useState('');
   const [availableSpots, setAvailableSpots] = useState(8);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
-  const [scrollY, setScrollY] = useState(0);
-
-  const heroRef = useRef<HTMLElement>(null);
-  const problemsRef = useRef<HTMLElement>(null);
-  const featuresRef = useRef<HTMLElement>(null);
 
   const testimonials = [
     {
@@ -71,15 +66,13 @@ export default function LandingPage() {
     }
   ];
 
-  // Enhanced scroll effects with parallax
   useEffect(() => {
+    // Handle scroll for header
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      setScrollY(currentScrollY);
-      setIsScrolled(currentScrollY > 50);
+      setIsScrolled(window.scrollY > 50);
     };
     
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('scroll', handleScroll);
     
     // Countdown timer
     const updateCountdown = () => {
@@ -119,27 +112,6 @@ export default function LandingPage() {
       clearInterval(testimonialInterval);
     };
   }, [testimonials.length]);
-
-  // Intersection Observer for scroll animations
-  useEffect(() => {
-    const observerOptions = {
-      threshold: 0.1,
-      rootMargin: '0px 0px -50px 0px'
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('animate-fade-in-up');
-        }
-      });
-    }, observerOptions);
-
-    const elements = document.querySelectorAll('.observe-animation');
-    elements.forEach(el => observer.observe(el));
-
-    return () => observer.disconnect();
-  }, []);
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
@@ -341,12 +313,12 @@ export default function LandingPage() {
         href="https://wa.me/393478881515?text=Ciao%20Pasto%20Sano,%20vorrei%20ordinare"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-2xl hover:bg-green-600 transform hover:scale-110 transition-all duration-300 z-50 animate-bounce"
+        className="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-2xl hover:bg-green-600 transform hover:scale-110 transition-all duration-300 z-50 animate-pulse"
       >
         <MessageCircle className="w-6 h-6" />
       </a>
 
-      {/* Enhanced Header with Glassmorphism */}
+      {/* Modern Header with Glassmorphism */}
       <header className={`fixed top-0 w-full z-40 transition-all duration-300 ${
         isScrolled 
           ? 'bg-white/90 backdrop-blur-xl shadow-xl py-2' 
@@ -364,7 +336,7 @@ export default function LandingPage() {
               </span>
             </div>
 
-            {/* Enhanced Desktop Navigation */}
+            {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center gap-8">
               <button onClick={() => scrollToSection('home')} className="text-gray-700 hover:text-amber-600 transition-all duration-300 hover:scale-105 font-medium">
                 Home
@@ -398,7 +370,7 @@ export default function LandingPage() {
             </button>
           </div>
 
-          {/* Enhanced Mobile Navigation */}
+          {/* Mobile Navigation */}
           {isMenuOpen && (
             <div className="lg:hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-xl border-t shadow-xl">
               <div className="flex flex-col p-6 space-y-4">
@@ -419,15 +391,10 @@ export default function LandingPage() {
         </nav>
       </header>
 
-      {/* Enhanced Hero Section with Parallax */}
-      <section id="home" ref={heroRef} className="relative h-screen flex items-center justify-center overflow-hidden">
-        {/* Parallax Background */}
-        <div 
-          className="absolute inset-0 scale-110"
-          style={{
-            transform: `translateY(${scrollY * 0.5}px)`,
-          }}
-        >
+      {/* Modern Hero Section */}
+      <section id="home" className="relative h-screen flex items-center justify-center overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0">
           <div className="w-full h-full bg-gradient-to-br from-amber-900/90 via-orange-800/90 to-red-900/90 relative">
             <img 
               src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1920&q=80"
@@ -439,15 +406,15 @@ export default function LandingPage() {
 
         {/* Floating Particles */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-20 left-20 w-32 h-32 bg-yellow-400/20 rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
-          <div className="absolute bottom-20 right-20 w-24 h-24 bg-orange-400/20 rounded-full animate-bounce" style={{animationDelay: '1s'}}></div>
-          <div className="absolute top-40 right-40 w-16 h-16 bg-yellow-300/20 rounded-full animate-bounce" style={{animationDelay: '2s'}}></div>
-          <div className="absolute bottom-40 left-40 w-20 h-20 bg-red-400/20 rounded-full animate-bounce" style={{animationDelay: '1.5s'}}></div>
+          <div className="absolute top-20 left-20 w-32 h-32 bg-yellow-400/20 rounded-full animate-pulse"></div>
+          <div className="absolute bottom-20 right-20 w-24 h-24 bg-orange-400/20 rounded-full animate-pulse animation-delay-1000"></div>
+          <div className="absolute top-40 right-40 w-16 h-16 bg-yellow-300/20 rounded-full animate-pulse animation-delay-2000"></div>
+          <div className="absolute bottom-40 left-40 w-20 h-20 bg-red-400/20 rounded-full animate-pulse animation-delay-1500"></div>
         </div>
         
         <div className="container mx-auto px-4 lg:px-8 relative z-10">
           <div className="text-center text-white space-y-8 max-w-4xl mx-auto">
-            {/* Enhanced Countdown Badge */}
+            {/* Countdown Badge */}
             <div className="inline-flex items-center gap-3 bg-red-500/90 backdrop-blur-sm text-white px-6 py-3 rounded-full text-sm font-bold animate-pulse border border-red-400/30">
               <AlertCircle className="w-5 h-5" />
               <span>Ordina entro le 18:00 per ritiro dopodomani!</span>
@@ -457,18 +424,18 @@ export default function LandingPage() {
             </div>
             
             <h1 className="text-5xl lg:text-7xl font-bold leading-tight">
-              <span className="block animate-fade-in-up">Mangia Sano,</span>
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 animate-fade-in-up" style={{animationDelay: '0.3s'}}>
+              <span className="block fade-in">Mangia Sano,</span>
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 fade-in-delay">
                 Vivi Meglio
               </span>
             </h1>
             
-            <p className="text-xl lg:text-2xl text-white/90 animate-fade-in-up" style={{animationDelay: '0.6s'}}>
+            <p className="text-xl lg:text-2xl text-white/90 fade-in-delay-2">
               Pasti pronti in <span className="font-bold text-yellow-400">2 minuti</span>. Torni a casa e mangi subito!
             </p>
             
-            {/* Enhanced CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up" style={{animationDelay: '0.9s'}}>
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center fade-in-delay-3">
               <Link 
                 href="/"
                 className="group bg-gradient-to-r from-yellow-400 to-orange-400 text-gray-900 px-8 py-4 rounded-full font-bold text-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center gap-3"
@@ -486,7 +453,7 @@ export default function LandingPage() {
               </button>
             </div>
             
-            {/* Enhanced Spots Available */}
+            {/* Spots Available */}
             <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-yellow-300 px-4 py-2 rounded-full text-sm font-semibold animate-pulse">
               <AlertCircle className="w-4 h-4" />
               Solo {availableSpots} posti disponibili per domani!
@@ -500,33 +467,22 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Enhanced Problems & Solutions Section */}
-      <section id="vantaggi" ref={problemsRef} className="py-20 bg-white relative overflow-hidden">
-        {/* Parallax Background Pattern */}
-        <div 
-          className="absolute inset-0 opacity-5"
-          style={{
-            transform: `translateY(${scrollY * 0.2}px)`,
-          }}
-        >
-          <div className="w-full h-full bg-gradient-to-r from-red-100 via-orange-100 to-yellow-100"></div>
-        </div>
-
+      {/* Problems & Solutions Section */}
+      <section id="vantaggi" className="py-20 bg-white relative overflow-hidden">
         <div className="container mx-auto px-4 lg:px-8 relative z-10">
-          <div className="text-center mb-16 observe-animation">
+          <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
               Basta con questi <span className="text-red-500">problemi</span>!
             </h2>
             <p className="text-xl text-gray-600">Hai mai vissuto queste situazioni?</p>
           </div>
           
-          {/* Enhanced Problems with Images */}
+          {/* Problems with Images */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
             {problems.map((problem, index) => (
               <div 
                 key={index}
-                className="group observe-animation relative overflow-hidden rounded-2xl transform hover:scale-105 transition-all duration-500"
-                style={{ animationDelay: `${index * 200}ms` }}
+                className="group relative overflow-hidden rounded-2xl transform hover:scale-105 transition-all duration-500"
               >
                 <div className="relative h-64">
                   <img 
@@ -540,58 +496,7 @@ export default function LandingPage() {
                   <div className="absolute inset-0 flex items-end p-6">
                     <div className="text-white">
                       <XCircle className="w-8 h-8 mb-3 text-red-200" />
-                      <p className="text-amber-400 font-bold">
-                  ⚠️ Ordina 2 giorni prima!
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="border-t border-white/10 pt-8 text-center text-white/60">
-            <p>© 2024 Pasto Sano - Tutti i diritti riservati | Made with ❤️ by Andrea Padoan</p>
-          </div>
-        </div>
-      </footer>
-
-      {/* Enhanced Custom Styles */}
-      <style jsx>{`
-        @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        .animate-fade-in-up {
-          animation: fade-in-up 0.8s ease-out forwards;
-        }
-        
-        .observe-animation {
-          opacity: 0;
-          transform: translateY(30px);
-          transition: all 0.8s ease-out;
-        }
-        
-        .observe-animation.animate-fade-in-up {
-          opacity: 1;
-          transform: translateY(0);
-        }
-        
-        .delay-500 {
-          animation-delay: 500ms;
-        }
-        
-        .delay-1000 {
-          animation-delay: 1000ms;
-        }
-      `}</style>
-    </div>
-  );
-} className="font-semibold text-lg">{problem.text}</p>
+                      <p className="font-semibold text-lg">{problem.text}</p>
                     </div>
                   </div>
                 </div>
@@ -600,14 +505,14 @@ export default function LandingPage() {
           </div>
           
           {/* Animated Arrow */}
-          <div className="text-center mb-16 observe-animation">
+          <div className="text-center mb-16">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full animate-bounce shadow-xl">
               <ArrowDown className="w-8 h-8" />
             </div>
           </div>
           
-          {/* Enhanced Solutions */}
-          <div className="text-center mb-12 observe-animation">
+          {/* Solutions */}
+          <div className="text-center mb-12">
             <h3 className="text-4xl lg:text-5xl font-bold mb-4">
               <span className="text-green-600">Ecco la Soluzione!</span> ✨
             </h3>
@@ -618,8 +523,7 @@ export default function LandingPage() {
             {solutions.map((solution, index) => (
               <div 
                 key={index}
-                className="group observe-animation relative overflow-hidden rounded-2xl bg-white shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-500"
-                style={{ animationDelay: `${index * 200}ms` }}
+                className="group relative overflow-hidden rounded-2xl bg-white shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-500"
               >
                 <div className="relative h-48">
                   <img 
@@ -641,10 +545,10 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Enhanced Features Section */}
-      <section ref={featuresRef} className="py-20 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
+      {/* Features Section */}
+      <section className="py-20 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
         <div className="container mx-auto px-4 lg:px-8">
-          <div className="text-center mb-16 observe-animation">
+          <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
               Perché Scegliere <span className="text-amber-600">Pasto Sano</span>?
             </h2>
@@ -655,18 +559,14 @@ export default function LandingPage() {
             {features.map((feature, index) => (
               <div 
                 key={index}
-                className="group observe-animation relative bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transform hover:-translate-y-4 transition-all duration-700"
-                style={{ 
-                  animationDelay: `${index * 150}ms`,
-                  transform: `translateY(${scrollY * 0.05 * (index % 2 === 0 ? 1 : -1)}px)`,
-                }}
+                className="group relative bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transform hover:-translate-y-4 transition-all duration-700"
               >
-                {/* Enhanced Badge */}
+                {/* Badge */}
                 <div className="absolute top-4 right-4 bg-amber-500/90 backdrop-blur-sm text-white text-xs px-3 py-2 rounded-full font-bold z-10 border border-amber-400/30">
                   {feature.badge}
                 </div>
                 
-                {/* Enhanced Image with Parallax */}
+                {/* Image */}
                 <div className="relative h-64 overflow-hidden">
                   <img 
                     src={feature.image}
@@ -676,7 +576,7 @@ export default function LandingPage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent group-hover:from-black/30 transition-all duration-300"></div>
                 </div>
                 
-                {/* Enhanced Content */}
+                {/* Content */}
                 <div className="p-8">
                   <div className="flex items-center gap-4 mb-4">
                     <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
@@ -692,10 +592,10 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Enhanced Menu Highlights */}
+      {/* Menu Highlights */}
       <section id="menu" className="py-20 bg-gradient-to-b from-amber-50 to-orange-50 relative overflow-hidden">
         <div className="container mx-auto px-4 lg:px-8">
-          <div className="text-center mb-16 observe-animation">
+          <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
               I Nostri <span className="text-amber-600">Bestseller</span> 🔥
             </h2>
@@ -706,15 +606,14 @@ export default function LandingPage() {
             {menuHighlights.map((item, index) => (
               <div 
                 key={index}
-                className="group observe-animation relative bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-500"
-                style={{ animationDelay: `${index * 100}ms` }}
+                className="group relative bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-500"
               >
-                {/* Enhanced Badge */}
+                {/* Badge */}
                 <div className={`absolute top-4 left-4 ${item.badgeColor} text-white text-xs px-4 py-2 rounded-full font-bold z-10 animate-pulse shadow-lg`}>
                   {item.badge}
                 </div>
                 
-                {/* Enhanced Image */}
+                {/* Image */}
                 <div className="relative h-56 overflow-hidden">
                   <img 
                     src={item.image}
@@ -723,7 +622,7 @@ export default function LandingPage() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent group-hover:from-black/40 transition-all duration-300"></div>
                   
-                  {/* Enhanced Overlay */}
+                  {/* Overlay */}
                   <div className="absolute bottom-4 left-4 right-4">
                     <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4">
                       <h3 className="font-bold text-lg text-gray-900 mb-2">{item.name}</h3>
@@ -745,8 +644,8 @@ export default function LandingPage() {
             ))}
           </div>
           
-          {/* Enhanced CTA */}
-          <div className="text-center observe-animation">
+          {/* CTA */}
+          <div className="text-center">
             <Link 
               href="/"
               className="group inline-flex items-center gap-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-12 py-6 rounded-full font-bold text-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 mb-6"
@@ -762,10 +661,10 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Enhanced Testimonials */}
+      {/* Testimonials */}
       <section className="py-20 bg-white relative overflow-hidden">
         <div className="container mx-auto px-4 lg:px-8">
-          <div className="text-center mb-16 observe-animation">
+          <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
               Cosa Dicono i Nostri <span className="text-amber-600">Clienti</span>
             </h2>
@@ -780,7 +679,7 @@ export default function LandingPage() {
             </div>
           </div>
           
-          <div className="max-w-4xl mx-auto observe-animation">
+          <div className="max-w-4xl mx-auto">
             <div className="bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 rounded-3xl p-12 shadow-2xl relative overflow-hidden">
               {/* Background Pattern */}
               <div className="absolute inset-0 opacity-10">
@@ -788,12 +687,12 @@ export default function LandingPage() {
                 <div className="absolute bottom-0 right-0 w-40 h-40 bg-orange-400 rounded-full translate-x-20 translate-y-20"></div>
               </div>
               
-              {/* Enhanced Quote Icon */}
+              {/* Quote Icon */}
               <div className="absolute -top-6 left-12 bg-gradient-to-r from-amber-500 to-orange-500 text-white w-12 h-12 rounded-full flex items-center justify-center text-2xl font-bold shadow-xl">
                 "
               </div>
               
-              {/* Enhanced Testimonial Content */}
+              {/* Testimonial Content */}
               <div className="text-center relative z-10">
                 <div className="flex justify-center mb-6">
                   {[...Array(testimonials[currentTestimonial].rating)].map((_, i) => (
@@ -822,7 +721,7 @@ export default function LandingPage() {
                 </div>
               </div>
               
-              {/* Enhanced Dots */}
+              {/* Dots */}
               <div className="flex justify-center gap-3 mt-8">
                 {testimonials.map((_, index) => (
                   <button 
@@ -841,12 +740,12 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Enhanced Chi Sono Section */}
+      {/* Chi Sono Section */}
       <section id="chi-sono" className="py-20 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            {/* Enhanced Image */}
-            <div className="relative observe-animation">
+            {/* Image */}
+            <div className="relative">
               <div className="relative rounded-3xl overflow-hidden shadow-2xl transform hover:scale-105 transition-all duration-700">
                 <img 
                   src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80"
@@ -856,15 +755,15 @@ export default function LandingPage() {
                 <div className="absolute inset-0 bg-gradient-to-t from-amber-900/30 to-transparent"></div>
               </div>
               
-              {/* Enhanced Floating Stats */}
+              {/* Floating Stats */}
               <div className="absolute -bottom-8 -right-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-2xl p-8 shadow-2xl transform hover:scale-105 transition-all duration-300">
                 <div className="text-3xl font-bold">12+ anni</div>
                 <div className="text-sm opacity-90">di esperienza</div>
               </div>
             </div>
 
-            {/* Enhanced Text Content */}
-            <div className="space-y-6 observe-animation">
+            {/* Text Content */}
+            <div className="space-y-6">
               <div className="text-amber-600 font-bold text-lg">FONDATORE & PERSONAL TRAINER</div>
               <h2 className="text-4xl lg:text-5xl font-bold text-gray-900">
                 Ciao, sono <span className="text-amber-600">Andrea Padoan</span>
@@ -901,7 +800,7 @@ export default function LandingPage() {
                 </div>
               </div>
               
-              {/* Enhanced Stats */}
+              {/* Stats */}
               <div className="grid grid-cols-3 gap-6 pt-8">
                 <div className="text-center bg-white rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300">
                   <div className="text-3xl font-bold text-amber-600">500+</div>
@@ -921,20 +820,20 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Enhanced Come Funziona */}
+      {/* Come Funziona */}
       <section className="py-20 bg-white relative overflow-hidden">
         <div className="container mx-auto px-4 lg:px-8">
-          <h2 className="text-4xl lg:text-5xl font-bold text-center text-gray-900 mb-4 observe-animation">
+          <h2 className="text-4xl lg:text-5xl font-bold text-center text-gray-900 mb-4">
             Facilissimo! <span className="text-amber-600">4 Step</span>
           </h2>
-          <p className="text-xl text-gray-600 text-center mb-16 observe-animation">
+          <p className="text-xl text-gray-600 text-center mb-16">
             Dal click al piatto in pochi minuti
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {steps.map((step, i) => (
-              <div key={i} className="group text-center observe-animation" style={{ animationDelay: `${i * 200}ms` }}>
-                {/* Enhanced Step with Image */}
+              <div key={i} className="group text-center">
+                {/* Step with Image */}
                 <div className="relative mb-6">
                   <div className="w-32 h-32 mx-auto rounded-2xl overflow-hidden shadow-xl group-hover:shadow-2xl transition-all duration-500">
                     <img 
@@ -960,28 +859,23 @@ export default function LandingPage() {
                 
                 <h3 className="font-bold text-xl text-gray-900 mb-2">{step.title}</h3>
                 <p className="text-gray-600">{step.desc}</p>
-                
-                {/* Progress Line */}
-                {i < steps.length - 1 && (
-                  <div className="hidden lg:block absolute top-16 left-full w-full h-1 bg-gradient-to-r from-amber-500 to-orange-500 transform -translate-x-1/2"></div>
-                )}
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Enhanced Final CTA */}
+      {/* Final CTA */}
       <section className="py-20 bg-gradient-to-br from-amber-900 via-orange-800 to-red-900 relative overflow-hidden">
         {/* Animated Background */}
         <div className="absolute inset-0">
           <div className="absolute top-20 left-20 w-64 h-64 bg-yellow-400/10 rounded-full animate-pulse"></div>
-          <div className="absolute bottom-20 right-20 w-48 h-48 bg-orange-400/10 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
-          <div className="absolute top-40 right-40 w-32 h-32 bg-red-400/10 rounded-full animate-pulse" style={{animationDelay: '2s'}}></div>
+          <div className="absolute bottom-20 right-20 w-48 h-48 bg-orange-400/10 rounded-full animate-pulse animation-delay-1000"></div>
+          <div className="absolute top-40 right-40 w-32 h-32 bg-red-400/10 rounded-full animate-pulse animation-delay-2000"></div>
         </div>
         
         <div className="container mx-auto px-4 lg:px-8 text-center relative z-10">
-          <div className="observe-animation">
+          <div>
             <Zap className="w-16 h-16 text-yellow-400 mx-auto mb-6 animate-pulse" />
             <h2 className="text-4xl lg:text-6xl font-bold text-white mb-6">
               Non <span className="text-yellow-400">Aspettare</span>!
@@ -992,8 +886,8 @@ export default function LandingPage() {
             </p>
           </div>
           
-          {/* Enhanced Offer Box */}
-          <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-8 max-w-2xl mx-auto mb-12 border border-white/20 shadow-2xl observe-animation">
+          {/* Offer Box */}
+          <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-8 max-w-2xl mx-auto mb-12 border border-white/20 shadow-2xl">
             <div className="flex items-center justify-center gap-3 mb-4">
               <Sparkles className="w-8 h-8 text-yellow-400" />
               <p className="text-yellow-300 font-bold text-2xl">
@@ -1011,8 +905,8 @@ export default function LandingPage() {
             </div>
           </div>
           
-          {/* Enhanced CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center observe-animation">
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
             <Link 
               href="/"
               className="group bg-white text-amber-900 px-12 py-6 rounded-full font-bold text-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center gap-4"
@@ -1037,7 +931,7 @@ export default function LandingPage() {
       {/* FAQ Section */}
       <section className="py-20 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
         <div className="container mx-auto px-4 lg:px-8">
-          <div className="text-center mb-16 observe-animation">
+          <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
               Domande <span className="text-amber-600">Frequenti</span>
             </h2>
@@ -1047,7 +941,7 @@ export default function LandingPage() {
           <div className="max-w-4xl mx-auto">
             <div className="grid gap-6">
               {faqData.map((faq, index) => (
-                <div key={index} className="observe-animation bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                <div key={index} className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
                   <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
                     <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
                       Q
@@ -1062,7 +956,7 @@ export default function LandingPage() {
             </div>
 
             {/* CTA in FAQ */}
-            <div className="text-center mt-16 observe-animation">
+            <div className="text-center mt-16">
               <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-8 border border-amber-200">
                 <h3 className="text-2xl font-bold text-gray-900 mb-4">
                   Hai altre domande?
@@ -1085,7 +979,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Enhanced Footer */}
+      {/* Footer */}
       <footer id="contatti" className="bg-amber-950 text-white py-16 relative overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-5">
@@ -1094,8 +988,8 @@ export default function LandingPage() {
         
         <div className="container mx-auto px-4 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-            {/* Enhanced Brand */}
-            <div className="observe-animation">
+            {/* Brand */}
+            <div>
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl flex items-center justify-center text-white font-bold text-xl">
                   PS
@@ -1109,7 +1003,7 @@ export default function LandingPage() {
             </div>
 
             {/* Quick Links */}
-            <div className="observe-animation">
+            <div>
               <h3 className="text-yellow-400 font-bold text-lg mb-6">Menu</h3>
               <div className="space-y-3">
                 <Link href="/" className="text-white/80 hover:text-amber-400 transition-colors text-left block">
@@ -1125,7 +1019,7 @@ export default function LandingPage() {
             </div>
 
             {/* Contatti */}
-            <div className="observe-animation">
+            <div>
               <h3 className="text-yellow-400 font-bold text-lg mb-6">Contatti</h3>
               <div className="space-y-3">
                 <a href="tel:+393478881515" className="text-white/80 hover:text-amber-400 transition-colors flex items-center gap-2">
@@ -1146,7 +1040,7 @@ export default function LandingPage() {
             </div>
 
             {/* Ritiro */}
-            <div className="observe-animation">
+            <div>
               <h3 className="text-yellow-400 font-bold text-lg mb-6">Ritiro</h3>
               <div className="space-y-3">
                 <p className="text-white/80">
@@ -1155,4 +1049,60 @@ export default function LandingPage() {
                 <p className="text-white/80">
                   Lun-Ven (concordare orario)
                 </p>
-                <p
+                <p className="text-amber-400 font-bold">
+                  ⚠️ Ordina 2 giorni prima!
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-white/10 pt-8 text-center text-white/60">
+            <p>© 2024 Pasto Sano - Tutti i diritti riservati | Made with ❤️ by Andrea Padoan</p>
+          </div>
+        </div>
+      </footer>
+
+      {/* Simple CSS Animations */}
+      <style jsx>{`
+        .fade-in {
+          animation: fadeIn 0.8s ease-out;
+        }
+        
+        .fade-in-delay {
+          animation: fadeIn 0.8s ease-out 0.3s both;
+        }
+        
+        .fade-in-delay-2 {
+          animation: fadeIn 0.8s ease-out 0.6s both;
+        }
+        
+        .fade-in-delay-3 {
+          animation: fadeIn 0.8s ease-out 0.9s both;
+        }
+        
+        .animation-delay-1000 {
+          animation-delay: 1s;
+        }
+        
+        .animation-delay-1500 {
+          animation-delay: 1.5s;
+        }
+        
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
