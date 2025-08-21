@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { ChevronDown, Play, Star, Users, Clock, Heart, MessageCircle, ExternalLink, CheckCircle, XCircle } from 'lucide-react'
+import { ChevronDown, Star, Users, Clock, Heart, MessageCircle, ExternalLink, CheckCircle, XCircle } from 'lucide-react'
 
 export default function LandingPage() {
   const [email, setEmail] = useState('')
