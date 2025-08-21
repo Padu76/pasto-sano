@@ -123,7 +123,7 @@ export default function LandingPage() {
       text: "Torni a casa stanco e non sai cosa mangiare"
     },
     {
-      image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&q=80",
+      image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&q=80",
       text: "Mangi sempre le stesse cose in gastronomia"
     },
     {
@@ -143,7 +143,7 @@ export default function LandingPage() {
       description: "Torni a casa e il pranzo è già pronto"
     },
     {
-      image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=600&q=80",
+      image: "https://images.unsplash.com/photo-1541480601022-2308c0f02487?w=600&q=80",
       title: "Zero Stress",
       description: "Niente spesa, niente cucina, solo relax"
     },
@@ -153,7 +153,7 @@ export default function LandingPage() {
       description: "Ti senti energico tutto il giorno"
     },
     {
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80",
+      image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&q=80",
       title: "Tempo per Te",
       description: "Recuperi 1 ora al giorno"
     }
