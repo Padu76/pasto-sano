@@ -12,7 +12,6 @@ import {
   Flame,
   Heart,
   MessageCircle,
-  ArrowRight,
   ExternalLink,
   CheckCircle,
   XCircle,
@@ -140,7 +139,7 @@ export default function PastoSanoLanding() {
     return () => observer.disconnect();
   }, []);
 
-  const scrollToSection = (sectionId) => {
+  const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
@@ -459,135 +458,120 @@ export default function PastoSanoLanding() {
         </div>
       </section>
 
-      {/* FAQ Section */}
-      <section className="py-20 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
-        <div className="container mx-auto px-4 lg:px-8">
-          <div className="text-center mb-16 observe-animation">
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              Domande <span className="text-amber-600">Frequenti</span>
-            </h2>
-            <p className="text-xl text-gray-600">Tutto quello che devi sapere su Pasto Sano</p>
-          </div>
-
-          <div className="max-w-4xl mx-auto">
-            <div className="grid gap-6">
-              {/* FAQ 1 */}
-              <div className="observe-animation bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
-                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                    Q
-                  </div>
-                  Posso congelare il prodotto?
-                </h3>
-                <p className="text-gray-700 leading-relaxed pl-11">
-                  <strong className="text-green-600">Sì!</strong> Gli ingredienti sono tutti freschi, quindi puoi congelare le vaschette senza problemi per conservarle più a lungo.
-                </p>
+      {/* Footer con Glassmorphism */}
+      <footer id="contatti" className="bg-amber-950 text-white py-16 relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="w-full h-full bg-gradient-to-br from-amber-600 to-orange-600"></div>
+        </div>
+        
+        <div className="container mx-auto px-4 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+            {/* Brand */}
+            <div className="observe-animation">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl flex items-center justify-center text-white font-bold text-xl">
+                  PS
+                </div>
+                <span className="text-2xl font-bold">Pasto Sano</span>
               </div>
+              <p className="text-white/80 leading-relaxed">
+                La soluzione per mangiare sano senza stress. 
+                Pasti genuini, pronti in 2 minuti.
+              </p>
+            </div>
 
-              {/* FAQ 2 */}
-              <div className="observe-animation bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
-                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                    Q
-                  </div>
-                  È prevista la consegna a domicilio?
-                </h3>
-                <p className="text-gray-700 leading-relaxed pl-11">
-                  Al momento è previsto solo il ritiro, ma <strong className="text-amber-600">presto stiamo implementando il servizio con consegna a domicilio!</strong> Resta aggiornato per le novità.
-                </p>
-              </div>
-
-              {/* FAQ 3 */}
-              <div className="observe-animation bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
-                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                    Q
-                  </div>
-                  Quanto li posso conservare in frigorifero?
-                </h3>
-                <p className="text-gray-700 leading-relaxed pl-11">
-                  Consigliamo il consumo <strong className="text-amber-600">entro 3 giorni</strong> dal ritiro. In alternativa, puoi sempre congelare per una conservazione più lunga.
-                </p>
-              </div>
-
-              {/* FAQ 4 */}
-              <div className="observe-animation bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
-                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                    Q
-                  </div>
-                  La vaschetta posso metterla direttamente in microonde?
-                </h3>
-                <p className="text-gray-700 leading-relaxed pl-11">
-                  <strong className="text-red-600">No</strong>, la vaschetta non va nel microonde. Può essere messa in <strong className="text-green-600">forno o friggitrice ad aria</strong>.
-                </p>
-              </div>
-
-              {/* FAQ 5 */}
-              <div className="observe-animation bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
-                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                    Q
-                  </div>
-                  Come scaldo il prodotto?
-                </h3>
-                <p className="text-gray-700 leading-relaxed pl-11">
-                  Metti il prodotto in un piatto e scaldi per <strong className="text-amber-600">2 minuti e mezzo</strong> nel microonde. 
-                  Oppure puoi scaldarlo in padella o direttamente in forno/friggitrice ad aria.
-                </p>
-              </div>
-
-              {/* FAQ 6 */}
-              <div className="observe-animation bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
-                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                    Q
-                  </div>
-                  Prevedete l'inserimento di altri prodotti?
-                </h3>
-                <p className="text-gray-700 leading-relaxed pl-11">
-                  <strong className="text-green-600">Certamente!</strong> Abbiamo già una lista di nuovi piatti da inserire. 
-                  Il menu si arricchirà sempre di più con nuove deliziose opzioni!
-                </p>
-              </div>
-
-              {/* FAQ 7 */}
-              <div className="observe-animation bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
-                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                    Q
-                  </div>
-                  Posso restituire il prodotto dopo averlo ordinato?
-                </h3>
-                <p className="text-gray-700 leading-relaxed pl-11">
-                  Non è previsto il reso del prodotto. Tuttavia, se hai domande o dubbi, <strong className="text-amber-600">contattaci prima dell'ordine</strong> - saremo felici di aiutarti!
-                </p>
+            {/* Quick Links */}
+            <div className="observe-animation">
+              <h3 className="text-yellow-400 font-bold text-lg mb-6">Menu</h3>
+              <div className="space-y-3">
+                <button className="text-white/80 hover:text-amber-400 transition-colors text-left block">
+                  Ordina Online
+                </button>
+                <button onClick={() => scrollToSection('menu')} className="text-white/80 hover:text-amber-400 transition-colors text-left block">
+                  I Nostri Piatti
+                </button>
+                <button onClick={() => scrollToSection('vantaggi')} className="text-white/80 hover:text-amber-400 transition-colors text-left block">
+                  Vantaggi
+                </button>
               </div>
             </div>
 
-            {/* CTA in FAQ */}
-            <div className="text-center mt-16 observe-animation">
-              <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-8 border border-amber-200">
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                  Hai altre domande?
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  Non esitare a contattarci! Siamo qui per aiutarti
-                </p>
+            {/* Contatti */}
+            <div className="observe-animation">
+              <h3 className="text-yellow-400 font-bold text-lg mb-6">Contatti</h3>
+              <div className="space-y-3">
+                <a href="tel:+393478881515" className="text-white/80 hover:text-amber-400 transition-colors flex items-center gap-2">
+                  📞 347 888 1515
+                </a>
+                <a href="mailto:info@pastosano.it" className="text-white/80 hover:text-amber-400 transition-colors flex items-center gap-2">
+                  ✉️ info@pastosano.it
+                </a>
                 <a 
-                  href="https://wa.me/393478881515?text=Ciao%20ho%20una%20domanda%20su%20Pasto%20Sano"
+                  href="https://wa.me/393478881515?text=Ciao%20voglio%20info%20su%20Pasto%20Sano"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-3 bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-4 rounded-full font-bold hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                  className="text-white/80 hover:text-green-400 transition-colors flex items-center gap-2"
                 >
-                  <MessageCircle className="w-6 h-6" />
-                  Contattaci su WhatsApp
+                  💬 WhatsApp
                 </a>
               </div>
             </div>
+
+            {/* Ritiro */}
+            <div className="observe-animation">
+              <h3 className="text-yellow-400 font-bold text-lg mb-6">Ritiro</h3>
+              <div className="space-y-3">
+                <p className="text-white/80">
+                  📍 Via Albere 27/B
+                </p>
+                <p className="text-white/80">
+                  Lun-Ven (concordare orario)
+                </p>
+                <p className="text-amber-400 font-bold">
+                  ⚠️ Ordina 2 giorni prima!
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-white/10 pt-8 text-center text-white/60">
+            <p>© 2024 Pasto Sano - Tutti i diritti riservati | Made with ❤️ by Andrea Padoan</p>
           </div>
         </div>
-      </section>
+      </footer>
+
+      {/* Custom Styles */}
+      <style jsx>{`
+        @keyframes fade-in-up {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .animate-fade-in-up {
+          animation: fade-in-up 0.8s ease-out forwards;
+        }
+        
+        .observe-animation {
+          opacity: 0;
+          transform: translateY(30px);
+          transition: all 0.8s ease-out;
+        }
+        
+        .observe-animation.animate-fade-in-up {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      `}</style>
+    </div>
+  );
+}>
 
       {/* Problems & Solutions Section con Parallax */}
       <section ref={problemsRef} className="py-20 bg-white relative overflow-hidden">
@@ -1066,117 +1050,132 @@ export default function PastoSanoLanding() {
         </div>
       </section>
 
-      {/* Footer con Glassmorphism */}
-      <footer id="contatti" className="bg-amber-950 text-white py-16 relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-5">
-          <div className="w-full h-full bg-gradient-to-br from-amber-600 to-orange-600"></div>
-        </div>
-        
-        <div className="container mx-auto px-4 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-            {/* Brand */}
-            <div className="observe-animation">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl flex items-center justify-center text-white font-bold text-xl">
-                  PS
-                </div>
-                <span className="text-2xl font-bold">Pasto Sano</span>
+      {/* FAQ Section */}
+      <section className="py-20 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="text-center mb-16 observe-animation">
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+              Domande <span className="text-amber-600">Frequenti</span>
+            </h2>
+            <p className="text-xl text-gray-600">Tutto quello che devi sapere su Pasto Sano</p>
+          </div>
+
+          <div className="max-w-4xl mx-auto">
+            <div className="grid gap-6">
+              {/* FAQ 1 */}
+              <div className="observe-animation bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                    Q
+                  </div>
+                  Posso congelare il prodotto?
+                </h3>
+                <p className="text-gray-700 leading-relaxed pl-11">
+                  <strong className="text-green-600">Sì!</strong> Gli ingredienti sono tutti freschi, quindi puoi congelare le vaschette senza problemi per conservarle più a lungo.
+                </p>
               </div>
-              <p className="text-white/80 leading-relaxed">
-                La soluzione per mangiare sano senza stress. 
-                Pasti genuini, pronti in 2 minuti.
-              </p>
+
+              {/* FAQ 2 */}
+              <div className="observe-animation bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                    Q
+                  </div>
+                  È prevista la consegna a domicilio?
+                </h3>
+                <p className="text-gray-700 leading-relaxed pl-11">
+                  Al momento è previsto solo il ritiro, ma <strong className="text-amber-600">presto stiamo implementando il servizio con consegna a domicilio!</strong> Resta aggiornato per le novità.
+                </p>
+              </div>
+
+              {/* FAQ 3 */}
+              <div className="observe-animation bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                    Q
+                  </div>
+                  Quanto li posso conservare in frigorifero?
+                </h3>
+                <p className="text-gray-700 leading-relaxed pl-11">
+                  Consigliamo il consumo <strong className="text-amber-600">entro 3 giorni</strong> dal ritiro. In alternativa, puoi sempre congelare per una conservazione più lunga.
+                </p>
+              </div>
+
+              {/* FAQ 4 */}
+              <div className="observe-animation bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                    Q
+                  </div>
+                  La vaschetta posso metterla direttamente in microonde?
+                </h3>
+                <p className="text-gray-700 leading-relaxed pl-11">
+                  <strong className="text-red-600">No</strong>, la vaschetta non va nel microonde. Può essere messa in <strong className="text-green-600">forno o friggitrice ad aria</strong>.
+                </p>
+              </div>
+
+              {/* FAQ 5 */}
+              <div className="observe-animation bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                    Q
+                  </div>
+                  Come scaldo il prodotto?
+                </h3>
+                <p className="text-gray-700 leading-relaxed pl-11">
+                  Metti il prodotto in un piatto e scaldi per <strong className="text-amber-600">2 minuti e mezzo</strong> nel microonde. 
+                  Oppure puoi scaldarlo in padella o direttamente in forno/friggitrice ad aria.
+                </p>
+              </div>
+
+              {/* FAQ 6 */}
+              <div className="observe-animation bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                    Q
+                  </div>
+                  Prevedete l'inserimento di altri prodotti?
+                </h3>
+                <p className="text-gray-700 leading-relaxed pl-11">
+                  <strong className="text-green-600">Certamente!</strong> Abbiamo già una lista di nuovi piatti da inserire. 
+                  Il menu si arricchirà sempre di più con nuove deliziose opzioni!
+                </p>
+              </div>
+
+              {/* FAQ 7 */}
+              <div className="observe-animation bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                    Q
+                  </div>
+                  Posso restituire il prodotto dopo averlo ordinato?
+                </h3>
+                <p className="text-gray-700 leading-relaxed pl-11">
+                  Non è previsto il reso del prodotto. Tuttavia, se hai domande o dubbi, <strong className="text-amber-600">contattaci prima dell'ordine</strong> - saremo felici di aiutarti!
+                </p>
+              </div>
             </div>
 
-            {/* Quick Links */}
-            <div className="observe-animation">
-              <h3 className="text-yellow-400 font-bold text-lg mb-6">Menu</h3>
-              <div className="space-y-3">
-                <button className="text-white/80 hover:text-amber-400 transition-colors text-left block">
-                  Ordina Online
-                </button>
-                <button onClick={() => scrollToSection('menu')} className="text-white/80 hover:text-amber-400 transition-colors text-left block">
-                  I Nostri Piatti
-                </button>
-                <button onClick={() => scrollToSection('vantaggi')} className="text-white/80 hover:text-amber-400 transition-colors text-left block">
-                  Vantaggi
-                </button>
-              </div>
-            </div>
-
-            {/* Contatti */}
-            <div className="observe-animation">
-              <h3 className="text-yellow-400 font-bold text-lg mb-6">Contatti</h3>
-              <div className="space-y-3">
-                <a href="tel:+393478881515" className="text-white/80 hover:text-amber-400 transition-colors flex items-center gap-2">
-                  📞 347 888 1515
-                </a>
-                <a href="mailto:info@pastosano.it" className="text-white/80 hover:text-amber-400 transition-colors flex items-center gap-2">
-                  ✉️ info@pastosano.it
-                </a>
+            {/* CTA in FAQ */}
+            <div className="text-center mt-16 observe-animation">
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-8 border border-amber-200">
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                  Hai altre domande?
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  Non esitare a contattarci! Siamo qui per aiutarti
+                </p>
                 <a 
-                  href="https://wa.me/393478881515?text=Ciao%20voglio%20info%20su%20Pasto%20Sano"
+                  href="https://wa.me/393478881515?text=Ciao%20ho%20una%20domanda%20su%20Pasto%20Sano"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-white/80 hover:text-green-400 transition-colors flex items-center gap-2"
+                  className="inline-flex items-center gap-3 bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-4 rounded-full font-bold hover:shadow-xl transform hover:scale-105 transition-all duration-300"
                 >
-                  💬 WhatsApp
+                  <MessageCircle className="w-6 h-6" />
+                  Contattaci su WhatsApp
                 </a>
               </div>
             </div>
-
-            {/* Ritiro */}
-            <div className="observe-animation">
-              <h3 className="text-yellow-400 font-bold text-lg mb-6">Ritiro</h3>
-              <div className="space-y-3">
-                <p className="text-white/80">
-                  📍 Via Albere 27/B
-                </p>
-                <p className="text-white/80">
-                  Lun-Ven (concordare orario)
-                </p>
-                <p className="text-amber-400 font-bold">
-                  ⚠️ Ordina 2 giorni prima!
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="border-t border-white/10 pt-8 text-center text-white/60">
-            <p>© 2024 Pasto Sano - Tutti i diritti riservati | Made with ❤️ by Andrea Padoan</p>
           </div>
         </div>
-      </footer>
-
-      {/* Custom Styles */}
-      <style jsx>{`
-        @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        .animate-fade-in-up {
-          animation: fade-in-up 0.8s ease-out forwards;
-        }
-        
-        .observe-animation {
-          opacity: 0;
-          transform: translateY(30px);
-          transition: all 0.8s ease-out;
-        }
-        
-        .observe-animation.animate-fade-in-up {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      `}</style>
-    </div>
-  );
-}
+      </section
