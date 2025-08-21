@@ -1212,6 +1212,106 @@ export default function OrdinaPage() {
                 </div>
               )}
 
+              {!paymentMethod && (
+                <button
+                  onClick={() => setShowCheckout(false)}
+                  className="w-full mt-4 py-2 text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  Annulla
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Order Complete Notification */}
+        {orderComplete && (
+          <div className="fixed top-20 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg flex items-center space-x-3 z-50">
+            <Check className="w-6 h-6" />
+            <span className="font-semibold">Ordine completato con successo!</span>
+          </div>
+        )}
+
+        {/* Footer Mobile Optimized */}
+        <footer className="bg-gradient-to-r from-amber-900 to-amber-950 text-white mt-8 md:mt-16">
+          <div className="container mx-auto px-4 py-8 md:py-12">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+              {/* Logo e Info Azienda - Centrato su mobile */}
+              <div className="text-center">
+                <div className="flex items-center justify-center mb-3 md:mb-4">
+                  <Image 
+                    src="/images/logo.png" 
+                    alt="Pasto Sano" 
+                    width={70} 
+                    height={70}
+                    className="object-contain md:w-[80px] md:h-[80px]"
+                  />
+                </div>
+                <h3 className="text-lg md:text-xl font-bold mb-2 text-yellow-400">Pasto Sano</h3>
+                <p className="text-xs md:text-sm opacity-90">
+                  La soluzione per stare in forma.<br />
+                  Pasti sani e gustosi, preparati con amore.
+                </p>
+              </div>
+
+              {/* Contatti - Con pulsante WhatsApp prominente */}
+              <div className="text-center">
+                <h4 className="text-base md:text-lg font-semibold mb-3 md:mb-4 text-yellow-400">Contatti</h4>
+                <div className="space-y-3">
+                  <a 
+                    href="mailto:info@pastosano.it"
+                    className="flex items-center justify-center gap-2 hover:text-yellow-400 transition text-sm md:text-base"
+                  >
+                    <Mail className="w-4 h-4 md:w-5 md:h-5" />
+                    <span>info@pastosano.it</span>
+                  </a>
+                  <a 
+                    href="https://wa.me/393478881515?text=Ciao%20Pasto%20Sano,%20vorrei%20informazioni"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2.5 md:py-2 rounded-full transition transform hover:scale-105 text-sm md:text-base"
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    <span className="font-semibold">WhatsApp: 347 888 1515</span>
+                  </a>
+                  <a 
+                    href="https://www.pastosano.it"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 hover:text-yellow-400 transition text-sm md:text-base"
+                  >
+                    <Globe className="w-4 h-4 md:w-5 md:h-5" />
+                    <span>www.pastosano.it</span>
+                  </a>
+                </div>
+              </div>
+
+              {/* Orari e Info */}
+              <div className="text-center">
+                <h4 className="text-base md:text-lg font-semibold mb-3 md:mb-4 text-yellow-400">Ritiro Ordini</h4>
+                <div className="space-y-1 md:space-y-2 text-xs md:text-sm opacity-90">
+                  <p>Lunedì - Venerdì</p>
+                  <p className="font-semibold text-yellow-300">Orario da concordare</p>
+                  <p className="mt-2 md:mt-3">Ordina entro 2 giorni lavorativi</p>
+                  <p>Ritiro presso la nostra sede</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Copyright */}
+            <div className="border-t border-yellow-800/30 mt-6 md:mt-8 pt-4 md:pt-6 text-center text-xs md:text-sm opacity-75">
+              <p>© 2024 Pasto Sano - Tutti i diritti riservati</p>
+              <p className="mt-1 md:mt-2">P.IVA: IT00000000000 | Made with ❤️</p>
+            </div>
+          </div>
+        </footer>
+      </div>
+    </PayPalScriptProvider>
+  );
+}
+                </div>
+              )}
+
               {paymentMethod === 'paypal' && (
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">Pagamento con PayPal</h3>
@@ -1322,103 +1422,3 @@ export default function OrdinaPage() {
                       Indietro
                     </button>
                   </div>
-                </div>
-              )}
-
-              {!paymentMethod && (
-                <button
-                  onClick={() => setShowCheckout(false)}
-                  className="w-full mt-4 py-2 text-gray-500 hover:text-gray-700 transition-colors"
-                >
-                  Annulla
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Order Complete Notification */}
-        {orderComplete && (
-          <div className="fixed top-20 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg flex items-center space-x-3 z-50">
-            <Check className="w-6 h-6" />
-            <span className="font-semibold">Ordine completato con successo!</span>
-          </div>
-        )}
-
-        {/* Footer Mobile Optimized */}
-        <footer className="bg-gradient-to-r from-amber-900 to-amber-950 text-white mt-8 md:mt-16">
-          <div className="container mx-auto px-4 py-8 md:py-12">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-              {/* Logo e Info Azienda - Centrato su mobile */}
-              <div className="text-center">
-                <div className="flex items-center justify-center mb-3 md:mb-4">
-                  <Image 
-                    src="/images/logo.png" 
-                    alt="Pasto Sano" 
-                    width={70} 
-                    height={70}
-                    className="object-contain md:w-[80px] md:h-[80px]"
-                  />
-                </div>
-                <h3 className="text-lg md:text-xl font-bold mb-2 text-yellow-400">Pasto Sano</h3>
-                <p className="text-xs md:text-sm opacity-90">
-                  La soluzione per stare in forma.<br />
-                  Pasti sani e gustosi, preparati con amore.
-                </p>
-              </div>
-
-              {/* Contatti - Con pulsante WhatsApp prominente */}
-              <div className="text-center">
-                <h4 className="text-base md:text-lg font-semibold mb-3 md:mb-4 text-yellow-400">Contatti</h4>
-                <div className="space-y-3">
-                  <a 
-                    href="mailto:info@pastosano.it"
-                    className="flex items-center justify-center gap-2 hover:text-yellow-400 transition text-sm md:text-base"
-                  >
-                    <Mail className="w-4 h-4 md:w-5 md:h-5" />
-                    <span>info@pastosano.it</span>
-                  </a>
-                  <a 
-                    href="https://wa.me/393478881515?text=Ciao%20Pasto%20Sano,%20vorrei%20informazioni"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2.5 md:py-2 rounded-full transition transform hover:scale-105 text-sm md:text-base"
-                  >
-                    <MessageCircle className="w-5 h-5" />
-                    <span className="font-semibold">WhatsApp: 347 888 1515</span>
-                  </a>
-                  <a 
-                    href="https://www.pastosano.it"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 hover:text-yellow-400 transition text-sm md:text-base"
-                  >
-                    <Globe className="w-4 h-4 md:w-5 md:h-5" />
-                    <span>www.pastosano.it</span>
-                  </a>
-                </div>
-              </div>
-
-              {/* Orari e Info */}
-              <div className="text-center">
-                <h4 className="text-base md:text-lg font-semibold mb-3 md:mb-4 text-yellow-400">Ritiro Ordini</h4>
-                <div className="space-y-1 md:space-y-2 text-xs md:text-sm opacity-90">
-                  <p>Lunedì - Venerdì</p>
-                  <p className="font-semibold text-yellow-300">Orario da concordare</p>
-                  <p className="mt-2 md:mt-3">Ordina entro 2 giorni lavorativi</p>
-                  <p>Ritiro presso la nostra sede</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Copyright */}
-            <div className="border-t border-yellow-800/30 mt-6 md:mt-8 pt-4 md:pt-6 text-center text-xs md:text-sm opacity-75">
-              <p>© 2024 Pasto Sano - Tutti i diritti riservati</p>
-              <p className="mt-1 md:mt-2">P.IVA: IT00000000000 | Made with ❤️</p>
-            </div>
-          </div>
-        </footer>
-      </div>
-    </PayPalScriptProvider>
-  );
-}
