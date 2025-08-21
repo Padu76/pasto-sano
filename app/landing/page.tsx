@@ -1,8 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
+import { useState, useEffect, useRef } from 'react';
 import { 
   ShoppingCart, 
   Clock, 
@@ -24,50 +22,63 @@ import {
   AlertCircle,
   Sparkles,
   ChefHat,
-  Zap
+  Zap,
+  Play,
+  ArrowDown
 } from 'lucide-react';
 
-export default function LandingPage() {
+export default function PastoSanoLanding() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [timeLeft, setTimeLeft] = useState('');
   const [availableSpots, setAvailableSpots] = useState(8);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
+  const [scrollY, setScrollY] = useState(0);
+
+  const heroRef = useRef(null);
+  const problemsRef = useRef(null);
+  const featuresRef = useRef(null);
 
   const testimonials = [
     {
       name: "Marco R.",
       role: "Imprenditore",
       text: "Finalmente posso mangiare sano anche con poco tempo. Pasto Sano mi ha cambiato la vita!",
-      rating: 5
+      rating: 5,
+      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&q=80"
     },
     {
       name: "Laura B.",
       role: "Manager",
       text: "Ho perso 8kg in 3 mesi senza rinunciare al gusto. Consigliatissimo!",
-      rating: 5
+      rating: 5,
+      image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&q=80"
     },
     {
       name: "Giuseppe T.",
       role: "Sportivo",
       text: "Perfetto per chi si allena. Pasti bilanciati e gustosi, recupero meglio dopo l'allenamento.",
-      rating: 5
+      rating: 5,
+      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80"
     },
     {
       name: "Anna M.",
       role: "Mamma lavoratrice",
       text: "Non ho più lo stress di cucinare ogni giorno. Più tempo per la famiglia!",
-      rating: 5
+      rating: 5,
+      image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&q=80"
     }
   ];
 
+  // Scroll effects
   useEffect(() => {
-    // Handle scroll for header
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+      const currentScrollY = window.scrollY;
+      setScrollY(currentScrollY);
+      setIsScrolled(currentScrollY > 50);
     };
     
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     
     // Countdown timer
     const updateCountdown = () => {
@@ -108,7 +119,28 @@ export default function LandingPage() {
     };
   }, [testimonials.length]);
 
-  const scrollToSection = (sectionId: string) => {
+  // Intersection Observer for animations
+  useEffect(() => {
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animate-fade-in-up');
+        }
+      });
+    }, observerOptions);
+
+    const elements = document.querySelectorAll('.observe-animation');
+    elements.forEach(el => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, []);
+
+  const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
@@ -118,84 +150,92 @@ export default function LandingPage() {
 
   const problems = [
     {
-      icon: <XCircle className="w-6 h-6 text-red-500" />,
-      text: "Torni a casa stanco e non sai cosa mangiare"
+      image: "https://images.unsplash.com/photo-1551218808-94e220e084d2?w=400&q=80",
+      text: "Torni a casa stanco e non sai cosa mangiare",
+      gradient: "from-red-500 to-orange-500"
     },
     {
-      icon: <XCircle className="w-6 h-6 text-red-500" />,
-      text: "Mangi sempre le stesse cose in gastronomia"
+      image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&q=80",
+      text: "Mangi sempre le stesse cose in gastronomia",
+      gradient: "from-orange-500 to-yellow-500"
     },
     {
-      icon: <XCircle className="w-6 h-6 text-red-500" />,
-      text: "Spesa dell'ultimo minuto e sprechi"
+      image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=80",
+      text: "Spesa dell'ultimo minuto e sprechi",
+      gradient: "from-yellow-500 to-green-500"
     },
     {
-      icon: <XCircle className="w-6 h-6 text-red-500" />,
-      text: "Cibo pesante che ti rallenta"
+      image: "https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400&q=80",
+      text: "Cibo pesante che ti rallenta",
+      gradient: "from-green-500 to-blue-500"
     }
   ];
 
   const solutions = [
     {
-      icon: <CheckCircle className="w-6 h-6 text-green-500" />,
+      image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80",
       title: "Pasto Pronto in 2 Minuti",
-      description: "Torni a casa e il pranzo è già pronto"
+      description: "Torni a casa e il pranzo è già pronto",
+      gradient: "from-emerald-400 to-teal-500"
     },
     {
-      icon: <Home className="w-6 h-6 text-green-500" />,
+      image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=80",
       title: "Zero Stress",
-      description: "Niente spesa, niente cucina, solo relax"
+      description: "Niente spesa, niente cucina, solo relax",
+      gradient: "from-blue-400 to-indigo-500"
     },
     {
-      icon: <Leaf className="w-6 h-6 text-green-500" />,
+      image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&q=80",
       title: "Leggero e Nutriente",
-      description: "Ti senti energico tutto il giorno"
+      description: "Ti senti energico tutto il giorno",
+      gradient: "from-purple-400 to-pink-500"
     },
     {
-      icon: <Timer className="w-6 h-6 text-green-500" />,
+      image: "https://images.unsplash.com/photo-1551218808-94e220e084d2?w=400&q=80",
       title: "Tempo per Te",
-      description: "Recuperi 1 ora al giorno"
+      description: "Recuperi 1 ora al giorno",
+      gradient: "from-pink-400 to-rose-500"
     }
   ];
 
   const features = [
     {
-      image: "/images/meals/fusilli-manzo-zucchine-melanzane.jpg",
+      image: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=600&q=80",
       title: "100% Naturale",
       description: "Senza conservanti o additivi",
       badge: "GARANTITO",
       icon: <Leaf className="w-8 h-8" />
     },
     {
-      image: "/images/meals/roastbeef-patate-fagiolini.jpg",
+      image: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600&q=80",
       title: "Qualità Premium",
       description: "Solo ingredienti selezionati",
       badge: "TOP QUALITY",
       icon: <Star className="w-8 h-8" />
     },
     {
-      image: "/images/meals/pollo-patate-zucchine.jpg",
+      image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&q=80",
       title: "Bilanciato",
       description: "Proteine, carboidrati, vitamine",
       badge: "EQUILIBRATO",
       icon: <Scale className="w-8 h-8" />
     },
     {
-      image: "/images/meals/patate-salmone-broccoli.jpg",
+      image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=600&q=80",
       title: "Cottura Perfetta",
       description: "Vapore per preservare i nutrienti",
       badge: "CHEF",
       icon: <Flame className="w-8 h-8" />
     },
     {
-      image: "/images/meals/riso-hamburger-carotine.jpg",
+      image: "https://images.unsplash.com/photo-1551218808-94e220e084d2?w=600&q=80",
       title: "Pronto Subito",
       description: "2 minuti al microonde",
       badge: "VELOCE",
       icon: <Clock className="w-8 h-8" />
     },
     {
-      image: "/images/meals/orzo-ceci-feta-pomodorini.jpg",
+      image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&q=80",
       title: "Vario e Gustoso",
       description: "Menu sempre diverso",
       badge: "NOVITÀ",
@@ -206,7 +246,7 @@ export default function LandingPage() {
   const menuHighlights = [
     {
       name: "Fusilli e Manzo",
-      image: "/images/meals/fusilli-manzo-zucchine-melanzane.jpg",
+      image: "https://images.unsplash.com/photo-1621996346565-e3dbc613d5b3?w=400&q=80",
       price: "8.50",
       oldPrice: "10.00",
       badge: "BESTSELLER",
@@ -214,21 +254,21 @@ export default function LandingPage() {
     },
     {
       name: "Roastbeef",
-      image: "/images/meals/roastbeef-patate-fagiolini.jpg",
+      image: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400&q=80",
       price: "8.50",
       badge: "PREFERITO",
       badgeColor: "bg-blue-500"
     },
     {
       name: "Pollo Grigliato",
-      image: "/images/meals/pollo-patate-zucchine.jpg",
+      image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&q=80",
       price: "8.50",
       badge: "LEGGERO",
       badgeColor: "bg-green-500"
     },
     {
       name: "Salmone",
-      image: "/images/meals/patate-salmone-broccoli.jpg",
+      image: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400&q=80",
       price: "8.50",
       badge: "OMEGA 3",
       badgeColor: "bg-purple-500"
@@ -236,369 +276,597 @@ export default function LandingPage() {
   ];
 
   const steps = [
-    { icon: <ShoppingCart className="w-8 h-8" />, title: "Scegli", desc: "Dal menu online" },
-    { icon: <Timer className="w-8 h-8" />, title: "Ordina", desc: "Paghi online o al ritiro" },
-    { icon: <Clock className="w-8 h-8" />, title: "Aspetta", desc: "2 giorni lavorativi" },
-    { icon: <CheckCircle className="w-8 h-8" />, title: "Ritira", desc: "Via Albere 27/B" }
+    { 
+      icon: <ShoppingCart className="w-8 h-8" />, 
+      title: "Scegli", 
+      desc: "Dal menu online",
+      image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=300&q=80"
+    },
+    { 
+      icon: <Timer className="w-8 h-8" />, 
+      title: "Ordina", 
+      desc: "Paghi online o al ritiro",
+      image: "https://images.unsplash.com/photo-1556742393-d75f468bfcb0?w=300&q=80"
+    },
+    { 
+      icon: <Clock className="w-8 h-8" />, 
+      title: "Aspetta", 
+      desc: "2 giorni lavorativi",
+      image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&q=80"
+    },
+    { 
+      icon: <CheckCircle className="w-8 h-8" />, 
+      title: "Ritira", 
+      desc: "Via Albere 27/B",
+      image: "https://images.unsplash.com/photo-1556742111-a301076d9d18?w=300&q=80"
+    }
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white overflow-x-hidden">
       {/* Floating WhatsApp Button */}
       <a 
         href="https://wa.me/393478881515?text=Ciao%20Pasto%20Sano,%20vorrei%20ordinare"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-2xl hover:bg-green-600 transform hover:scale-110 transition-all duration-300 z-50 animate-pulse"
+        className="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-2xl hover:bg-green-600 transform hover:scale-110 transition-all duration-300 z-50 animate-bounce"
       >
         <MessageCircle className="w-6 h-6" />
       </a>
 
-      {/* Header - Mobile Optimized */}
-      <header className={`fixed top-0 w-full bg-white/95 backdrop-blur-md z-40 transition-all duration-300 ${
-        isScrolled ? 'shadow-xl py-2' : 'py-3'
+      {/* Header - Glassmorphism */}
+      <header className={`fixed top-0 w-full z-40 transition-all duration-300 ${
+        isScrolled 
+          ? 'bg-white/90 backdrop-blur-xl shadow-xl py-2' 
+          : 'bg-transparent py-4'
       }`}>
         <nav className="container mx-auto px-4 lg:px-8">
           <div className="flex justify-between items-center">
             {/* Logo */}
-            <div className="flex items-center gap-2 sm:gap-3">
-              <Image 
-                src="/images/logo.png" 
-                alt="Pasto Sano" 
-                width={40} 
-                height={40}
-                className="object-contain sm:w-[50px] sm:h-[50px]"
-              />
-              <span className="text-xl sm:text-2xl font-bold text-amber-900">Pasto Sano</span>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl flex items-center justify-center text-white font-bold text-xl">
+                PS
+              </div>
+              <span className="text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+                Pasto Sano
+              </span>
             </div>
 
             {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center gap-6 xl:gap-8">
-              <button onClick={() => scrollToSection('home')} className="text-gray-700 hover:text-amber-600 transition-colors text-sm xl:text-base">
+            <div className="hidden lg:flex items-center gap-8">
+              <button onClick={() => scrollToSection('home')} className="text-gray-700 hover:text-amber-600 transition-all duration-300 hover:scale-105">
                 Home
               </button>
-              <button onClick={() => scrollToSection('vantaggi')} className="text-gray-700 hover:text-amber-600 transition-colors text-sm xl:text-base">
+              <button onClick={() => scrollToSection('vantaggi')} className="text-gray-700 hover:text-amber-600 transition-all duration-300 hover:scale-105">
                 Vantaggi
               </button>
-              <button onClick={() => scrollToSection('menu')} className="text-gray-700 hover:text-amber-600 transition-colors text-sm xl:text-base">
+              <button onClick={() => scrollToSection('menu')} className="text-gray-700 hover:text-amber-600 transition-all duration-300 hover:scale-105">
                 Menu
               </button>
-              <button onClick={() => scrollToSection('chi-sono')} className="text-gray-700 hover:text-amber-600 transition-colors text-sm xl:text-base">
+              <button onClick={() => scrollToSection('chi-sono')} className="text-gray-700 hover:text-amber-600 transition-all duration-300 hover:scale-105">
                 Chi Sono
               </button>
-              <button onClick={() => scrollToSection('contatti')} className="text-gray-700 hover:text-amber-600 transition-colors text-sm xl:text-base">
+              <button onClick={() => scrollToSection('contatti')} className="text-gray-700 hover:text-amber-600 transition-all duration-300 hover:scale-105">
                 Contatti
               </button>
-              <Link 
-                href="/"
-                className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-5 py-2 rounded-full font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300 text-sm xl:text-base animate-pulse"
-              >
+              <button className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-6 py-3 rounded-full font-semibold hover:shadow-xl transform hover:scale-105 transition-all duration-300 animate-pulse">
                 Ordina Ora
-              </Link>
+              </button>
             </div>
 
             {/* Mobile Menu Button */}
             <button 
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="lg:hidden p-2"
+              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
             >
               {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
 
-          {/* Mobile Navigation */}
+          {/* Mobile Navigation - Glassmorphism */}
           {isMenuOpen && (
-            <div className="lg:hidden fixed inset-0 top-[56px] bg-white z-50">
+            <div className="lg:hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-xl border-t shadow-xl">
               <div className="flex flex-col p-6 space-y-4">
-                <button onClick={() => scrollToSection('home')} className="text-left py-3 text-gray-700 text-lg border-b">Home</button>
-                <button onClick={() => scrollToSection('vantaggi')} className="text-left py-3 text-gray-700 text-lg border-b">Vantaggi</button>
-                <button onClick={() => scrollToSection('menu')} className="text-left py-3 text-gray-700 text-lg border-b">Menu</button>
-                <button onClick={() => scrollToSection('chi-sono')} className="text-left py-3 text-gray-700 text-lg border-b">Chi Sono</button>
-                <button onClick={() => scrollToSection('contatti')} className="text-left py-3 text-gray-700 text-lg border-b">Contatti</button>
-                <Link 
-                  href="/"
-                  className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-6 py-4 rounded-full font-semibold text-center text-lg mt-4"
-                >
+                <button onClick={() => scrollToSection('home')} className="text-left py-3 text-gray-700 text-lg border-b hover:text-amber-600 transition-colors">Home</button>
+                <button onClick={() => scrollToSection('vantaggi')} className="text-left py-3 text-gray-700 text-lg border-b hover:text-amber-600 transition-colors">Vantaggi</button>
+                <button onClick={() => scrollToSection('menu')} className="text-left py-3 text-gray-700 text-lg border-b hover:text-amber-600 transition-colors">Menu</button>
+                <button onClick={() => scrollToSection('chi-sono')} className="text-left py-3 text-gray-700 text-lg border-b hover:text-amber-600 transition-colors">Chi Sono</button>
+                <button onClick={() => scrollToSection('contatti')} className="text-left py-3 text-gray-700 text-lg border-b hover:text-amber-600 transition-colors">Contatti</button>
+                <button className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-6 py-4 rounded-full font-semibold text-center text-lg mt-4">
                   Ordina Ora
-                </Link>
+                </button>
               </div>
             </div>
           )}
         </nav>
       </header>
 
-      {/* Hero Section - SUPER COMPACT con URGENZA */}
-      <section id="home" className="pt-16 h-[300px] sm:h-[350px] bg-gradient-to-br from-amber-900 via-amber-800 to-orange-900 relative overflow-hidden">
-        {/* Animated Background Pattern */}
-        <div className="absolute inset-0">
-          <div className="absolute top-10 left-10 w-20 h-20 bg-yellow-400/20 rounded-full animate-pulse"></div>
-          <div className="absolute bottom-10 right-10 w-32 h-32 bg-orange-400/20 rounded-full animate-pulse delay-1000"></div>
-          <div className="absolute top-20 right-20 w-16 h-16 bg-yellow-300/20 rounded-full animate-pulse delay-500"></div>
+      {/* Hero Section - PARALLAX con Video Background */}
+      <section id="home" ref={heroRef} className="relative h-screen flex items-center justify-center overflow-hidden">
+        {/* Video Background con Parallax */}
+        <div 
+          className="absolute inset-0 scale-110"
+          style={{
+            transform: `translateY(${scrollY * 0.5}px)`,
+          }}
+        >
+          <div className="w-full h-full bg-gradient-to-br from-amber-900/90 via-orange-800/90 to-red-900/90 relative">
+            <img 
+              src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1920&q=80"
+              alt="Healthy Food Background"
+              className="w-full h-full object-cover opacity-40"
+            />
+          </div>
+        </div>
+
+        {/* Floating Elements */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-20 left-20 w-32 h-32 bg-yellow-400/20 rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
+          <div className="absolute bottom-20 right-20 w-24 h-24 bg-orange-400/20 rounded-full animate-bounce" style={{animationDelay: '1s'}}></div>
+          <div className="absolute top-40 right-40 w-16 h-16 bg-yellow-300/20 rounded-full animate-bounce" style={{animationDelay: '2s'}}></div>
+          <div className="absolute bottom-40 left-40 w-20 h-20 bg-red-400/20 rounded-full animate-bounce" style={{animationDelay: '1.5s'}}></div>
         </div>
         
-        <div className="container mx-auto px-4 lg:px-8 h-full flex items-center relative z-10">
-          <div className="text-white space-y-4 text-center lg:text-left max-w-2xl mx-auto lg:mx-0">
-            {/* Countdown Badge */}
-            <div className="inline-flex items-center gap-2 bg-red-500/90 text-white px-4 py-2 rounded-full text-sm font-bold animate-bounce">
-              <AlertCircle className="w-4 h-4" />
-              Ordina entro le 18:00 per ritiro dopodomani! ⏰ {timeLeft}
+        <div className="container mx-auto px-4 lg:px-8 relative z-10">
+          <div className="text-center text-white space-y-8 max-w-4xl mx-auto">
+            {/* Countdown Badge con Glassmorphism */}
+            <div className="inline-flex items-center gap-3 bg-red-500/90 backdrop-blur-sm text-white px-6 py-3 rounded-full text-sm font-bold animate-pulse border border-red-400/30">
+              <AlertCircle className="w-5 h-5" />
+              <span>Ordina entro le 18:00 per ritiro dopodomani!</span>
+              <div className="bg-white/20 px-3 py-1 rounded-full">
+                ⏰ {timeLeft}
+              </div>
             </div>
             
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight animate-fade-in">
-              Mangia Sano,
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-400">
-                {" "}Vivi Meglio
+            <h1 className="text-5xl lg:text-7xl font-bold leading-tight">
+              <span className="block animate-fade-in-up">Mangia Sano,</span>
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 animate-fade-in-up" style={{animationDelay: '0.3s'}}>
+                Vivi Meglio
               </span>
             </h1>
             
-            <p className="text-base sm:text-lg text-white/90">
-              Pasti pronti in 2 minuti. Torni a casa e mangi subito!
+            <p className="text-xl lg:text-2xl text-white/90 animate-fade-in-up" style={{animationDelay: '0.6s'}}>
+              Pasti pronti in <span className="font-bold text-yellow-400">2 minuti</span>. Torni a casa e mangi subito!
             </p>
             
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
-              <Link 
-                href="/"
-                className="bg-gradient-to-r from-yellow-400 to-orange-400 text-gray-900 px-6 py-3 rounded-full font-bold hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
-              >
-                <ShoppingCart className="w-5 h-5" />
+            {/* CTA Buttons con Glassmorphism */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up" style={{animationDelay: '0.9s'}}>
+              <button className="group bg-gradient-to-r from-yellow-400 to-orange-400 text-gray-900 px-8 py-4 rounded-full font-bold text-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center gap-3">
+                <ShoppingCart className="w-6 h-6 group-hover:animate-bounce" />
                 Ordina Subito
-                <Sparkles className="w-4 h-4" />
-              </Link>
+                <Sparkles className="w-5 h-5 group-hover:animate-spin" />
+              </button>
               <button 
                 onClick={() => scrollToSection('vantaggi')}
-                className="bg-white/20 backdrop-blur-sm border-2 border-white text-white px-6 py-3 rounded-full font-bold hover:bg-white hover:text-amber-900 transition-all duration-300"
+                className="bg-white/20 backdrop-blur-sm border-2 border-white/30 text-white px-8 py-4 rounded-full font-bold hover:bg-white hover:text-amber-900 transition-all duration-300 flex items-center gap-2"
               >
                 Scopri i Vantaggi
+                <Play className="w-5 h-5" />
               </button>
             </div>
             
-            {/* Spots Available */}
-            <div className="text-sm text-yellow-300 font-semibold">
-              ⚠️ Solo {availableSpots} posti disponibili per domani!
+            {/* Spots Available con effetto urgenza */}
+            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-yellow-300 px-4 py-2 rounded-full text-sm font-semibold animate-pulse">
+              <AlertCircle className="w-4 h-4" />
+              Solo {availableSpots} posti disponibili per domani!
+            </div>
+          </div>
+        </div>
+
+        {/* Scroll Indicator */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+          <ArrowDown className="w-8 h-8 text-white" />
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="py-20 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="text-center mb-16 observe-animation">
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+              Domande <span className="text-amber-600">Frequenti</span>
+            </h2>
+            <p className="text-xl text-gray-600">Tutto quello che devi sapere su Pasto Sano</p>
+          </div>
+
+          <div className="max-w-4xl mx-auto">
+            <div className="grid gap-6">
+              {/* FAQ 1 */}
+              <div className="observe-animation bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                    Q
+                  </div>
+                  Posso congelare il prodotto?
+                </h3>
+                <p className="text-gray-700 leading-relaxed pl-11">
+                  <strong className="text-green-600">Sì!</strong> Gli ingredienti sono tutti freschi, quindi puoi congelare le vaschette senza problemi per conservarle più a lungo.
+                </p>
+              </div>
+
+              {/* FAQ 2 */}
+              <div className="observe-animation bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                    Q
+                  </div>
+                  È prevista la consegna a domicilio?
+                </h3>
+                <p className="text-gray-700 leading-relaxed pl-11">
+                  Al momento è previsto solo il ritiro, ma <strong className="text-amber-600">presto stiamo implementando il servizio con consegna a domicilio!</strong> Resta aggiornato per le novità.
+                </p>
+              </div>
+
+              {/* FAQ 3 */}
+              <div className="observe-animation bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                    Q
+                  </div>
+                  Quanto li posso conservare in frigorifero?
+                </h3>
+                <p className="text-gray-700 leading-relaxed pl-11">
+                  Consigliamo il consumo <strong className="text-amber-600">entro 3 giorni</strong> dal ritiro. In alternativa, puoi sempre congelare per una conservazione più lunga.
+                </p>
+              </div>
+
+              {/* FAQ 4 */}
+              <div className="observe-animation bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                    Q
+                  </div>
+                  La vaschetta posso metterla direttamente in microonde?
+                </h3>
+                <p className="text-gray-700 leading-relaxed pl-11">
+                  <strong className="text-red-600">No</strong>, la vaschetta non va nel microonde. Può essere messa in <strong className="text-green-600">forno o friggitrice ad aria</strong>.
+                </p>
+              </div>
+
+              {/* FAQ 5 */}
+              <div className="observe-animation bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                    Q
+                  </div>
+                  Come scaldo il prodotto?
+                </h3>
+                <p className="text-gray-700 leading-relaxed pl-11">
+                  Metti il prodotto in un piatto e scaldi per <strong className="text-amber-600">2 minuti e mezzo</strong> nel microonde. 
+                  Oppure puoi scaldarlo in padella o direttamente in forno/friggitrice ad aria.
+                </p>
+              </div>
+
+              {/* FAQ 6 */}
+              <div className="observe-animation bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                    Q
+                  </div>
+                  Prevedete l'inserimento di altri prodotti?
+                </h3>
+                <p className="text-gray-700 leading-relaxed pl-11">
+                  <strong className="text-green-600">Certamente!</strong> Abbiamo già una lista di nuovi piatti da inserire. 
+                  Il menu si arricchirà sempre di più con nuove deliziose opzioni!
+                </p>
+              </div>
+
+              {/* FAQ 7 */}
+              <div className="observe-animation bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                    Q
+                  </div>
+                  Posso restituire il prodotto dopo averlo ordinato?
+                </h3>
+                <p className="text-gray-700 leading-relaxed pl-11">
+                  Non è previsto il reso del prodotto. Tuttavia, se hai domande o dubbi, <strong className="text-amber-600">contattaci prima dell'ordine</strong> - saremo felici di aiutarti!
+                </p>
+              </div>
+            </div>
+
+            {/* CTA in FAQ */}
+            <div className="text-center mt-16 observe-animation">
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-8 border border-amber-200">
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                  Hai altre domande?
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  Non esitare a contattarci! Siamo qui per aiutarti
+                </p>
+                <a 
+                  href="https://wa.me/393478881515?text=Ciao%20ho%20una%20domanda%20su%20Pasto%20Sano"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-3 bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-4 rounded-full font-bold hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                >
+                  <MessageCircle className="w-6 h-6" />
+                  Contattaci su WhatsApp
+                </a>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Problems & Solutions Section */}
-      <section id="vantaggi" className="py-12 lg:py-16 bg-gradient-to-b from-gray-50 to-white">
-        <div className="container mx-auto px-4 lg:px-8">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3">
-              Basta con questi problemi!
+      {/* Problems & Solutions Section con Parallax */}
+      <section ref={problemsRef} className="py-20 bg-white relative overflow-hidden">
+        {/* Background Pattern con Parallax */}
+        <div 
+          className="absolute inset-0 opacity-5"
+          style={{
+            transform: `translateY(${scrollY * 0.2}px)`,
+          }}
+        >
+          <div className="w-full h-full bg-gradient-to-r from-red-100 via-orange-100 to-yellow-100"></div>
+        </div>
+
+        <div className="container mx-auto px-4 lg:px-8 relative z-10">
+          <div className="text-center mb-16 observe-animation">
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+              Basta con questi <span className="text-red-500">problemi</span>!
             </h2>
-            <p className="text-gray-600">Hai mai vissuto queste situazioni?</p>
+            <p className="text-xl text-gray-600">Hai mai vissuto queste situazioni?</p>
           </div>
           
-          {/* Problems */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+          {/* Problems con effetti hover avanzati */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
             {problems.map((problem, index) => (
               <div 
                 key={index}
-                className="bg-red-50 border border-red-200 rounded-lg p-4 transform hover:scale-105 transition-all duration-300"
-                style={{ animationDelay: `${index * 100}ms` }}
+                className="group observe-animation relative overflow-hidden rounded-2xl transform hover:scale-105 transition-all duration-500"
+                style={{ animationDelay: `${index * 200}ms` }}
               >
-                <div className="flex items-start gap-3">
-                  {problem.icon}
-                  <p className="text-sm text-gray-700">{problem.text}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-          
-          {/* Arrow Down */}
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-amber-500 text-white rounded-full animate-bounce">
-              <ArrowRight className="w-6 h-6 rotate-90" />
-            </div>
-          </div>
-          
-          {/* Solutions */}
-          <div className="text-center mb-10">
-            <h3 className="text-2xl sm:text-3xl font-bold text-green-600 mb-3">
-              Ecco la Soluzione! 
-            </h3>
-            <p className="text-gray-600">Con Pasto Sano tutto cambia</p>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {solutions.map((solution, index) => (
-              <div 
-                key={index}
-                className="bg-green-50 border border-green-200 rounded-lg p-6 transform hover:scale-105 transition-all duration-300 hover:shadow-xl"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <div className="flex flex-col items-center text-center gap-3">
-                  {solution.icon}
-                  <h4 className="font-bold text-gray-900">{solution.title}</h4>
-                  <p className="text-sm text-gray-600">{solution.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Benefits with Real Images */}
-      <section className="py-12 lg:py-16 bg-white">
-        <div className="container mx-auto px-4 lg:px-8">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3">
-              Perché Scegliere Pasto Sano?
-            </h2>
-            <p className="text-gray-600">Guarda con i tuoi occhi la qualità dei nostri piatti</p>
-          </div>
-          
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {features.map((feature, index) => (
-              <div 
-                key={index}
-                className="group relative bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300"
-              >
-                {/* Badge */}
-                <div className="absolute top-2 right-2 bg-amber-500 text-white text-xs px-2 py-1 rounded-full font-bold z-10">
-                  {feature.badge}
-                </div>
-                
-                {/* Image */}
-                <div className="h-32 sm:h-40 overflow-hidden">
-                  <Image 
-                    src={feature.image}
-                    alt={feature.title}
-                    width={300}
-                    height={200}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80';
-                    }}
+                <div className="relative h-64">
+                  <img 
+                    src={problem.image}
+                    alt={problem.text}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   />
-                </div>
-                
-                {/* Content */}
-                <div className="p-4">
-                  <h3 className="font-bold text-gray-900 mb-1">{feature.title}</h3>
-                  <p className="text-xs sm:text-sm text-gray-600">{feature.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Menu Highlights with Effects */}
-      <section id="menu" className="py-12 lg:py-16 bg-gradient-to-b from-amber-50 to-orange-50">
-        <div className="container mx-auto px-4 lg:px-8">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3">
-              I Nostri Bestseller
-            </h2>
-            <p className="text-gray-600">I piatti più amati dai nostri clienti</p>
-          </div>
-          
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-            {menuHighlights.map((item, index) => (
-              <div 
-                key={index}
-                className="group relative bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
-              >
-                {/* Badge */}
-                <div className={`absolute top-2 left-2 ${item.badgeColor} text-white text-xs px-3 py-1 rounded-full font-bold z-10 animate-pulse`}>
-                  {item.badge}
-                </div>
-                
-                {/* Image */}
-                <div className="h-32 sm:h-40 overflow-hidden">
-                  <Image 
-                    src={item.image}
-                    alt={item.name}
-                    width={300}
-                    height={200}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80';
-                    }}
-                  />
-                </div>
-                
-                {/* Content */}
-                <div className="p-4">
-                  <h3 className="font-bold text-gray-900 mb-2">{item.name}</h3>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl font-bold text-amber-600">€{item.price}</span>
-                    {item.oldPrice && (
-                      <span className="text-sm text-gray-400 line-through">€{item.oldPrice}</span>
-                    )}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${problem.gradient} opacity-80 group-hover:opacity-90 transition-opacity duration-300`}></div>
+                  
+                  {/* Content Overlay */}
+                  <div className="absolute inset-0 flex items-end p-6">
+                    <div className="text-white">
+                      <XCircle className="w-8 h-8 mb-3 text-red-200" />
+                      <p className="font-semibold text-lg">{problem.text}</p>
+                    </div>
                   </div>
                 </div>
               </div>
             ))}
           </div>
           
-          {/* CTA */}
-          <div className="text-center">
-            <Link 
-              href="/"
-              className="inline-flex items-center gap-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-8 py-4 rounded-full font-bold text-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
-            >
-              <ShoppingCart className="w-6 h-6" />
-              Scopri Tutto il Menu
-              <ExternalLink className="w-5 h-5" />
-            </Link>
-            <p className="text-amber-600 font-semibold mt-4 animate-pulse">
-              🔥 Offerta: Ordina 5 pasti e il 6° è GRATIS!
-            </p>
+          {/* Animated Arrow */}
+          <div className="text-center mb-16 observe-animation">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full animate-bounce shadow-xl">
+              <ArrowDown className="w-8 h-8" />
+            </div>
+          </div>
+          
+          {/* Solutions */}
+          <div className="text-center mb-12 observe-animation">
+            <h3 className="text-4xl lg:text-5xl font-bold mb-4">
+              <span className="text-green-600">Ecco la Soluzione!</span> ✨
+            </h3>
+            <p className="text-xl text-gray-600">Con Pasto Sano tutto cambia</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {solutions.map((solution, index) => (
+              <div 
+                key={index}
+                className="group observe-animation relative overflow-hidden rounded-2xl bg-white shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-500"
+                style={{ animationDelay: `${index * 200}ms` }}
+              >
+                <div className="relative h-48">
+                  <img 
+                    src={solution.image}
+                    alt={solution.title}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  />
+                  <div className={`absolute inset-0 bg-gradient-to-br ${solution.gradient} opacity-80 group-hover:opacity-70 transition-opacity duration-300`}></div>
+                </div>
+                
+                <div className="p-6">
+                  <CheckCircle className="w-8 h-8 text-green-500 mb-3" />
+                  <h4 className="font-bold text-xl text-gray-900 mb-2">{solution.title}</h4>
+                  <p className="text-gray-600">{solution.description}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Testimonials Carousel */}
-      <section className="py-12 lg:py-16 bg-white">
+      {/* Features con Parallax Images */}
+      <section ref={featuresRef} className="py-20 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
         <div className="container mx-auto px-4 lg:px-8">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3">
-              Cosa Dicono i Nostri Clienti
+          <div className="text-center mb-16 observe-animation">
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+              Perché Scegliere <span className="text-amber-600">Pasto Sano</span>?
             </h2>
-            <div className="flex justify-center items-center gap-2 text-amber-500">
-              <Users className="w-5 h-5" />
-              <span className="font-semibold">Oltre 500 clienti soddisfatti</span>
+            <p className="text-xl text-gray-600">Guarda con i tuoi occhi la qualità dei nostri piatti</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {features.map((feature, index) => (
+              <div 
+                key={index}
+                className="group observe-animation relative bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transform hover:-translate-y-4 transition-all duration-700"
+                style={{ 
+                  animationDelay: `${index * 150}ms`,
+                  transform: `translateY(${scrollY * 0.05 * (index % 2 === 0 ? 1 : -1)}px)`,
+                }}
+              >
+                {/* Badge con Glassmorphism */}
+                <div className="absolute top-4 right-4 bg-amber-500/90 backdrop-blur-sm text-white text-xs px-3 py-2 rounded-full font-bold z-10 border border-amber-400/30">
+                  {feature.badge}
+                </div>
+                
+                {/* Image con Parallax */}
+                <div className="relative h-64 overflow-hidden">
+                  <img 
+                    src={feature.image}
+                    alt={feature.title}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent group-hover:from-black/30 transition-all duration-300"></div>
+                </div>
+                
+                {/* Content con Icon animata */}
+                <div className="p-8">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
+                      {feature.icon}
+                    </div>
+                    <h3 className="font-bold text-xl text-gray-900">{feature.title}</h3>
+                  </div>
+                  <p className="text-gray-600">{feature.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Menu Highlights con effetti avanzati */}
+      <section id="menu" className="py-20 bg-gradient-to-b from-amber-50 to-orange-50 relative overflow-hidden">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="text-center mb-16 observe-animation">
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+              I Nostri <span className="text-amber-600">Bestseller</span> 🔥
+            </h2>
+            <p className="text-xl text-gray-600">I piatti più amati dai nostri clienti</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+            {menuHighlights.map((item, index) => (
+              <div 
+                key={index}
+                className="group observe-animation relative bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-500"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                {/* Badge con animazione */}
+                <div className={`absolute top-4 left-4 ${item.badgeColor} text-white text-xs px-4 py-2 rounded-full font-bold z-10 animate-pulse shadow-lg`}>
+                  {item.badge}
+                </div>
+                
+                {/* Image con hover effect */}
+                <div className="relative h-56 overflow-hidden">
+                  <img 
+                    src={item.image}
+                    alt={item.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent group-hover:from-black/40 transition-all duration-300"></div>
+                  
+                  {/* Overlay con prezzo */}
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4">
+                      <h3 className="font-bold text-lg text-gray-900 mb-2">{item.name}</h3>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl font-bold text-amber-600">€{item.price}</span>
+                          {item.oldPrice && (
+                            <span className="text-sm text-gray-400 line-through">€{item.oldPrice}</span>
+                          )}
+                        </div>
+                        <button className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-full font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-300">
+                          Ordina
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {/* CTA con effetti speciali */}
+          <div className="text-center observe-animation">
+            <button className="group inline-flex items-center gap-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-12 py-6 rounded-full font-bold text-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 mb-6">
+              <ShoppingCart className="w-8 h-8 group-hover:animate-bounce" />
+              Scopri Tutto il Menu
+              <ExternalLink className="w-6 h-6 group-hover:rotate-45 transition-transform duration-300" />
+            </button>
+            <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-8 py-3 rounded-full font-semibold inline-block animate-pulse shadow-xl">
+              🔥 Offerta: Ordina 5 pasti e il 6° è GRATIS!
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials con effetti premium */}
+      <section className="py-20 bg-white relative overflow-hidden">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="text-center mb-16 observe-animation">
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+              Cosa Dicono i Nostri <span className="text-amber-600">Clienti</span>
+            </h2>
+            <div className="flex justify-center items-center gap-3 text-amber-500">
+              <Users className="w-6 h-6" />
+              <span className="font-bold text-lg">Oltre 500 clienti soddisfatti</span>
+              <div className="flex gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-5 h-5 text-amber-500 fill-current" />
+                ))}
+              </div>
             </div>
           </div>
           
-          <div className="max-w-2xl mx-auto">
-            <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-8 shadow-xl relative">
+          <div className="max-w-4xl mx-auto observe-animation">
+            <div className="bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 rounded-3xl p-12 shadow-2xl relative overflow-hidden">
+              {/* Background Pattern */}
+              <div className="absolute inset-0 opacity-10">
+                <div className="absolute top-0 left-0 w-32 h-32 bg-amber-400 rounded-full -translate-x-16 -translate-y-16"></div>
+                <div className="absolute bottom-0 right-0 w-40 h-40 bg-orange-400 rounded-full translate-x-20 translate-y-20"></div>
+              </div>
+              
               {/* Quote Icon */}
-              <div className="absolute -top-4 left-8 bg-amber-500 text-white w-8 h-8 rounded-full flex items-center justify-center">
-                <span className="text-2xl">"</span>
+              <div className="absolute -top-6 left-12 bg-gradient-to-r from-amber-500 to-orange-500 text-white w-12 h-12 rounded-full flex items-center justify-center text-2xl font-bold shadow-xl">
+                "
               </div>
               
               {/* Testimonial Content */}
-              <div className="text-center">
-                <div className="flex justify-center mb-4">
+              <div className="text-center relative z-10">
+                <div className="flex justify-center mb-6">
                   {[...Array(testimonials[currentTestimonial].rating)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 text-amber-500 fill-current" />
+                    <Star key={i} className="w-8 h-8 text-amber-500 fill-current" />
                   ))}
                 </div>
-                <p className="text-gray-700 text-lg mb-4 italic">
+                
+                <p className="text-gray-700 text-2xl mb-8 italic leading-relaxed">
                   "{testimonials[currentTestimonial].text}"
                 </p>
-                <div className="font-bold text-gray-900">
-                  {testimonials[currentTestimonial].name}
-                </div>
-                <div className="text-sm text-gray-600">
-                  {testimonials[currentTestimonial].role}
+                
+                <div className="flex items-center justify-center gap-4">
+                  <img 
+                    src={testimonials[currentTestimonial].image}
+                    alt={testimonials[currentTestimonial].name}
+                    className="w-16 h-16 rounded-full object-cover border-4 border-white shadow-lg"
+                  />
+                  <div>
+                    <div className="font-bold text-xl text-gray-900">
+                      {testimonials[currentTestimonial].name}
+                    </div>
+                    <div className="text-amber-600 font-semibold">
+                      {testimonials[currentTestimonial].role}
+                    </div>
+                  </div>
                 </div>
               </div>
               
-              {/* Dots */}
-              <div className="flex justify-center gap-2 mt-6">
+              {/* Dots con animazione */}
+              <div className="flex justify-center gap-3 mt-8">
                 {testimonials.map((_, index) => (
-                  <div 
+                  <button 
                     key={index}
-                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                      index === currentTestimonial ? 'bg-amber-500 w-8' : 'bg-gray-300'
+                    onClick={() => setCurrentTestimonial(index)}
+                    className={`w-4 h-4 rounded-full transition-all duration-300 ${
+                      index === currentTestimonial 
+                        ? 'bg-amber-500 w-12 shadow-lg' 
+                        : 'bg-gray-300 hover:bg-amber-300'
                     }`}
                   />
                 ))}
@@ -608,78 +876,78 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Chi Sono Section - EXPANDED */}
-      <section id="chi-sono" className="py-12 lg:py-16 bg-gradient-to-b from-gray-50 to-white">
+      {/* Chi Sono Section con parallax */}
+      <section id="chi-sono" className="py-20 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
         <div className="container mx-auto px-4 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            {/* Image */}
-            <div className="relative">
-              <div className="rounded-2xl overflow-hidden shadow-2xl">
-                <Image 
-                  src="/images/landing/andrea.jpg" 
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            {/* Image con effetti */}
+            <div className="relative observe-animation">
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl transform hover:scale-105 transition-all duration-700">
+                <img 
+                  src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80"
                   alt="Andrea Padoan"
-                  width={600}
-                  height={600}
                   className="w-full h-auto"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80';
-                  }}
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-amber-900/30 to-transparent"></div>
               </div>
-              <div className="absolute -bottom-6 -right-6 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl p-6 shadow-xl">
-                <div className="text-2xl font-bold">12+ anni</div>
-                <div>di esperienza</div>
+              
+              {/* Floating Stats */}
+              <div className="absolute -bottom-8 -right-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-2xl p-8 shadow-2xl transform hover:scale-105 transition-all duration-300">
+                <div className="text-3xl font-bold">12+ anni</div>
+                <div className="text-sm opacity-90">di esperienza</div>
               </div>
             </div>
 
-            {/* Text - EXPANDED */}
-            <div className="space-y-4">
-              <div className="text-amber-600 font-semibold">FONDATORE & PERSONAL TRAINER</div>
-              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
-                Ciao, sono Andrea Padoan
+            {/* Text Content */}
+            <div className="space-y-6 observe-animation">
+              <div className="text-amber-600 font-bold text-lg">FONDATORE & PERSONAL TRAINER</div>
+              <h2 className="text-4xl lg:text-5xl font-bold text-gray-900">
+                Ciao, sono <span className="text-amber-600">Andrea Padoan</span>
               </h2>
               
-              <p className="text-gray-700 leading-relaxed">
-                <strong>La mia storia inizia come la tua.</strong> Dopo 12 anni passati dietro una scrivania, 
+              <p className="text-gray-700 text-lg leading-relaxed">
+                <strong className="text-amber-600">La mia storia inizia come la tua.</strong> Dopo 12 anni passati dietro una scrivania, 
                 mi ritrovavo ogni sera a mangiare male: gastronomia, bar, mense aziendali. 
                 A 30 anni ero completamente fuori forma, con problemi digestivi e zero energia.
               </p>
               
-              <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-amber-500 p-4 rounded-r-xl">
-                <p className="text-gray-700">
-                  <strong>La svolta:</strong> Ho deciso di cambiare vita, sono diventato Personal Trainer 
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-amber-500 p-6 rounded-r-2xl shadow-lg">
+                <p className="text-gray-700 text-lg">
+                  <strong className="text-amber-600">La svolta:</strong> Ho deciso di cambiare vita, sono diventato Personal Trainer 
                   e ho capito che il 70% dei risultati dipende dall'alimentazione. Ma c'era un problema: 
                   chi ha tempo di cucinare sano ogni giorno?
                 </p>
               </div>
               
-              <p className="text-gray-700 leading-relaxed">
-                <strong>Nasce Pasto Sano:</strong> Ho passato 4 anni a testare laboratori e fornitori, 
+              <p className="text-gray-700 text-lg leading-relaxed">
+                <strong className="text-amber-600">Nasce Pasto Sano:</strong> Ho passato 4 anni a testare laboratori e fornitori, 
                 cercando chi potesse preparare pasti come li avrei cucinati io: naturali, bilanciati, gustosi. 
                 Ho coinvolto decine di amici nei test, finché non ho trovato la formula perfetta.
               </p>
               
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <p className="text-gray-700">
-                  <ChefHat className="w-5 h-5 text-green-600 inline mr-2" />
-                  <strong>La missione:</strong> Oggi aiuto centinaia di persone a mangiare sano senza stress. 
-                  Perché so cosa significa tornare a casa stanchi e non avere voglia di cucinare. 
-                  Con Pasto Sano, il problema è risolto: 2 minuti e mangi!
-                </p>
+              <div className="bg-green-50 border-l-4 border-green-500 p-6 rounded-r-2xl shadow-lg">
+                <div className="flex items-start gap-3">
+                  <ChefHat className="w-8 h-8 text-green-600 mt-1" />
+                  <p className="text-gray-700 text-lg">
+                    <strong className="text-green-600">La missione:</strong> Oggi aiuto centinaia di persone a mangiare sano senza stress. 
+                    Perché so cosa significa tornare a casa stanchi e non avere voglia di cucinare. 
+                    Con Pasto Sano, il problema è risolto: 2 minuti e mangi!
+                  </p>
+                </div>
               </div>
               
-              <div className="flex items-center gap-6 pt-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-amber-600">500+</div>
+              {/* Stats con animazioni */}
+              <div className="grid grid-cols-3 gap-6 pt-8">
+                <div className="text-center bg-white rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300">
+                  <div className="text-3xl font-bold text-amber-600">500+</div>
                   <div className="text-sm text-gray-600">Clienti Felici</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-amber-600">15.000+</div>
+                <div className="text-center bg-white rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300">
+                  <div className="text-3xl font-bold text-amber-600">15k+</div>
                   <div className="text-sm text-gray-600">Pasti Consegnati</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-amber-600">4.9⭐</div>
+                <div className="text-center bg-white rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300">
+                  <div className="text-3xl font-bold text-amber-600">4.9⭐</div>
                   <div className="text-sm text-gray-600">Valutazione</div>
                 </div>
               </div>
@@ -688,136 +956,205 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Come Funziona - Quick Steps */}
-      <section className="py-12 lg:py-16 bg-white">
+      {/* Come Funziona con effetti speciali */}
+      <section className="py-20 bg-white relative overflow-hidden">
         <div className="container mx-auto px-4 lg:px-8">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center text-gray-900 mb-10">
-            Facilissimo! 4 Step
+          <h2 className="text-4xl lg:text-5xl font-bold text-center text-gray-900 mb-4 observe-animation">
+            Facilissimo! <span className="text-amber-600">4 Step</span>
           </h2>
+          <p className="text-xl text-gray-600 text-center mb-16 observe-animation">
+            Dal click al piatto in pochi minuti
+          </p>
           
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {steps.map((step, i) => (
-              <div key={i} className="text-center group">
-                <div className="w-16 h-16 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                  {step.icon}
+              <div key={i} className="group text-center observe-animation" style={{ animationDelay: `${i * 200}ms` }}>
+                {/* Step Image */}
+                <div className="relative mb-6">
+                  <div className="w-32 h-32 mx-auto rounded-2xl overflow-hidden shadow-xl group-hover:shadow-2xl transition-all duration-500">
+                    <img 
+                      src={step.image}
+                      alt={step.title}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-amber-900/50 to-transparent"></div>
+                  </div>
+                  
+                  {/* Step Number */}
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
+                    {i + 1}
+                  </div>
+                  
+                  {/* Icon Overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-amber-600 group-hover:scale-110 transition-all duration-300">
+                      {step.icon}
+                    </div>
+                  </div>
                 </div>
-                <h3 className="font-bold text-gray-900 mb-1">{step.title}</h3>
-                <p className="text-xs text-gray-600">{step.desc}</p>
+                
+                <h3 className="font-bold text-xl text-gray-900 mb-2">{step.title}</h3>
+                <p className="text-gray-600">{step.desc}</p>
+                
+                {/* Progress Line */}
+                {i < steps.length - 1 && (
+                  <div className="hidden lg:block absolute top-16 left-full w-full h-1 bg-gradient-to-r from-amber-500 to-orange-500 transform -translate-x-1/2"></div>
+                )}
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Final CTA - URGENCY */}
-      <section className="py-12 lg:py-16 bg-gradient-to-r from-amber-900 via-amber-800 to-orange-900">
-        <div className="container mx-auto px-4 lg:px-8 text-center">
-          <Zap className="w-12 h-12 text-yellow-400 mx-auto mb-4 animate-pulse" />
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">
-            Non Aspettare!
-          </h2>
-          <p className="text-white/90 text-lg mb-6">
-            Ogni giorno che passa è un giorno perso per la tua salute
-          </p>
-          
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 max-w-md mx-auto mb-8">
-            <p className="text-yellow-300 font-bold text-lg mb-2">
-              🎁 OFFERTA LIMITATA
-            </p>
-            <p className="text-white">
-              Ordina ora e ricevi il 10% di sconto sul primo ordine!
-            </p>
-            <p className="text-sm text-white/80 mt-2">
-              Codice: SALUTE10
+      {/* Final CTA con effetti premium */}
+      <section className="py-20 bg-gradient-to-br from-amber-900 via-orange-800 to-red-900 relative overflow-hidden">
+        {/* Animated Background */}
+        <div className="absolute inset-0">
+          <div className="absolute top-20 left-20 w-64 h-64 bg-yellow-400/10 rounded-full animate-pulse"></div>
+          <div className="absolute bottom-20 right-20 w-48 h-48 bg-orange-400/10 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
+          <div className="absolute top-40 right-40 w-32 h-32 bg-red-400/10 rounded-full animate-pulse" style={{animationDelay: '2s'}}></div>
+        </div>
+        
+        <div className="container mx-auto px-4 lg:px-8 text-center relative z-10">
+          <div className="observe-animation">
+            <Zap className="w-16 h-16 text-yellow-400 mx-auto mb-6 animate-pulse" />
+            <h2 className="text-4xl lg:text-6xl font-bold text-white mb-6">
+              Non <span className="text-yellow-400">Aspettare</span>!
+            </h2>
+            <p className="text-white/90 text-xl lg:text-2xl mb-12 max-w-3xl mx-auto">
+              Ogni giorno che passa è un giorno perso per la tua salute. 
+              <strong className="text-yellow-400"> Inizia oggi stesso!</strong>
             </p>
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link 
-              href="/"
-              className="bg-white text-amber-900 px-8 py-4 rounded-full font-bold text-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
-            >
-              <ShoppingCart className="w-6 h-6" />
+          {/* Offer Box con Glassmorphism */}
+          <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-8 max-w-2xl mx-auto mb-12 border border-white/20 shadow-2xl observe-animation">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <Sparkles className="w-8 h-8 text-yellow-400" />
+              <p className="text-yellow-300 font-bold text-2xl">
+                🎁 OFFERTA LIMITATA
+              </p>
+              <Sparkles className="w-8 h-8 text-yellow-400" />
+            </div>
+            <p className="text-white text-xl mb-4">
+              Ordina ora e ricevi il <span className="font-bold text-yellow-400 text-2xl">5% di sconto</span> sul primo ordine!
+            </p>
+            <div className="bg-yellow-400/20 backdrop-blur-sm rounded-full px-6 py-2 inline-block border border-yellow-400/30">
+              <p className="text-yellow-200 font-bold">
+                Codice: <span className="text-yellow-400">SCONTO5</span>
+              </p>
+            </div>
+          </div>
+          
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center observe-animation">
+            <button className="group bg-white text-amber-900 px-12 py-6 rounded-full font-bold text-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center gap-4">
+              <ShoppingCart className="w-8 h-8 group-hover:animate-bounce" />
               Ordina Ora con lo Sconto
-            </Link>
+              <Sparkles className="w-6 h-6 group-hover:animate-spin" />
+            </button>
             <a 
-              href="https://wa.me/393478881515?text=Ciao%20voglio%20ordinare%20con%20SALUTE10"
+              href="https://wa.me/393478881515?text=Ciao%20voglio%20ordinare%20con%20SCONTO5"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-green-500 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-green-600 hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
+              className="group bg-green-500 text-white px-12 py-6 rounded-full font-bold text-xl hover:bg-green-600 hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center gap-4"
             >
-              <MessageCircle className="w-6 h-6" />
-              Ordina via WhatsApp
+              <MessageCircle className="w-8 h-8 group-hover:animate-bounce" />
+              Chiedi Info
             </a>
           </div>
         </div>
       </section>
 
-      {/* Footer - COMPACT */}
-      <footer id="contatti" className="bg-amber-950 text-white py-10">
-        <div className="container mx-auto px-4 lg:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      {/* Footer con Glassmorphism */}
+      <footer id="contatti" className="bg-amber-950 text-white py-16 relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="w-full h-full bg-gradient-to-br from-amber-600 to-orange-600"></div>
+        </div>
+        
+        <div className="container mx-auto px-4 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
             {/* Brand */}
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <Image 
-                  src="/images/logo.png" 
-                  alt="Pasto Sano" 
-                  width={40} 
-                  height={40}
-                  className="object-contain"
-                />
-                <span className="text-xl font-bold">Pasto Sano</span>
+            <div className="observe-animation">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl flex items-center justify-center text-white font-bold text-xl">
+                  PS
+                </div>
+                <span className="text-2xl font-bold">Pasto Sano</span>
               </div>
-              <p className="text-white/80 text-sm">
-                La soluzione per mangiare sano senza stress.
+              <p className="text-white/80 leading-relaxed">
+                La soluzione per mangiare sano senza stress. 
+                Pasti genuini, pronti in 2 minuti.
               </p>
             </div>
 
             {/* Quick Links */}
-            <div>
-              <h3 className="text-yellow-400 font-bold mb-3">Menu</h3>
-              <Link href="/" className="text-white/80 hover:text-amber-400 text-sm block mb-2">
-                Ordina Online
-              </Link>
-              <button onClick={() => scrollToSection('menu')} className="text-white/80 hover:text-amber-400 text-sm block mb-2">
-                I Nostri Piatti
-              </button>
+            <div className="observe-animation">
+              <h3 className="text-yellow-400 font-bold text-lg mb-6">Menu</h3>
+              <div className="space-y-3">
+                <button className="text-white/80 hover:text-amber-400 transition-colors text-left block">
+                  Ordina Online
+                </button>
+                <button onClick={() => scrollToSection('menu')} className="text-white/80 hover:text-amber-400 transition-colors text-left block">
+                  I Nostri Piatti
+                </button>
+                <button onClick={() => scrollToSection('vantaggi')} className="text-white/80 hover:text-amber-400 transition-colors text-left block">
+                  Vantaggi
+                </button>
+              </div>
             </div>
 
             {/* Contatti */}
-            <div>
-              <h3 className="text-yellow-400 font-bold mb-3">Contatti</h3>
-              <a href="tel:+393478881515" className="text-white/80 hover:text-amber-400 text-sm block mb-2">
-                📞 347 888 1515
-              </a>
-              <a href="mailto:info@pastosano.it" className="text-white/80 hover:text-amber-400 text-sm block mb-2">
-                ✉️ info@pastosano.it
-              </a>
+            <div className="observe-animation">
+              <h3 className="text-yellow-400 font-bold text-lg mb-6">Contatti</h3>
+              <div className="space-y-3">
+                <a href="tel:+393478881515" className="text-white/80 hover:text-amber-400 transition-colors flex items-center gap-2">
+                  📞 347 888 1515
+                </a>
+                <a href="mailto:info@pastosano.it" className="text-white/80 hover:text-amber-400 transition-colors flex items-center gap-2">
+                  ✉️ info@pastosano.it
+                </a>
+                <a 
+                  href="https://wa.me/393478881515?text=Ciao%20voglio%20info%20su%20Pasto%20Sano"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white/80 hover:text-green-400 transition-colors flex items-center gap-2"
+                >
+                  💬 WhatsApp
+                </a>
+              </div>
             </div>
 
             {/* Ritiro */}
-            <div>
-              <h3 className="text-yellow-400 font-bold mb-3">Ritiro</h3>
-              <p className="text-white/80 text-sm">
-                📍 Via Albere 27/B<br />
-                Lun-Ven (concordare orario)<br />
-                <span className="text-amber-400 font-bold">Ordina 2 giorni prima!</span>
-              </p>
+            <div className="observe-animation">
+              <h3 className="text-yellow-400 font-bold text-lg mb-6">Ritiro</h3>
+              <div className="space-y-3">
+                <p className="text-white/80">
+                  📍 Via Albere 27/B
+                </p>
+                <p className="text-white/80">
+                  Lun-Ven (concordare orario)
+                </p>
+                <p className="text-amber-400 font-bold">
+                  ⚠️ Ordina 2 giorni prima!
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="border-t border-white/10 pt-6 text-center text-white/60 text-xs">
+          <div className="border-t border-white/10 pt-8 text-center text-white/60">
             <p>© 2024 Pasto Sano - Tutti i diritti riservati | Made with ❤️ by Andrea Padoan</p>
           </div>
         </div>
       </footer>
 
+      {/* Custom Styles */}
       <style jsx>{`
-        @keyframes fade-in {
+        @keyframes fade-in-up {
           from {
             opacity: 0;
-            transform: translateY(20px);
+            transform: translateY(30px);
           }
           to {
             opacity: 1;
@@ -825,16 +1162,19 @@ export default function LandingPage() {
           }
         }
         
-        .animate-fade-in {
-          animation: fade-in 0.8s ease-out;
+        .animate-fade-in-up {
+          animation: fade-in-up 0.8s ease-out forwards;
         }
         
-        .delay-500 {
-          animation-delay: 500ms;
+        .observe-animation {
+          opacity: 0;
+          transform: translateY(30px);
+          transition: all 0.8s ease-out;
         }
         
-        .delay-1000 {
-          animation-delay: 1000ms;
+        .observe-animation.animate-fade-in-up {
+          opacity: 1;
+          transform: translateY(0);
         }
       `}</style>
     </div>
