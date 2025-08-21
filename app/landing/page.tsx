@@ -120,23 +120,19 @@ export default function LandingPage() {
   const problems = [
     {
       image: "https://images.unsplash.com/photo-1551218808-94e220e084d2?w=600&q=80",
-      text: "Torni a casa stanco e non sai cosa mangiare",
-      gradient: "from-red-500 to-orange-500"
+      text: "Torni a casa stanco e non sai cosa mangiare"
     },
     {
-      image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=600&q=80",
-      text: "Mangi sempre le stesse cose in gastronomia",
-      gradient: "from-orange-500 to-yellow-500"
+      image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&q=80",
+      text: "Mangi sempre le stesse cose in gastronomia"
     },
     {
       image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&q=80",
-      text: "Spesa dell'ultimo minuto e sprechi",
-      gradient: "from-yellow-500 to-green-500"
+      text: "Spesa dell'ultimo minuto e sprechi"
     },
     {
       image: "https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=600&q=80",
-      text: "Cibo pesante che ti rallenta",
-      gradient: "from-green-500 to-blue-500"
+      text: "Cibo pesante che ti rallenta"
     }
   ];
 
@@ -147,7 +143,7 @@ export default function LandingPage() {
       description: "Torni a casa e il pranzo è già pronto"
     },
     {
-      image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&q=80",
+      image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=600&q=80",
       title: "Zero Stress",
       description: "Niente spesa, niente cucina, solo relax"
     },
@@ -157,7 +153,7 @@ export default function LandingPage() {
       description: "Ti senti energico tutto il giorno"
     },
     {
-      image: "https://images.unsplash.com/photo-1551218808-94e220e084d2?w=600&q=80",
+      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80",
       title: "Tempo per Te",
       description: "Recuperi 1 ora al giorno"
     }
@@ -193,7 +189,7 @@ export default function LandingPage() {
       icon: <Flame className="w-8 h-8" />
     },
     {
-      image: "https://images.unsplash.com/photo-1551218808-94e220e084d2?w=600&q=80",
+      image: "https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?w=600&q=80",
       title: "Pronto Subito",
       description: "2 minuti al microonde",
       badge: "VELOCE",
@@ -320,9 +316,13 @@ export default function LandingPage() {
           <div className="flex justify-between items-center">
             {/* Enhanced Logo */}
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
-                PS
-              </div>
+              <Image 
+                src="/images/logo.png"
+                alt="Pasto Sano Logo"
+                width={48}
+                height={48}
+                className="rounded-xl shadow-lg"
+              />
               <span className="text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
                 Pasto Sano
               </span>
@@ -385,7 +385,7 @@ export default function LandingPage() {
 
       {/* Modern Hero Section - RIDOTTA IN ALTEZZA */}
       <section id="home" className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
-        {/* Background Image - NITIDA SENZA SFOCATURA */}
+        {/* Background Image - COMPLETAMENTE NITIDA */}
         <div className="absolute inset-0">
           <Image 
             src="/images/landing/hero-meal.jpg"
@@ -394,7 +394,7 @@ export default function LandingPage() {
             className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-amber-900/60 via-orange-800/60 to-red-900/60"></div>
+          <div className="absolute inset-0 bg-black/20"></div>
         </div>
 
         {/* Floating Particles */}
@@ -651,9 +651,6 @@ export default function LandingPage() {
               Scopri Tutto il Menu
               <span className="text-xl">🔗</span>
             </Link>
-            <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-8 py-3 rounded-full font-semibold inline-block animate-pulse shadow-xl">
-              🔥 Offerta: Ordina 5 pasti e il 6° è GRATIS!
-            </div>
           </div>
         </div>
       </section>
@@ -997,9 +994,13 @@ export default function LandingPage() {
             {/* Brand */}
             <div>
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl flex items-center justify-center text-white font-bold text-xl">
-                  PS
-                </div>
+                <Image 
+                  src="/images/logo.png"
+                  alt="Pasto Sano Logo"
+                  width={48}
+                  height={48}
+                  className="rounded-xl"
+                />
                 <span className="text-2xl font-bold">Pasto Sano</span>
               </div>
               <p className="text-white/80 leading-relaxed">
