@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 import { 
   ShoppingCart, 
   Clock, 
@@ -12,6 +14,7 @@ import {
   Flame,
   Heart,
   MessageCircle,
+  ArrowRight,
   ExternalLink,
   CheckCircle,
   XCircle,
@@ -26,7 +29,7 @@ import {
   ArrowDown
 } from 'lucide-react';
 
-export default function PastoSanoLanding() {
+export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [timeLeft, setTimeLeft] = useState('');
@@ -34,9 +37,9 @@ export default function PastoSanoLanding() {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [scrollY, setScrollY] = useState(0);
 
-  const heroRef = useRef(null);
-  const problemsRef = useRef(null);
-  const featuresRef = useRef(null);
+  const heroRef = useRef<HTMLElement>(null);
+  const problemsRef = useRef<HTMLElement>(null);
+  const featuresRef = useRef<HTMLElement>(null);
 
   const testimonials = [
     {
@@ -69,7 +72,7 @@ export default function PastoSanoLanding() {
     }
   ];
 
-  // Scroll effects
+  // Enhanced scroll effects with parallax
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
@@ -118,7 +121,7 @@ export default function PastoSanoLanding() {
     };
   }, [testimonials.length]);
 
-  // Intersection Observer for animations
+  // Intersection Observer for scroll animations
   useEffect(() => {
     const observerOptions = {
       threshold: 0.1,
@@ -301,6 +304,37 @@ export default function PastoSanoLanding() {
     }
   ];
 
+  const faqData = [
+    {
+      question: "Posso congelare il prodotto?",
+      answer: "Sì! Gli ingredienti sono tutti freschi, quindi puoi congelare le vaschette senza problemi per conservarle più a lungo."
+    },
+    {
+      question: "È prevista la consegna a domicilio?",
+      answer: "Al momento è previsto solo il ritiro, ma presto stiamo implementando il servizio con consegna a domicilio! Resta aggiornato per le novità."
+    },
+    {
+      question: "Quanto li posso conservare in frigorifero?",
+      answer: "Consigliamo il consumo entro 3 giorni dal ritiro. In alternativa, puoi sempre congelare per una conservazione più lunga."
+    },
+    {
+      question: "La vaschetta posso metterla direttamente in microonde?",
+      answer: "No, la vaschetta non va nel microonde. Può essere messa in forno o friggitrice ad aria."
+    },
+    {
+      question: "Come scaldo il prodotto?",
+      answer: "Metti il prodotto in un piatto e scaldi per 2 minuti e mezzo nel microonde. Oppure puoi scaldarlo in padella o direttamente in forno/friggitrice ad aria."
+    },
+    {
+      question: "Prevedete l'inserimento di altri prodotti?",
+      answer: "Certamente! Abbiamo già una lista di nuovi piatti da inserire. Il menu si arricchirà sempre di più con nuove deliziose opzioni!"
+    },
+    {
+      question: "Posso restituire il prodotto dopo averlo ordinato?",
+      answer: "Non è previsto il reso del prodotto. Tuttavia, se hai domande o dubbi, contattaci prima dell'ordine - saremo felici di aiutarti!"
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-white overflow-x-hidden">
       {/* Floating WhatsApp Button */}
@@ -313,17 +347,17 @@ export default function PastoSanoLanding() {
         <MessageCircle className="w-6 h-6" />
       </a>
 
-      {/* Header - Glassmorphism */}
+      {/* Enhanced Header with Glassmorphism */}
       <header className={`fixed top-0 w-full z-40 transition-all duration-300 ${
         isScrolled 
           ? 'bg-white/90 backdrop-blur-xl shadow-xl py-2' 
-          : 'bg-transparent py-4'
+          : 'bg-white/95 backdrop-blur-md py-3'
       }`}>
         <nav className="container mx-auto px-4 lg:px-8">
           <div className="flex justify-between items-center">
-            {/* Logo */}
+            {/* Enhanced Logo */}
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl flex items-center justify-center text-white font-bold text-xl">
+              <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
                 PS
               </div>
               <span className="text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
@@ -331,26 +365,29 @@ export default function PastoSanoLanding() {
               </span>
             </div>
 
-            {/* Desktop Navigation */}
+            {/* Enhanced Desktop Navigation */}
             <div className="hidden lg:flex items-center gap-8">
-              <button onClick={() => scrollToSection('home')} className="text-gray-700 hover:text-amber-600 transition-all duration-300 hover:scale-105">
+              <button onClick={() => scrollToSection('home')} className="text-gray-700 hover:text-amber-600 transition-all duration-300 hover:scale-105 font-medium">
                 Home
               </button>
-              <button onClick={() => scrollToSection('vantaggi')} className="text-gray-700 hover:text-amber-600 transition-all duration-300 hover:scale-105">
+              <button onClick={() => scrollToSection('vantaggi')} className="text-gray-700 hover:text-amber-600 transition-all duration-300 hover:scale-105 font-medium">
                 Vantaggi
               </button>
-              <button onClick={() => scrollToSection('menu')} className="text-gray-700 hover:text-amber-600 transition-all duration-300 hover:scale-105">
+              <button onClick={() => scrollToSection('menu')} className="text-gray-700 hover:text-amber-600 transition-all duration-300 hover:scale-105 font-medium">
                 Menu
               </button>
-              <button onClick={() => scrollToSection('chi-sono')} className="text-gray-700 hover:text-amber-600 transition-all duration-300 hover:scale-105">
+              <button onClick={() => scrollToSection('chi-sono')} className="text-gray-700 hover:text-amber-600 transition-all duration-300 hover:scale-105 font-medium">
                 Chi Sono
               </button>
-              <button onClick={() => scrollToSection('contatti')} className="text-gray-700 hover:text-amber-600 transition-all duration-300 hover:scale-105">
+              <button onClick={() => scrollToSection('contatti')} className="text-gray-700 hover:text-amber-600 transition-all duration-300 hover:scale-105 font-medium">
                 Contatti
               </button>
-              <button className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-6 py-3 rounded-full font-semibold hover:shadow-xl transform hover:scale-105 transition-all duration-300 animate-pulse">
+              <Link 
+                href="/"
+                className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-6 py-3 rounded-full font-semibold hover:shadow-xl transform hover:scale-105 transition-all duration-300 animate-pulse"
+              >
                 Ordina Ora
-              </button>
+              </Link>
             </div>
 
             {/* Mobile Menu Button */}
@@ -362,7 +399,7 @@ export default function PastoSanoLanding() {
             </button>
           </div>
 
-          {/* Mobile Navigation - Glassmorphism */}
+          {/* Enhanced Mobile Navigation */}
           {isMenuOpen && (
             <div className="lg:hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-xl border-t shadow-xl">
               <div className="flex flex-col p-6 space-y-4">
@@ -371,18 +408,21 @@ export default function PastoSanoLanding() {
                 <button onClick={() => scrollToSection('menu')} className="text-left py-3 text-gray-700 text-lg border-b hover:text-amber-600 transition-colors">Menu</button>
                 <button onClick={() => scrollToSection('chi-sono')} className="text-left py-3 text-gray-700 text-lg border-b hover:text-amber-600 transition-colors">Chi Sono</button>
                 <button onClick={() => scrollToSection('contatti')} className="text-left py-3 text-gray-700 text-lg border-b hover:text-amber-600 transition-colors">Contatti</button>
-                <button className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-6 py-4 rounded-full font-semibold text-center text-lg mt-4">
+                <Link 
+                  href="/"
+                  className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-6 py-4 rounded-full font-semibold text-center text-lg mt-4"
+                >
                   Ordina Ora
-                </button>
+                </Link>
               </div>
             </div>
           )}
         </nav>
       </header>
 
-      {/* Hero Section - PARALLAX con Video Background */}
+      {/* Enhanced Hero Section with Parallax */}
       <section id="home" ref={heroRef} className="relative h-screen flex items-center justify-center overflow-hidden">
-        {/* Video Background con Parallax */}
+        {/* Parallax Background */}
         <div 
           className="absolute inset-0 scale-110"
           style={{
@@ -398,7 +438,7 @@ export default function PastoSanoLanding() {
           </div>
         </div>
 
-        {/* Floating Elements */}
+        {/* Floating Particles */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-20 left-20 w-32 h-32 bg-yellow-400/20 rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
           <div className="absolute bottom-20 right-20 w-24 h-24 bg-orange-400/20 rounded-full animate-bounce" style={{animationDelay: '1s'}}></div>
@@ -408,7 +448,7 @@ export default function PastoSanoLanding() {
         
         <div className="container mx-auto px-4 lg:px-8 relative z-10">
           <div className="text-center text-white space-y-8 max-w-4xl mx-auto">
-            {/* Countdown Badge con Glassmorphism */}
+            {/* Enhanced Countdown Badge */}
             <div className="inline-flex items-center gap-3 bg-red-500/90 backdrop-blur-sm text-white px-6 py-3 rounded-full text-sm font-bold animate-pulse border border-red-400/30">
               <AlertCircle className="w-5 h-5" />
               <span>Ordina entro le 18:00 per ritiro dopodomani!</span>
@@ -428,13 +468,16 @@ export default function PastoSanoLanding() {
               Pasti pronti in <span className="font-bold text-yellow-400">2 minuti</span>. Torni a casa e mangi subito!
             </p>
             
-            {/* CTA Buttons con Glassmorphism */}
+            {/* Enhanced CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up" style={{animationDelay: '0.9s'}}>
-              <button className="group bg-gradient-to-r from-yellow-400 to-orange-400 text-gray-900 px-8 py-4 rounded-full font-bold text-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center gap-3">
+              <Link 
+                href="/"
+                className="group bg-gradient-to-r from-yellow-400 to-orange-400 text-gray-900 px-8 py-4 rounded-full font-bold text-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center gap-3"
+              >
                 <ShoppingCart className="w-6 h-6 group-hover:animate-bounce" />
                 Ordina Subito
                 <Sparkles className="w-5 h-5 group-hover:animate-spin" />
-              </button>
+              </Link>
               <button 
                 onClick={() => scrollToSection('vantaggi')}
                 className="bg-white/20 backdrop-blur-sm border-2 border-white/30 text-white px-8 py-4 rounded-full font-bold hover:bg-white hover:text-amber-900 transition-all duration-300 flex items-center gap-2"
@@ -444,7 +487,7 @@ export default function PastoSanoLanding() {
               </button>
             </div>
             
-            {/* Spots Available con effetto urgenza */}
+            {/* Enhanced Spots Available */}
             <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-yellow-300 px-4 py-2 rounded-full text-sm font-semibold animate-pulse">
               <AlertCircle className="w-4 h-4" />
               Solo {availableSpots} posti disponibili per domani!
@@ -458,9 +501,9 @@ export default function PastoSanoLanding() {
         </div>
       </section>
 
-      {/* Problems & Solutions Section con Parallax */}
+      {/* Enhanced Problems & Solutions Section */}
       <section id="vantaggi" ref={problemsRef} className="py-20 bg-white relative overflow-hidden">
-        {/* Background Pattern con Parallax */}
+        {/* Parallax Background Pattern */}
         <div 
           className="absolute inset-0 opacity-5"
           style={{
@@ -478,7 +521,7 @@ export default function PastoSanoLanding() {
             <p className="text-xl text-gray-600">Hai mai vissuto queste situazioni?</p>
           </div>
           
-          {/* Problems con effetti hover avanzati */}
+          {/* Enhanced Problems with Images */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
             {problems.map((problem, index) => (
               <div 
@@ -513,7 +556,7 @@ export default function PastoSanoLanding() {
             </div>
           </div>
           
-          {/* Solutions */}
+          {/* Enhanced Solutions */}
           <div className="text-center mb-12 observe-animation">
             <h3 className="text-4xl lg:text-5xl font-bold mb-4">
               <span className="text-green-600">Ecco la Soluzione!</span> ✨
@@ -548,7 +591,7 @@ export default function PastoSanoLanding() {
         </div>
       </section>
 
-      {/* Features con Parallax Images */}
+      {/* Enhanced Features Section */}
       <section ref={featuresRef} className="py-20 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="text-center mb-16 observe-animation">
@@ -568,12 +611,12 @@ export default function PastoSanoLanding() {
                   transform: `translateY(${scrollY * 0.05 * (index % 2 === 0 ? 1 : -1)}px)`,
                 }}
               >
-                {/* Badge con Glassmorphism */}
+                {/* Enhanced Badge */}
                 <div className="absolute top-4 right-4 bg-amber-500/90 backdrop-blur-sm text-white text-xs px-3 py-2 rounded-full font-bold z-10 border border-amber-400/30">
                   {feature.badge}
                 </div>
                 
-                {/* Image con Parallax */}
+                {/* Enhanced Image with Parallax */}
                 <div className="relative h-64 overflow-hidden">
                   <img 
                     src={feature.image}
@@ -583,7 +626,7 @@ export default function PastoSanoLanding() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent group-hover:from-black/30 transition-all duration-300"></div>
                 </div>
                 
-                {/* Content con Icon animata */}
+                {/* Enhanced Content */}
                 <div className="p-8">
                   <div className="flex items-center gap-4 mb-4">
                     <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
@@ -599,7 +642,7 @@ export default function PastoSanoLanding() {
         </div>
       </section>
 
-      {/* Menu Highlights con effetti avanzati */}
+      {/* Enhanced Menu Highlights */}
       <section id="menu" className="py-20 bg-gradient-to-b from-amber-50 to-orange-50 relative overflow-hidden">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="text-center mb-16 observe-animation">
@@ -616,12 +659,12 @@ export default function PastoSanoLanding() {
                 className="group observe-animation relative bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-500"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
-                {/* Badge con animazione */}
+                {/* Enhanced Badge */}
                 <div className={`absolute top-4 left-4 ${item.badgeColor} text-white text-xs px-4 py-2 rounded-full font-bold z-10 animate-pulse shadow-lg`}>
                   {item.badge}
                 </div>
                 
-                {/* Image con hover effect */}
+                {/* Enhanced Image */}
                 <div className="relative h-56 overflow-hidden">
                   <img 
                     src={item.image}
@@ -630,7 +673,7 @@ export default function PastoSanoLanding() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent group-hover:from-black/40 transition-all duration-300"></div>
                   
-                  {/* Overlay con prezzo */}
+                  {/* Enhanced Overlay */}
                   <div className="absolute bottom-4 left-4 right-4">
                     <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4">
                       <h3 className="font-bold text-lg text-gray-900 mb-2">{item.name}</h3>
@@ -652,13 +695,16 @@ export default function PastoSanoLanding() {
             ))}
           </div>
           
-          {/* CTA con effetti speciali */}
+          {/* Enhanced CTA */}
           <div className="text-center observe-animation">
-            <button className="group inline-flex items-center gap-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-12 py-6 rounded-full font-bold text-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 mb-6">
+            <Link 
+              href="/"
+              className="group inline-flex items-center gap-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-12 py-6 rounded-full font-bold text-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 mb-6"
+            >
               <ShoppingCart className="w-8 h-8 group-hover:animate-bounce" />
               Scopri Tutto il Menu
               <ExternalLink className="w-6 h-6 group-hover:rotate-45 transition-transform duration-300" />
-            </button>
+            </Link>
             <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-8 py-3 rounded-full font-semibold inline-block animate-pulse shadow-xl">
               🔥 Offerta: Ordina 5 pasti e il 6° è GRATIS!
             </div>
@@ -666,7 +712,7 @@ export default function PastoSanoLanding() {
         </div>
       </section>
 
-      {/* Testimonials con effetti premium */}
+      {/* Enhanced Testimonials */}
       <section className="py-20 bg-white relative overflow-hidden">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="text-center mb-16 observe-animation">
@@ -692,12 +738,12 @@ export default function PastoSanoLanding() {
                 <div className="absolute bottom-0 right-0 w-40 h-40 bg-orange-400 rounded-full translate-x-20 translate-y-20"></div>
               </div>
               
-              {/* Quote Icon */}
+              {/* Enhanced Quote Icon */}
               <div className="absolute -top-6 left-12 bg-gradient-to-r from-amber-500 to-orange-500 text-white w-12 h-12 rounded-full flex items-center justify-center text-2xl font-bold shadow-xl">
                 "
               </div>
               
-              {/* Testimonial Content */}
+              {/* Enhanced Testimonial Content */}
               <div className="text-center relative z-10">
                 <div className="flex justify-center mb-6">
                   {[...Array(testimonials[currentTestimonial].rating)].map((_, i) => (
@@ -726,7 +772,7 @@ export default function PastoSanoLanding() {
                 </div>
               </div>
               
-              {/* Dots con animazione */}
+              {/* Enhanced Dots */}
               <div className="flex justify-center gap-3 mt-8">
                 {testimonials.map((_, index) => (
                   <button 
@@ -745,11 +791,11 @@ export default function PastoSanoLanding() {
         </div>
       </section>
 
-      {/* Chi Sono Section con parallax */}
+      {/* Enhanced Chi Sono Section */}
       <section id="chi-sono" className="py-20 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            {/* Image con effetti */}
+            {/* Enhanced Image */}
             <div className="relative observe-animation">
               <div className="relative rounded-3xl overflow-hidden shadow-2xl transform hover:scale-105 transition-all duration-700">
                 <img 
@@ -760,14 +806,14 @@ export default function PastoSanoLanding() {
                 <div className="absolute inset-0 bg-gradient-to-t from-amber-900/30 to-transparent"></div>
               </div>
               
-              {/* Floating Stats */}
+              {/* Enhanced Floating Stats */}
               <div className="absolute -bottom-8 -right-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-2xl p-8 shadow-2xl transform hover:scale-105 transition-all duration-300">
                 <div className="text-3xl font-bold">12+ anni</div>
                 <div className="text-sm opacity-90">di esperienza</div>
               </div>
             </div>
 
-            {/* Text Content */}
+            {/* Enhanced Text Content */}
             <div className="space-y-6 observe-animation">
               <div className="text-amber-600 font-bold text-lg">FONDATORE & PERSONAL TRAINER</div>
               <h2 className="text-4xl lg:text-5xl font-bold text-gray-900">
@@ -805,7 +851,7 @@ export default function PastoSanoLanding() {
                 </div>
               </div>
               
-              {/* Stats con animazioni */}
+              {/* Enhanced Stats */}
               <div className="grid grid-cols-3 gap-6 pt-8">
                 <div className="text-center bg-white rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300">
                   <div className="text-3xl font-bold text-amber-600">500+</div>
@@ -825,7 +871,7 @@ export default function PastoSanoLanding() {
         </div>
       </section>
 
-      {/* Come Funziona con effetti speciali */}
+      {/* Enhanced Come Funziona */}
       <section className="py-20 bg-white relative overflow-hidden">
         <div className="container mx-auto px-4 lg:px-8">
           <h2 className="text-4xl lg:text-5xl font-bold text-center text-gray-900 mb-4 observe-animation">
@@ -838,7 +884,7 @@ export default function PastoSanoLanding() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {steps.map((step, i) => (
               <div key={i} className="group text-center observe-animation" style={{ animationDelay: `${i * 200}ms` }}>
-                {/* Step Image */}
+                {/* Enhanced Step with Image */}
                 <div className="relative mb-6">
                   <div className="w-32 h-32 mx-auto rounded-2xl overflow-hidden shadow-xl group-hover:shadow-2xl transition-all duration-500">
                     <img 
@@ -875,7 +921,7 @@ export default function PastoSanoLanding() {
         </div>
       </section>
 
-      {/* Final CTA con effetti premium */}
+      {/* Enhanced Final CTA */}
       <section className="py-20 bg-gradient-to-br from-amber-900 via-orange-800 to-red-900 relative overflow-hidden">
         {/* Animated Background */}
         <div className="absolute inset-0">
@@ -896,7 +942,7 @@ export default function PastoSanoLanding() {
             </p>
           </div>
           
-          {/* Offer Box con Glassmorphism */}
+          {/* Enhanced Offer Box */}
           <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-8 max-w-2xl mx-auto mb-12 border border-white/20 shadow-2xl observe-animation">
             <div className="flex items-center justify-center gap-3 mb-4">
               <Sparkles className="w-8 h-8 text-yellow-400" />
@@ -915,13 +961,16 @@ export default function PastoSanoLanding() {
             </div>
           </div>
           
-          {/* CTA Buttons */}
+          {/* Enhanced CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center observe-animation">
-            <button className="group bg-white text-amber-900 px-12 py-6 rounded-full font-bold text-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center gap-4">
+            <Link 
+              href="/"
+              className="group bg-white text-amber-900 px-12 py-6 rounded-full font-bold text-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center gap-4"
+            >
               <ShoppingCart className="w-8 h-8 group-hover:animate-bounce" />
               Ordina Ora con lo Sconto
               <Sparkles className="w-6 h-6 group-hover:animate-spin" />
-            </button>
+            </Link>
             <a 
               href="https://wa.me/393478881515?text=Ciao%20voglio%20ordinare%20con%20SCONTO5"
               target="_blank"
@@ -947,98 +996,19 @@ export default function PastoSanoLanding() {
 
           <div className="max-w-4xl mx-auto">
             <div className="grid gap-6">
-              {/* FAQ 1 */}
-              <div className="observe-animation bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
-                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                    Q
-                  </div>
-                  Posso congelare il prodotto?
-                </h3>
-                <p className="text-gray-700 leading-relaxed pl-11">
-                  <strong className="text-green-600">Sì!</strong> Gli ingredienti sono tutti freschi, quindi puoi congelare le vaschette senza problemi per conservarle più a lungo.
-                </p>
-              </div>
-
-              {/* FAQ 2 */}
-              <div className="observe-animation bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
-                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                    Q
-                  </div>
-                  È prevista la consegna a domicilio?
-                </h3>
-                <p className="text-gray-700 leading-relaxed pl-11">
-                  Al momento è previsto solo il ritiro, ma <strong className="text-amber-600">presto stiamo implementando il servizio con consegna a domicilio!</strong> Resta aggiornato per le novità.
-                </p>
-              </div>
-
-              {/* FAQ 3 */}
-              <div className="observe-animation bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
-                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                    Q
-                  </div>
-                  Quanto li posso conservare in frigorifero?
-                </h3>
-                <p className="text-gray-700 leading-relaxed pl-11">
-                  Consigliamo il consumo <strong className="text-amber-600">entro 3 giorni</strong> dal ritiro. In alternativa, puoi sempre congelare per una conservazione più lunga.
-                </p>
-              </div>
-
-              {/* FAQ 4 */}
-              <div className="observe-animation bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
-                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                    Q
-                  </div>
-                  La vaschetta posso metterla direttamente in microonde?
-                </h3>
-                <p className="text-gray-700 leading-relaxed pl-11">
-                  <strong className="text-red-600">No</strong>, la vaschetta non va nel microonde. Può essere messa in <strong className="text-green-600">forno o friggitrice ad aria</strong>.
-                </p>
-              </div>
-
-              {/* FAQ 5 */}
-              <div className="observe-animation bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
-                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                    Q
-                  </div>
-                  Come scaldo il prodotto?
-                </h3>
-                <p className="text-gray-700 leading-relaxed pl-11">
-                  Metti il prodotto in un piatto e scaldi per <strong className="text-amber-600">2 minuti e mezzo</strong> nel microonde. 
-                  Oppure puoi scaldarlo in padella o direttamente in forno/friggitrice ad aria.
-                </p>
-              </div>
-
-              {/* FAQ 6 */}
-              <div className="observe-animation bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
-                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                    Q
-                  </div>
-                  Prevedete l'inserimento di altri prodotti?
-                </h3>
-                <p className="text-gray-700 leading-relaxed pl-11">
-                  <strong className="text-green-600">Certamente!</strong> Abbiamo già una lista di nuovi piatti da inserire. 
-                  Il menu si arricchirà sempre di più con nuove deliziose opzioni!
-                </p>
-              </div>
-
-              {/* FAQ 7 */}
-              <div className="observe-animation bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
-                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                    Q
-                  </div>
-                  Posso restituire il prodotto dopo averlo ordinato?
-                </h3>
-                <p className="text-gray-700 leading-relaxed pl-11">
-                  Non è previsto il reso del prodotto. Tuttavia, se hai domande o dubbi, <strong className="text-amber-600">contattaci prima dell'ordine</strong> - saremo felici di aiutarti!
-                </p>
-              </div>
+              {faqData.map((faq, index) => (
+                <div key={index} className="observe-animation bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                  <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                      Q
+                    </div>
+                    {faq.question}
+                  </h3>
+                  <p className="text-gray-700 leading-relaxed pl-11">
+                    {faq.answer}
+                  </p>
+                </div>
+              ))}
             </div>
 
             {/* CTA in FAQ */}
@@ -1056,4 +1026,134 @@ export default function PastoSanoLanding() {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-3 bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-4 rounded-full font-bold hover:shadow-xl transform hover:scale-105 transition-all duration-300"
                 >
-                  
+                  <MessageCircle className="w-6 h-6" />
+                  Contattaci su WhatsApp
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Enhanced Footer */}
+      <footer id="contatti" className="bg-amber-950 text-white py-16 relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="w-full h-full bg-gradient-to-br from-amber-600 to-orange-600"></div>
+        </div>
+        
+        <div className="container mx-auto px-4 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+            {/* Enhanced Brand */}
+            <div className="observe-animation">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl flex items-center justify-center text-white font-bold text-xl">
+                  PS
+                </div>
+                <span className="text-2xl font-bold">Pasto Sano</span>
+              </div>
+              <p className="text-white/80 leading-relaxed">
+                La soluzione per mangiare sano senza stress. 
+                Pasti genuini, pronti in 2 minuti.
+              </p>
+            </div>
+
+            {/* Quick Links */}
+            <div className="observe-animation">
+              <h3 className="text-yellow-400 font-bold text-lg mb-6">Menu</h3>
+              <div className="space-y-3">
+                <Link href="/" className="text-white/80 hover:text-amber-400 transition-colors text-left block">
+                  Ordina Online
+                </Link>
+                <button onClick={() => scrollToSection('menu')} className="text-white/80 hover:text-amber-400 transition-colors text-left block">
+                  I Nostri Piatti
+                </button>
+                <button onClick={() => scrollToSection('vantaggi')} className="text-white/80 hover:text-amber-400 transition-colors text-left block">
+                  Vantaggi
+                </button>
+              </div>
+            </div>
+
+            {/* Contatti */}
+            <div className="observe-animation">
+              <h3 className="text-yellow-400 font-bold text-lg mb-6">Contatti</h3>
+              <div className="space-y-3">
+                <a href="tel:+393478881515" className="text-white/80 hover:text-amber-400 transition-colors flex items-center gap-2">
+                  📞 347 888 1515
+                </a>
+                <a href="mailto:info@pastosano.it" className="text-white/80 hover:text-amber-400 transition-colors flex items-center gap-2">
+                  ✉️ info@pastosano.it
+                </a>
+                <a 
+                  href="https://wa.me/393478881515?text=Ciao%20voglio%20info%20su%20Pasto%20Sano"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white/80 hover:text-green-400 transition-colors flex items-center gap-2"
+                >
+                  💬 WhatsApp
+                </a>
+              </div>
+            </div>
+
+            {/* Ritiro */}
+            <div className="observe-animation">
+              <h3 className="text-yellow-400 font-bold text-lg mb-6">Ritiro</h3>
+              <div className="space-y-3">
+                <p className="text-white/80">
+                  📍 Via Albere 27/B
+                </p>
+                <p className="text-white/80">
+                  Lun-Ven (concordare orario)
+                </p>
+                <p className="text-amber-400 font-bold">
+                  ⚠️ Ordina 2 giorni prima!
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-white/10 pt-8 text-center text-white/60">
+            <p>© 2024 Pasto Sano - Tutti i diritti riservati | Made with ❤️ by Andrea Padoan</p>
+          </div>
+        </div>
+      </footer>
+
+      {/* Enhanced Custom Styles */}
+      <style jsx>{`
+        @keyframes fade-in-up {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .animate-fade-in-up {
+          animation: fade-in-up 0.8s ease-out forwards;
+        }
+        
+        .observe-animation {
+          opacity: 0;
+          transform: translateY(30px);
+          transition: all 0.8s ease-out;
+        }
+        
+        .observe-animation.animate-fade-in-up {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        
+        .delay-500 {
+          animation-delay: 500ms;
+        }
+        
+        .delay-1000 {
+          animation-delay: 1000ms;
+        }
+      `}</style>
+    </div>
+  );
+}
