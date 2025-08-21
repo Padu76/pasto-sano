@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { 
   ShoppingCart, 
@@ -541,7 +540,58 @@ export default function LandingPage() {
                   <div className="absolute inset-0 flex items-end p-6">
                     <div className="text-white">
                       <XCircle className="w-8 h-8 mb-3 text-red-200" />
-                      <p className="font-semibold text-lg">{problem.text}</p>
+                      <p className="text-amber-400 font-bold">
+                  ⚠️ Ordina 2 giorni prima!
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-white/10 pt-8 text-center text-white/60">
+            <p>© 2024 Pasto Sano - Tutti i diritti riservati | Made with ❤️ by Andrea Padoan</p>
+          </div>
+        </div>
+      </footer>
+
+      {/* Enhanced Custom Styles */}
+      <style jsx>{`
+        @keyframes fade-in-up {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .animate-fade-in-up {
+          animation: fade-in-up 0.8s ease-out forwards;
+        }
+        
+        .observe-animation {
+          opacity: 0;
+          transform: translateY(30px);
+          transition: all 0.8s ease-out;
+        }
+        
+        .observe-animation.animate-fade-in-up {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        
+        .delay-500 {
+          animation-delay: 500ms;
+        }
+        
+        .delay-1000 {
+          animation-delay: 1000ms;
+        }
+      `}</style>
+    </div>
+  );
+} className="font-semibold text-lg">{problem.text}</p>
                     </div>
                   </div>
                 </div>
@@ -1105,55 +1155,4 @@ export default function LandingPage() {
                 <p className="text-white/80">
                   Lun-Ven (concordare orario)
                 </p>
-                <p className="text-amber-400 font-bold">
-                  ⚠️ Ordina 2 giorni prima!
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="border-t border-white/10 pt-8 text-center text-white/60">
-            <p>© 2024 Pasto Sano - Tutti i diritti riservati | Made with ❤️ by Andrea Padoan</p>
-          </div>
-        </div>
-      </footer>
-
-      {/* Enhanced Custom Styles */}
-      <style jsx>{`
-        @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        .animate-fade-in-up {
-          animation: fade-in-up 0.8s ease-out forwards;
-        }
-        
-        .observe-animation {
-          opacity: 0;
-          transform: translateY(30px);
-          transition: all 0.8s ease-out;
-        }
-        
-        .observe-animation.animate-fade-in-up {
-          opacity: 1;
-          transform: translateY(0);
-        }
-        
-        .delay-500 {
-          animation-delay: 500ms;
-        }
-        
-        .delay-1000 {
-          animation-delay: 1000ms;
-        }
-      `}</style>
-    </div>
-  );
-}
+                <p
