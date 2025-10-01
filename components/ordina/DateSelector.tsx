@@ -21,8 +21,8 @@ export default function DateSelector({
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    // Crea array di 7 date consecutive partendo da oggi + minDaysAdvance
-    for (let i = minDaysAdvance; i < minDaysAdvance + 7; i++) {
+    // Crea array di 7 date consecutive partendo da OGGI
+    for (let i = 0; i < 7; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
       dates.push(date);
@@ -30,16 +30,42 @@ export default function DateSelector({
     
     setAvailableDates(dates);
     
-    // Seleziona la prima data disponibile
+    // Seleziona la prima data (oggi)
     if (dates.length > 0) {
       setSelectedDate(dates[0]);
-      onDateChange(dates[0]);
+      // Ma passa la data di RITIRO alla callback (oggi + minDaysAdvance)
+      const pickupDate = new Date(dates[0]);
+      pickupDate.setDate(dates[0].getDate() + minDaysAdvance);
+      onDateChange(getEffectivePickupDate(pickupDate));
     }
   }, [minDaysAdvance, onDateChange]);
   
-  const handleDateSelect = (date: Date) => {
-    setSelectedDate(date);
-    onDateChange(date);
+  // Calcola la data di ritiro effettiva considerando i weekend
+  const getEffectivePickupDate = (date: Date): Date => {
+    const dayOfWeek = date.getDay();
+    const pickupDate = new Date(date);
+    
+    // Se cade di sabato (6), sposta a lunedì (+2 giorni)
+    if (dayOfWeek === 6) {
+      pickupDate.setDate(pickupDate.getDate() + 2);
+    }
+    // Se cade di domenica (0), sposta a martedì (+2 giorni)
+    else if (dayOfWeek === 0) {
+      pickupDate.setDate(pickupDate.getDate() + 2);
+    }
+    
+    return pickupDate;
+  };
+  
+  const handleDateSelect = (orderDate: Date) => {
+    setSelectedDate(orderDate);
+    
+    // Calcola la data di ritiro (orderDate + minDaysAdvance)
+    const pickupDate = new Date(orderDate);
+    pickupDate.setDate(orderDate.getDate() + minDaysAdvance);
+    
+    // Passa la data di ritiro effettiva (considerando weekend)
+    onDateChange(getEffectivePickupDate(pickupDate));
   };
   
   const formatFullDate = (date: Date) => {
@@ -57,7 +83,7 @@ export default function DateSelector({
     if (day <= 14) return 2;
     if (day <= 21) return 3;
     if (day <= 28) return 4;
-    return 1; // Settimana 5 ripete settimana 1
+    return 1;
   };
   
   const isToday = (date: Date) => {
@@ -71,21 +97,23 @@ export default function DateSelector({
     return date.toDateString() === tomorrow.toDateString();
   };
 
-  // Calcola il giorno di ritiro effettivo
-  const getRitiroDay = (orderDate: Date) => {
-    const dayOfWeek = orderDate.getDay();
-    const giorni = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
+  // Calcola il giorno di ritiro per la data dell'ordine
+  const getRitiroInfo = (orderDate: Date) => {
+    // Data ritiro = data ordine + minDaysAdvance
+    const pickupDate = new Date(orderDate);
+    pickupDate.setDate(orderDate.getDate() + minDaysAdvance);
     
-    // Se è sabato (6), ritiro lunedì
-    if (dayOfWeek === 6) {
-      return 'Ritiro Lunedì';
-    }
-    // Se è domenica (0), ritiro martedì
-    else if (dayOfWeek === 0) {
-      return 'Ritiro Martedì';
-    }
-    // Altrimenti ritiro stesso giorno
-    return `Ritiro ${giorni[dayOfWeek]}`;
+    // Applica la logica weekend
+    const effectivePickupDate = getEffectivePickupDate(pickupDate);
+    
+    const giorni = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
+    const dayName = giorni[effectivePickupDate.getDay()];
+    const dayNumber = effectivePickupDate.getDate();
+    
+    return {
+      label: `Ritiro ${dayName} ${dayNumber}`,
+      isWeekendShifted: pickupDate.getDay() === 0 || pickupDate.getDay() === 6
+    };
   };
 
   return (
@@ -94,41 +122,39 @@ export default function DateSelector({
         <div className="flex items-center gap-3">
           <Calendar className="w-6 h-6 text-amber-600" />
           <h2 className="text-2xl font-bold text-gray-800">
-            Scegli il Giorno di Ritiro
+            Quando vuoi ordinare?
           </h2>
         </div>
         
         <div className="flex items-center gap-2 text-sm text-gray-600 bg-amber-50 px-3 py-1.5 rounded-full">
           <Clock className="w-4 h-4" />
-          <span>Ordina con {minDaysAdvance} giorni di anticipo</span>
+          <span>Ritiro dopo {minDaysAdvance} giorni</span>
         </div>
       </div>
       
       <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4 mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-600 mb-1">Data selezionata per il ritiro:</p>
+            <p className="text-sm text-gray-600 mb-1">Se ordini oggi:</p>
             <p className="text-xl font-bold text-gray-800 capitalize">
               {formatFullDate(selectedDate)}
             </p>
           </div>
           
           <div className="text-right">
-            <p className="text-sm text-gray-600 mb-1">Menu della</p>
-            <p className="text-lg font-semibold text-amber-600">
-              Settimana {getWeekNumber(selectedDate)}
+            <p className="text-sm text-gray-600 mb-1">Ritirerai il:</p>
+            <p className="text-xl font-bold text-amber-600 capitalize">
+              {formatFullDate(getEffectivePickupDate(new Date(selectedDate.getTime() + minDaysAdvance * 24 * 60 * 60 * 1000)))}
             </p>
           </div>
         </div>
       </div>
       
-      {availableDates.length > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-          <p className="text-sm text-blue-800 text-center">
-            Disponibilità: dal {availableDates[0].toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })} al {availableDates[availableDates.length - 1].toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })}
-          </p>
-        </div>
-      )}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+        <p className="text-sm text-blue-800 text-center">
+          Seleziona il giorno in cui vuoi fare l'ordine
+        </p>
+      </div>
       
       <div className="relative">
         <div 
@@ -138,8 +164,7 @@ export default function DateSelector({
           {availableDates.map((date, index) => {
             const isSelected = date.toDateString() === selectedDate.toDateString();
             const dayLabel = isToday(date) ? 'Oggi' : isTomorrow(date) ? 'Domani' : null;
-            const dayOfWeek = date.getDay();
-            const ritiroLabel = getRitiroDay(date);
+            const ritiroInfo = getRitiroInfo(date);
             
             return (
               <button
@@ -178,14 +203,14 @@ export default function DateSelector({
                 </div>
                 
                 {/* Label RITIRO */}
-                <div className={`text-[11px] font-bold px-2 py-1 rounded-full ${
+                <div className={`text-[10px] font-bold px-2 py-1 rounded-full ${
                   isSelected 
                     ? 'bg-white/20 text-yellow-100' 
-                    : dayOfWeek === 6 || dayOfWeek === 0
+                    : ritiroInfo.isWeekendShifted
                       ? 'bg-amber-100 text-amber-800'
                       : 'bg-green-100 text-green-800'
                 }`}>
-                  {ritiroLabel}
+                  {ritiroInfo.label}
                 </div>
               </button>
             );
@@ -196,11 +221,11 @@ export default function DateSelector({
       <div className="mt-6 flex items-center justify-center gap-6 text-sm">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-          <span className="text-gray-600">Ritiro stesso giorno</span>
+          <span className="text-gray-600">Ritiro giorno feriale</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
-          <span className="text-gray-600">Ritiro giorno successivo</span>
+          <span className="text-gray-600">Ritiro slittato (weekend)</span>
         </div>
       </div>
     </div>
