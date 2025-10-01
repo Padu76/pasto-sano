@@ -614,7 +614,6 @@ export const MENU_COMBO: MenuItem[] = [
 
 // Helper function per generare il path dell'immagine basato sul nome del piatto
 function generateImagePath(nome: string, categoria: string): string {
-  // Normalizza il nome del piatto per creare un nome file valido
   const nomeFile = nome.toLowerCase()
     .replace(/[àá]/g, 'a')
     .replace(/[èé]/g, 'e')
@@ -623,20 +622,27 @@ function generateImagePath(nome: string, categoria: string): string {
     .replace(/[ùú]/g, 'u')
     .replace(/\s+/g, '-')
     .replace(/[^a-z0-9-]/g, '')
-    .substring(0, 50); // Limita la lunghezza del nome file
+    .substring(0, 50);
   
   return `/images/${categoria}/${nomeFile}.jpg`;
 }
 
 // FUNZIONE PER DETERMINARE LA SETTIMANA CORRENTE DEL MESE
+// Gestisce automaticamente anche i mesi con 5 settimane (ripete settimana1)
 export function getSettimanaCorrente(): string {
   const oggi = new Date();
   const giorno = oggi.getDate();
   
+  // Settimana 1: giorni 1-7
   if (giorno <= 7) return 'settimana1';
+  // Settimana 2: giorni 8-14
   else if (giorno <= 14) return 'settimana2';
+  // Settimana 3: giorni 15-21
   else if (giorno <= 21) return 'settimana3';
-  else return 'settimana4';
+  // Settimana 4: giorni 22-28
+  else if (giorno <= 28) return 'settimana4';
+  // Settimana 5 (giorni 29-31): ripete settimana1
+  else return 'settimana1';
 }
 
 // FUNZIONE PER OTTENERE IL GIORNO DELLA SETTIMANA
@@ -691,14 +697,17 @@ export function getMenuDelGiorno() {
 }
 
 // FUNZIONE PER OTTENERE IL MENU DI UN GIORNO SPECIFICO
+// Gestisce automaticamente anche i mesi con 5 settimane
 export function getMenuGiornoSpecifico(data: Date) {
   const giorno = data.getDate();
   let settimana: string;
   
+  // Logica migliorata: se giorno > 28, ripete settimana1
   if (giorno <= 7) settimana = 'settimana1';
   else if (giorno <= 14) settimana = 'settimana2';
   else if (giorno <= 21) settimana = 'settimana3';
-  else settimana = 'settimana4';
+  else if (giorno <= 28) settimana = 'settimana4';
+  else settimana = 'settimana1'; // Giorni 29-31 ripetono settimana1
   
   const giorni: (keyof MenuSettimana)[] = ['domenica', 'lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato'];
   const giornoSettimana = giorni[data.getDay()];

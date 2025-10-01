@@ -12,7 +12,8 @@ import {
   Globe,
   Clock,
   Star,
-  MapPin
+  MapPin,
+  Calendar
 } from 'lucide-react';
 
 // Import componenti
@@ -36,6 +37,7 @@ import {
 interface CartItem extends MenuItem {
   id: string;
   quantity: number;
+  pickupDate: string; // Data di ritiro per questo item
   isCombo?: boolean;
   comboItems?: {
     primo?: string;
@@ -46,10 +48,17 @@ interface CartItem extends MenuItem {
 }
 
 const MINIMUM_ITEMS = 3;
+const MIN_DAYS_ADVANCE = 2;
 
 export default function OrdinaPage() {
   // Stati principali
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(() => {
+    // Inizializza con data minima (oggi + 2 giorni)
+    const minDate = new Date();
+    minDate.setDate(minDate.getDate() + MIN_DAYS_ADVANCE);
+    return minDate;
+  });
+  
   const [menuDelGiorno, setMenuDelGiorno] = useState<any>(null);
   const [selectedCategory, setSelectedCategory] = useState('menu-giorno');
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -60,7 +69,7 @@ export default function OrdinaPage() {
   const [isComboSelectorOpen, setIsComboSelectorOpen] = useState(false);
   const [selectedCombo, setSelectedCombo] = useState<MenuItem | null>(null);
 
-  // Carica menu del giorno selezionato
+  // Carica menu della data selezionata per il ritiro
   useEffect(() => {
     const menu = getMenuGiornoSpecifico(selectedDate);
     setMenuDelGiorno(menu);
@@ -83,6 +92,16 @@ export default function OrdinaPage() {
     }
   }, [cart]);
 
+  // Formatta data per visualizzazione
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('it-IT', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
+
   // Gestione aggiunta al carrello
   const handleAddToCart = (item: MenuItem) => {
     // Se è un combo, apri il selettore
@@ -92,11 +111,12 @@ export default function OrdinaPage() {
       return;
     }
 
-    // Altrimenti aggiungi direttamente
+    // Altrimenti aggiungi direttamente con data di ritiro
     const cartItem: CartItem = {
       ...item,
       id: `${item.categoria}-${item.nome}-${Date.now()}`,
-      quantity: 1
+      quantity: 1,
+      pickupDate: selectedDate.toISOString()
     };
 
     addItemToCart(cartItem);
@@ -107,7 +127,7 @@ export default function OrdinaPage() {
     setCart([...cart, item]);
     
     // Mostra notifica
-    showNotification(`${item.nome} aggiunto al carrello!`);
+    showNotification(`${item.nome} aggiunto per il ${formatDate(new Date(item.pickupDate))}`);
   };
 
   // Gestione conferma combo
@@ -119,7 +139,8 @@ export default function OrdinaPage() {
       id: `combo-${Date.now()}`,
       quantity: 1,
       isCombo: true,
-      comboItems
+      comboItems,
+      pickupDate: selectedDate.toISOString()
     };
 
     addItemToCart(cartItem);
@@ -165,13 +186,13 @@ export default function OrdinaPage() {
   // Notifica semplice
   const showNotification = (message: string) => {
     const notification = document.createElement('div');
-    notification.className = 'fixed bottom-20 right-6 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-slide-up';
+    notification.className = 'fixed bottom-20 right-6 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-slide-up max-w-xs text-sm';
     notification.textContent = message;
     document.body.appendChild(notification);
     
     setTimeout(() => {
       notification.remove();
-    }, 3000);
+    }, 4000);
   };
 
   // Filtra items per categoria
@@ -231,7 +252,7 @@ export default function OrdinaPage() {
                 <h1 className="text-xl md:text-2xl font-bold text-amber-900">
                   Pasto Sano
                 </h1>
-                <p className="text-[10px] md:text-xs text-amber-700 hidden sm:block">Menu del giorno</p>
+                <p className="text-[10px] md:text-xs text-amber-700 hidden sm:block">Ordina il tuo menu</p>
               </div>
             </div>
             
@@ -273,8 +294,21 @@ export default function OrdinaPage() {
             Ordina il tuo Menu
           </h2>
           <p className="text-base sm:text-lg opacity-95 mb-6">
-            Scegli tra il menu del giorno o i piatti sempre disponibili
+            Scegli quando ritirare e cosa ordinare
           </p>
+          
+          {/* Info data ritiro selezionata */}
+          <div className="bg-white/20 backdrop-blur-sm px-4 py-3 rounded-lg mb-6 max-w-2xl mx-auto">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <div className="flex items-center gap-2 text-yellow-300">
+                <Calendar className="w-5 h-5" />
+                <span className="font-semibold">Stai ordinando per:</span>
+              </div>
+              <span className="text-lg font-bold capitalize">
+                {formatDate(selectedDate)}
+              </span>
+            </div>
+          </div>
           
           <div className="bg-white/20 backdrop-blur-sm px-4 py-3 rounded-lg mb-6 max-w-md mx-auto">
             <div className="flex items-center justify-center gap-2 text-yellow-300">
@@ -305,8 +339,26 @@ export default function OrdinaPage() {
         {/* Date Selector */}
         <DateSelector 
           onDateChange={setSelectedDate}
-          minDaysAdvance={2}
+          minDaysAdvance={MIN_DAYS_ADVANCE}
         />
+
+        {/* Banner info menu */}
+        {menuDelGiorno && (
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-4 mb-6">
+            <div className="flex items-start gap-3">
+              <Calendar className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
+              <div>
+                <h3 className="font-bold text-blue-900 mb-1">
+                  Menu disponibile per il {formatDate(selectedDate)}
+                </h3>
+                <p className="text-sm text-blue-700">
+                  Settimana {menuDelGiorno.settimana.replace('settimana', '')} del mese - 
+                  Menu del {menuDelGiorno.giorno}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Menu Categories */}
         <MenuCategories
