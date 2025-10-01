@@ -21,35 +21,19 @@ export default function DateSelector({
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    const targetDate = new Date(today);
-    targetDate.setDate(targetDate.getDate() + minDaysAdvance);
-    
-    const dayOfWeek = targetDate.getDay();
-    const daysUntilMonday = dayOfWeek === 0 ? 1 : (8 - dayOfWeek) % 7;
-    
-    let startMonday = new Date(targetDate);
-    if (dayOfWeek > 3) {
-      startMonday.setDate(startMonday.getDate() + daysUntilMonday);
-    } else {
-      startMonday.setDate(startMonday.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
-    }
-    
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(startMonday);
-      date.setDate(startMonday.getDate() + i);
+    // Crea array di 7 date consecutive partendo da oggi + minDaysAdvance
+    for (let i = minDaysAdvance; i < minDaysAdvance + 7; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
       dates.push(date);
     }
     
     setAvailableDates(dates);
     
-    const firstAvailable = dates.find(d => {
-      const meetsMinAdvance = d >= new Date(today.getTime() + (minDaysAdvance * 24 * 60 * 60 * 1000));
-      return meetsMinAdvance;
-    });
-    
-    if (firstAvailable) {
-      setSelectedDate(firstAvailable);
-      onDateChange(firstAvailable);
+    // Seleziona la prima data disponibile
+    if (dates.length > 0) {
+      setSelectedDate(dates[0]);
+      onDateChange(dates[0]);
     }
   }, [minDaysAdvance, onDateChange]);
   
@@ -72,7 +56,8 @@ export default function DateSelector({
     if (day <= 7) return 1;
     if (day <= 14) return 2;
     if (day <= 21) return 3;
-    return 4;
+    if (day <= 28) return 4;
+    return 1; // Settimana 5 ripete settimana 1
   };
   
   const isToday = (date: Date) => {
@@ -84,6 +69,23 @@ export default function DateSelector({
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     return date.toDateString() === tomorrow.toDateString();
+  };
+
+  // Calcola il giorno di ritiro effettivo
+  const getRitiroDay = (orderDate: Date) => {
+    const dayOfWeek = orderDate.getDay();
+    const giorni = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
+    
+    // Se è sabato (6), ritiro lunedì
+    if (dayOfWeek === 6) {
+      return 'Ritiro Lunedì';
+    }
+    // Se è domenica (0), ritiro martedì
+    else if (dayOfWeek === 0) {
+      return 'Ritiro Martedì';
+    }
+    // Altrimenti ritiro stesso giorno
+    return `Ritiro ${giorni[dayOfWeek]}`;
   };
 
   return (
@@ -131,28 +133,23 @@ export default function DateSelector({
       <div className="relative">
         <div 
           id="dates-container"
-          className="flex gap-3 justify-center pb-2"
+          className="flex gap-3 justify-center pb-2 overflow-x-auto"
         >
           {availableDates.map((date, index) => {
             const isSelected = date.toDateString() === selectedDate.toDateString();
             const dayLabel = isToday(date) ? 'Oggi' : isTomorrow(date) ? 'Domani' : null;
             const dayOfWeek = date.getDay();
-            const isSunday = dayOfWeek === 0;
-            const meetsMinAdvance = date >= new Date(new Date().getTime() + (minDaysAdvance * 24 * 60 * 60 * 1000));
-            const isAvailable = meetsMinAdvance;
+            const ritiroLabel = getRitiroDay(date);
             
             return (
               <button
                 key={index}
-                onClick={() => isAvailable && handleDateSelect(date)}
-                disabled={!isAvailable}
+                onClick={() => handleDateSelect(date)}
                 className={`
-                  flex-shrink-0 w-24 p-4 rounded-xl transition-all duration-300
-                  ${isSelected && isAvailable
+                  flex-shrink-0 w-28 p-4 rounded-xl transition-all duration-300
+                  ${isSelected
                     ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg scale-105' 
-                    : isAvailable
-                      ? 'bg-white border-2 border-gray-200 hover:border-amber-400 hover:shadow-md cursor-pointer'
-                      : 'bg-gray-100 border-2 border-gray-200 opacity-60 cursor-not-allowed'
+                    : 'bg-white border-2 border-gray-200 hover:border-amber-400 hover:shadow-md cursor-pointer'
                   }
                 `}
               >
@@ -163,45 +160,33 @@ export default function DateSelector({
                 )}
                 
                 <div className={`text-sm font-medium mb-1 capitalize ${
-                  isSelected && isAvailable ? 'text-white' : 
-                  isAvailable ? 'text-gray-600' : 
-                  'text-gray-400'
+                  isSelected ? 'text-white' : 'text-gray-600'
                 }`}>
                   {date.toLocaleDateString('it-IT', { weekday: 'short' })}
                 </div>
                 
                 <div className={`text-2xl font-bold mb-1 ${
-                  isSelected && isAvailable ? 'text-white' : 
-                  isAvailable ? 'text-gray-800' : 
-                  'text-gray-400'
+                  isSelected ? 'text-white' : 'text-gray-800'
                 }`}>
                   {date.getDate()}
                 </div>
                 
-                <div className={`text-xs capitalize ${
-                  isSelected && isAvailable ? 'text-yellow-100' : 
-                  isAvailable ? 'text-gray-500' : 
-                  'text-gray-400'
+                <div className={`text-xs capitalize mb-2 ${
+                  isSelected ? 'text-yellow-100' : 'text-gray-500'
                 }`}>
                   {date.toLocaleDateString('it-IT', { month: 'short' })}
                 </div>
                 
-                <div className={`mt-2 w-2 h-2 rounded-full mx-auto ${
-                  isAvailable 
-                    ? (isSelected ? 'bg-green-300' : 'bg-green-500')
-                    : 'bg-red-400'
-                }`} />
-                
-                {dayOfWeek === 6 && isAvailable && (
-                  <div className="text-[10px] mt-1 text-amber-600 font-semibold">
-                    Ritiro LUN
-                  </div>
-                )}
-                {isSunday && isAvailable && (
-                  <div className="text-[10px] mt-1 text-amber-600 font-semibold">
-                    Ritiro MAR
-                  </div>
-                )}
+                {/* Label RITIRO */}
+                <div className={`text-[11px] font-bold px-2 py-1 rounded-full ${
+                  isSelected 
+                    ? 'bg-white/20 text-yellow-100' 
+                    : dayOfWeek === 6 || dayOfWeek === 0
+                      ? 'bg-amber-100 text-amber-800'
+                      : 'bg-green-100 text-green-800'
+                }`}>
+                  {ritiroLabel}
+                </div>
               </button>
             );
           })}
@@ -211,15 +196,11 @@ export default function DateSelector({
       <div className="mt-6 flex items-center justify-center gap-6 text-sm">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-          <span className="text-gray-600">Disponibile</span>
+          <span className="text-gray-600">Ritiro stesso giorno</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
-          <span className="text-gray-600">Weekend (chiuso)</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-          <span className="text-gray-600">Non disponibile</span>
+          <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
+          <span className="text-gray-600">Ritiro giorno successivo</span>
         </div>
       </div>
     </div>
