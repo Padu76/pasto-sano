@@ -492,14 +492,16 @@ export const MENU_FISSO: MenuItem[] = [
     prezzo: PREZZI.piadina,
     categoria: 'piadina',
     disponibile: 'sempre',
-    immagine: '/images/piadine/piadina-cotto.jpg'
+    immagine: '/images/piadine/piadina-cotto.jpg',
+    descrizione: 'Prosciutto cotto, squacquerone, rucola fresca'
   },
   {
     nome: "Piadina crudo, squacquerone, rucola",
     prezzo: PREZZI.piadina,
     categoria: 'piadina',
     disponibile: 'sempre',
-    immagine: '/images/piadine/piadina-crudo.jpg'
+    immagine: '/images/piadine/piadina-crudo.jpg',
+    descrizione: 'Prosciutto crudo, squacquerone, rucola fresca'
   },
   // INSALATONE
   {
@@ -546,7 +548,26 @@ export const MENU_FISSO: MenuItem[] = [
     nome: "Insalata Bufalina",
     prezzo: PREZZI.insalatona,
     categoria: 'insalatona',
-    
+    disponibile: 'sempre',
+    immagine: '/images/insalatone/insalatona-6.jpg',
+    descrizione: 'Valeriana, pomodoro, mozzarella di bufala, basilico'
+  },
+  {
+    nome: "Insalata Tonnata",
+    prezzo: PREZZI.insalatona,
+    categoria: 'insalatona',
+    disponibile: 'sempre',
+    immagine: '/images/insalatone/insalatona-7.jpg',
+    descrizione: 'Valeriana, mozzarelline, uovo, tonno, pomodoro, carote'
+  },
+  {
+    nome: "Insalatona Valtellina",
+    prezzo: PREZZI.insalatona,
+    categoria: 'insalatona',
+    disponibile: 'sempre',
+    immagine: '/images/insalatone/insalatona-8.jpg',
+    descrizione: 'Mista, rucola, valeriana, bresaola, noci, scaglie di grana, crostini'
+  },
   // EXTRA
   {
     nome: "Muffin albicocca",
@@ -568,6 +589,13 @@ export const MENU_FISSO: MenuItem[] = [
     categoria: 'extra',
     disponibile: 'sempre',
     immagine: '/images/extra/carne-salada.jpg'
+  },
+  {
+    nome: "Roast beef",
+    prezzo: PREZZI.carneSalada,
+    categoria: 'extra',
+    disponibile: 'sempre',
+    immagine: '/images/extra/roast-beef.jpg'
   }
 ];
 
@@ -636,15 +664,10 @@ export function getSettimanaCorrente(): string {
   const oggi = new Date();
   const giorno = oggi.getDate();
   
-  // Settimana 1: giorni 1-7
   if (giorno <= 7) return 'settimana1';
-  // Settimana 2: giorni 8-14
   else if (giorno <= 14) return 'settimana2';
-  // Settimana 3: giorni 15-21
   else if (giorno <= 21) return 'settimana3';
-  // Settimana 4: giorni 22-28
   else if (giorno <= 28) return 'settimana4';
-  // Settimana 5 (giorni 29-31): ripete settimana1
   else return 'settimana1';
 }
 
@@ -705,12 +728,11 @@ export function getMenuGiornoSpecifico(data: Date) {
   const giorno = data.getDate();
   let settimana: string;
   
-  // Logica migliorata: se giorno > 28, ripete settimana1
   if (giorno <= 7) settimana = 'settimana1';
   else if (giorno <= 14) settimana = 'settimana2';
   else if (giorno <= 21) settimana = 'settimana3';
   else if (giorno <= 28) settimana = 'settimana4';
-  else settimana = 'settimana1'; // Giorni 29-31 ripetono settimana1
+  else settimana = 'settimana1';
   
   const giorni: (keyof MenuSettimana)[] = ['domenica', 'lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato'];
   const giornoSettimana = giorni[data.getDay()];
@@ -801,21 +823,18 @@ export function cercaPiatto(termine: string): MenuItem[] {
   const risultati: MenuItem[] = [];
   const termineRicerca = termine.toLowerCase();
   
-  // Cerca nei menu fissi
   MENU_FISSO.forEach(item => {
     if (item.nome.toLowerCase().includes(termineRicerca)) {
       risultati.push(item);
     }
   });
   
-  // Cerca nei menu combo
   MENU_COMBO.forEach(item => {
     if (item.nome.toLowerCase().includes(termineRicerca)) {
       risultati.push(item);
     }
   });
   
-  // Cerca nei menu rotativi
   Object.values(MENU_ROTATIVO).forEach(settimana => {
     Object.values(settimana).forEach(giorno => {
       giorno.primi.forEach((primo: string) => {
@@ -854,7 +873,6 @@ export function cercaPiatto(termine: string): MenuItem[] {
     });
   });
   
-  // Rimuovi duplicati
   return risultati.filter((item, index, self) =>
     index === self.findIndex((t) => t.nome === item.nome)
   );
