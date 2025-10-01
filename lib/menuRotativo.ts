@@ -503,61 +503,50 @@ export const MENU_FISSO: MenuItem[] = [
   },
   // INSALATONE
   {
-    nome: "Insalatona Mista n.1",
+    nome: "Insalata Fumè",
     prezzo: PREZZI.insalatona,
     categoria: 'insalatona',
     disponibile: 'sempre',
-    immagine: '/images/insalatone/insalatona-1.jpg'
+    immagine: '/images/insalatone/insalatona-1.jpg',
+    descrizione: 'Valeriana, salmone affumicato, philadelphia, arancia, sesamo, crostini'
   },
   {
-    nome: "Insalatona Mista n.2",
+    nome: "Insalata Prateria",
     prezzo: PREZZI.insalatona,
     categoria: 'insalatona',
     disponibile: 'sempre',
-    immagine: '/images/insalatone/insalatona-2.jpg'
+    immagine: '/images/insalatone/insalatona-2.jpg',
+    descrizione: 'Mista, rucola, pomodoro, carote, philadelphia, filacci di cavallo, capperi'
   },
   {
-    nome: "Insalatona Mista n.3",
+    nome: "Insalata Trentina",
     prezzo: PREZZI.insalatona,
     categoria: 'insalatona',
     disponibile: 'sempre',
-    immagine: '/images/insalatone/insalatona-3.jpg'
+    immagine: '/images/insalatone/insalatona-3.jpg',
+    descrizione: 'Valeriana, patate, speck, scaglie di grana, aceto balsamico'
   },
   {
-    nome: "Insalatona Mista n.4",
+    nome: "Insalata Ceasar",
     prezzo: PREZZI.insalatona,
     categoria: 'insalatona',
     disponibile: 'sempre',
-    immagine: '/images/insalatone/insalatona-4.jpg'
+    immagine: '/images/insalatone/insalatona-4.jpg',
+    descrizione: 'Rucola, pomodorini, uovo, pollo, crostini, salsa ceasar'
   },
   {
-    nome: "Insalatona Mista n.5",
+    nome: "Insalata Re di Sapori",
     prezzo: PREZZI.insalatona,
     categoria: 'insalatona',
     disponibile: 'sempre',
-    immagine: '/images/insalatone/insalatona-5.jpg'
+    immagine: '/images/insalatone/insalatona-5.jpg',
+    descrizione: 'Valeriana, feta, olive taggiasche, pomodorini, peperoni, cetrioli'
   },
   {
-    nome: "Insalatona Mista n.6",
+    nome: "Insalata Bufalina",
     prezzo: PREZZI.insalatona,
     categoria: 'insalatona',
-    disponibile: 'sempre',
-    immagine: '/images/insalatone/insalatona-6.jpg'
-  },
-  {
-    nome: "Insalatona Mista n.7",
-    prezzo: PREZZI.insalatona,
-    categoria: 'insalatona',
-    disponibile: 'sempre',
-    immagine: '/images/insalatone/insalatona-7.jpg'
-  },
-  {
-    nome: "Insalatona Mista n.8",
-    prezzo: PREZZI.insalatona,
-    categoria: 'insalatona',
-    disponibile: 'sempre',
-    immagine: '/images/insalatone/insalatona-8.jpg'
-  },
+    
   // EXTRA
   {
     nome: "Muffin albicocca",
