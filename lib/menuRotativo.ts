@@ -544,6 +544,20 @@ export const MENU_FISSO: MenuItem[] = [
     disponibile: 'sempre',
     immagine: '/images/insalatone/insalatona-6.jpg'
   },
+  {
+    nome: "Insalatona Mista n.7",
+    prezzo: PREZZI.insalatona,
+    categoria: 'insalatona',
+    disponibile: 'sempre',
+    immagine: '/images/insalatone/insalatona-7.jpg'
+  },
+  {
+    nome: "Insalatona Mista n.8",
+    prezzo: PREZZI.insalatona,
+    categoria: 'insalatona',
+    disponibile: 'sempre',
+    immagine: '/images/insalatone/insalatona-8.jpg'
+  },
   // EXTRA
   {
     nome: "Muffin albicocca",
