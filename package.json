@@ -1,0 +1,74 @@
+{
+  "name": "pasto-sano",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pasto Sano - Sistema ordini con pagamenti Stripe e PayPal",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "postinstall": "echo 'Dependencies installed successfully'"
+  },
+  "dependencies": {
+    "@emailjs/browser": "^3.12.1",
+    "@paypal/react-paypal-js": "^8.1.3",
+    "@stripe/stripe-js": "^2.2.2",
+    "@tailwindcss/aspect-ratio": "^0.4.2",
+    "@tailwindcss/forms": "^0.5.7",
+    "@tailwindcss/typography": "^0.5.10",
+    "@types/node": "20.10.5",
+    "@types/react": "18.2.45",
+    "@types/react-dom": "18.2.18",
+    "autoprefixer": "^10.4.16",
+    "chart.js": "^4.5.0",
+    "emailjs-com": "^3.2.0",
+    "eslint": "8.57.1",
+    "eslint-config-next": "14.0.4",
+    "firebase": "^9.23.0",
+    "firebase-admin": "^11.10.1",
+    "lucide-react": "^0.303.0",
+    "next": "14.0.4",
+    "postcss": "^8.4.32",
+    "react": "18.2.0",
+    "react-chartjs-2": "^5.3.0",
+    "react-dom": "18.2.0",
+    "react-hot-toast": "^2.4.1",
+    "stripe": "^14.10.0",
+    "tailwindcss": "^3.4.0",
+    "typescript": "5.3.3"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.23.7",
+    "@babel/plugin-proposal-class-properties": "^7.18.6",
+    "@babel/plugin-proposal-private-methods": "^7.18.6",
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@babel/preset-env": "^7.23.7",
+    "babel-loader": "^9.1.3",
+    "null-loader": "^4.0.1"
+  },
+  "engines": {
+    "node": ">=18.17.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Padu76/pasto-sano"
+  },
+  "keywords": [
+    "food",
+    "delivery",
+    "orders",
+    "stripe",
+    "paypal",
+    "vercel",
+    "nextjs",
+    "firebase",
+    "emailjs",
+    "notifications",
+    "dashboard",
+    "admin",
+    "tailwindcss"
+  ],
+  "author": "Pasto Sano",
+  "license": "MIT"
+}
