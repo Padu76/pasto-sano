@@ -77,15 +77,6 @@ export default function DateSelector({
     });
   };
   
-  const getWeekNumber = (date: Date) => {
-    const day = date.getDate();
-    if (day <= 7) return 1;
-    if (day <= 14) return 2;
-    if (day <= 21) return 3;
-    if (day <= 28) return 4;
-    return 1;
-  };
-  
   const isToday = (date: Date) => {
     const today = new Date();
     return date.toDateString() === today.toDateString();
