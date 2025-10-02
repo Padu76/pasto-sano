@@ -88,7 +88,7 @@ export default function ProductCard({
           <img 
             src={item.immagine} 
             alt={item.nome}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+            className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-300"
             onError={(e) => {
               // Se l'immagine non carica, nascondi e mostra emoji
               e.currentTarget.style.display = 'none';
