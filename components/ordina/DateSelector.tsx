@@ -40,13 +40,17 @@ export default function DateSelector({
     }
   }, [minDaysAdvance, onDateChange]);
   
-  // Calcola la data di ritiro effettiva considerando i weekend
+  // Calcola la data di ritiro effettiva considerando i weekend e il venerdì
   const getEffectivePickupDate = (date: Date): Date => {
     const dayOfWeek = date.getDay();
     const pickupDate = new Date(date);
     
+    // Se cade di venerdì (5), sposta a lunedì (+3 giorni)
+    if (dayOfWeek === 5) {
+      pickupDate.setDate(pickupDate.getDate() + 3);
+    }
     // Se cade di sabato (6), sposta a lunedì (+2 giorni)
-    if (dayOfWeek === 6) {
+    else if (dayOfWeek === 6) {
       pickupDate.setDate(pickupDate.getDate() + 2);
     }
     // Se cade di domenica (0), sposta a martedì (+2 giorni)
