@@ -50,9 +50,9 @@ export default function DateSelector({
     if (dayOfWeek === 6) {
       pickupDate.setDate(pickupDate.getDate() + 2);
     }
-    // Se il ritiro cade di domenica (0), sposta a martedì (+2 giorni)
+    // Se il ritiro cade di domenica (0), sposta a lunedì (+1 giorno)
     else if (dayOfWeek === 0) {
-      pickupDate.setDate(pickupDate.getDate() + 2);
+      pickupDate.setDate(pickupDate.getDate() + 1);
     }
     
     return pickupDate;
