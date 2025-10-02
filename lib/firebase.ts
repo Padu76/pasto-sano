@@ -17,8 +17,6 @@ import {
 import { getAuth } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 
-// Configurazione Firebase - USA SOLO ENVIRONMENT VARIABLES
-// NESSUNA CHIAVE HARDCODED PER SICUREZZA
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -29,56 +27,48 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-// Verifica che le environment variables siano presenti
 if (typeof window !== 'undefined') {
-  // Solo lato client
   if (!firebaseConfig.apiKey) {
-    console.error('⚠️ ATTENZIONE: NEXT_PUBLIC_FIREBASE_API_KEY mancante!');
+    console.error('NEXT_PUBLIC_FIREBASE_API_KEY mancante!');
     console.error('Assicurati di aver configurato le environment variables su Vercel');
   }
 }
 
-// Debug logging (solo in development e senza esporre le chiavi)
 if (process.env.NODE_ENV === 'development') {
-  console.log('🔥 Firebase Config Check:', {
-    apiKey: firebaseConfig.apiKey ? '✅ Presente' : '❌ MANCANTE',
-    authDomain: firebaseConfig.authDomain ? '✅ Presente' : '❌ MANCANTE',
-    projectId: firebaseConfig.projectId ? '✅ Presente' : '❌ MANCANTE',
-    storageBucket: firebaseConfig.storageBucket ? '✅ Presente' : '❌ MANCANTE',
-    messagingSenderId: firebaseConfig.messagingSenderId ? '✅ Presente' : '❌ MANCANTE',
-    appId: firebaseConfig.appId ? '✅ Presente' : '❌ MANCANTE'
+  console.log('Firebase Config Check:', {
+    apiKey: firebaseConfig.apiKey ? 'Presente' : 'MANCANTE',
+    authDomain: firebaseConfig.authDomain ? 'Presente' : 'MANCANTE',
+    projectId: firebaseConfig.projectId ? 'Presente' : 'MANCANTE',
+    storageBucket: firebaseConfig.storageBucket ? 'Presente' : 'MANCANTE',
+    messagingSenderId: firebaseConfig.messagingSenderId ? 'Presente' : 'MANCANTE',
+    appId: firebaseConfig.appId ? 'Presente' : 'MANCANTE'
   });
 }
 
-// Inizializza Firebase
 let app: FirebaseApp;
 let db: any;
 let auth: any;
 let storage: any;
 
 try {
-  // Verifica che almeno le chiavi essenziali siano presenti
   if (firebaseConfig.apiKey && firebaseConfig.projectId) {
     if (!getApps().length) {
       app = initializeApp(firebaseConfig);
-      console.log('✅ Firebase inizializzato correttamente con progetto:', firebaseConfig.projectId);
+      console.log('Firebase inizializzato correttamente con progetto:', firebaseConfig.projectId);
     } else {
       app = getApps()[0];
-      console.log('✅ Firebase già inizializzato');
+      console.log('Firebase già inizializzato');
     }
 
-    // Inizializza i servizi
     db = getFirestore(app);
     auth = getAuth(app);
     storage = getStorage(app);
     
-    // Test di connessione
     if (typeof window !== 'undefined') {
-      // Solo lato client
-      console.log('🔍 Testing Firebase connection...');
+      console.log('Testing Firebase connection...');
     }
   } else {
-    console.error('❌ Firebase non può essere inizializzato: chiavi mancanti');
+    console.error('Firebase non può essere inizializzato: chiavi mancanti');
     console.error('Configura le environment variables su Vercel:');
     console.error('- NEXT_PUBLIC_FIREBASE_API_KEY');
     console.error('- NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN');
@@ -89,14 +79,11 @@ try {
   }
   
 } catch (error) {
-  console.error('❌ Errore inizializzazione Firebase:', error);
-  // Non bloccare l'app se Firebase fallisce
+  console.error('Errore inizializzazione Firebase:', error);
 }
 
-// Esporta servizi Firebase
 export { db, auth, storage };
 
-// Tipi TypeScript
 export interface OrderItem {
   name: string;
   quantity: number;
@@ -124,6 +111,21 @@ export interface Order {
   timestamp: Timestamp | Date;
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
+  
+  // Campi delivery
+  deliveryEnabled?: string | boolean;
+  deliveryAddress?: string;
+  deliveryAddressDetails?: string;
+  deliveryDistance?: string | number;
+  deliveryZone?: string;
+  deliveryCost?: string | number;
+  deliveryRiderShare?: string | number;
+  deliveryPlatformShare?: string | number;
+  deliveryStatus?: 'pending' | 'in_delivery' | 'delivered';
+  riderId?: string;
+  riderName?: string;
+  assignedAt?: Date | Timestamp;
+  deliveredAt?: Date | Timestamp;
 }
 
 export interface Customer {
@@ -151,18 +153,14 @@ export interface DashboardStats {
   uniqueCustomers: number;
 }
 
-// FUNZIONI FIREBASE CLIENT SDK (FRONTEND SOLO)
-
-// Aggiungi nuovo ordine con error handling migliorato
 export async function addOrder(order: Omit<Order, 'id'>): Promise<string> {
   try {
-    // Verifica che Firestore sia inizializzato
     if (!db) {
-      console.error('❌ Firestore non inizializzato - verificare environment variables');
+      console.error('Firestore non inizializzato - verificare environment variables');
       throw new Error('Firestore not initialized - check environment variables');
     }
 
-    console.log('🔍 Tentativo di salvare ordine:', {
+    console.log('Tentativo di salvare ordine:', {
       customerName: order.customerName,
       totalAmount: order.totalAmount,
       paymentMethod: order.paymentMethod
@@ -176,30 +174,28 @@ export async function addOrder(order: Omit<Order, 'id'>): Promise<string> {
     };
     
     const docRef = await addDoc(collection(db, 'orders'), orderData);
-    console.log('✅ Ordine salvato su Firebase con ID:', docRef.id);
+    console.log('Ordine salvato su Firebase con ID:', docRef.id);
     return docRef.id;
     
   } catch (error: any) {
-    console.error('❌ Errore dettagliato salvataggio ordine:', {
+    console.error('Errore dettagliato salvataggio ordine:', {
       message: error.message,
       code: error.code,
       details: error
     });
     
-    // Rilancia l'errore per gestirlo a livello superiore
     throw new Error(`Firebase save failed: ${error.message}`);
   }
 }
 
-// Ottieni tutti gli ordini con error handling
 export async function getOrders(limitCount: number = 100): Promise<Order[]> {
   try {
     if (!db) {
-      console.error('❌ Firestore non inizializzato - verificare environment variables');
+      console.error('Firestore non inizializzato - verificare environment variables');
       return [];
     }
 
-    console.log(`📊 Caricamento ultimi ${limitCount} ordini...`);
+    console.log(`Caricamento ultimi ${limitCount} ordini...`);
     
     const ordersRef = collection(db, 'orders');
     const q = query(ordersRef, orderBy('timestamp', 'desc'), limit(limitCount));
@@ -216,20 +212,19 @@ export async function getOrders(limitCount: number = 100): Promise<Order[]> {
       } as Order);
     });
     
-    console.log(`✅ ${orders.length} ordini caricati da Firebase`);
+    console.log(`${orders.length} ordini caricati da Firebase`);
     return orders;
     
   } catch (error: any) {
-    console.error('❌ Errore caricamento ordini:', error.message);
+    console.error('Errore caricamento ordini:', error.message);
     return [];
   }
 }
 
-// Ottieni ordini per data
 export async function getOrdersByDate(date: Date): Promise<Order[]> {
   try {
     if (!db) {
-      console.error('❌ Firestore non inizializzato - verificare environment variables');
+      console.error('Firestore non inizializzato - verificare environment variables');
       return [];
     }
 
@@ -259,20 +254,19 @@ export async function getOrdersByDate(date: Date): Promise<Order[]> {
       } as Order);
     });
     
-    console.log(`✅ ${orders.length} ordini trovati per ${date.toLocaleDateString()}`);
+    console.log(`${orders.length} ordini trovati per ${date.toLocaleDateString()}`);
     return orders;
     
   } catch (error: any) {
-    console.error('❌ Errore caricamento ordini per data:', error.message);
+    console.error('Errore caricamento ordini per data:', error.message);
     return [];
   }
 }
 
-// Ottieni ordini per range di date
 export async function getOrdersByDateRange(startDate: Date, endDate: Date): Promise<Order[]> {
   try {
     if (!db) {
-      console.error('❌ Firestore non inizializzato - verificare environment variables');
+      console.error('Firestore non inizializzato - verificare environment variables');
       return [];
     }
 
@@ -302,20 +296,19 @@ export async function getOrdersByDateRange(startDate: Date, endDate: Date): Prom
       } as Order);
     });
     
-    console.log(`✅ ${orders.length} ordini trovati dal ${startDate.toLocaleDateString()} al ${endDate.toLocaleDateString()}`);
+    console.log(`${orders.length} ordini trovati dal ${startDate.toLocaleDateString()} al ${endDate.toLocaleDateString()}`);
     return orders;
     
   } catch (error: any) {
-    console.error('❌ Errore caricamento ordini per range:', error.message);
+    console.error('Errore caricamento ordini per range:', error.message);
     return [];
   }
 }
 
-// Aggiorna stato ordine
 export async function updateOrderStatus(orderId: string, status: string): Promise<void> {
   try {
     if (!db) {
-      console.error('❌ Firestore non inizializzato - verificare environment variables');
+      console.error('Firestore non inizializzato - verificare environment variables');
       return;
     }
 
@@ -325,18 +318,17 @@ export async function updateOrderStatus(orderId: string, status: string): Promis
       updatedAt: Timestamp.now()
     });
     
-    console.log(`✅ Stato ordine ${orderId} aggiornato a: ${status}`);
+    console.log(`Stato ordine ${orderId} aggiornato a: ${status}`);
     
   } catch (error: any) {
-    console.error('❌ Errore aggiornamento stato ordine:', error.message);
+    console.error('Errore aggiornamento stato ordine:', error.message);
   }
 }
 
-// Ottieni statistiche dashboard
 export async function getDashboardStats(): Promise<DashboardStats> {
   try {
     if (!db) {
-      console.error('❌ Firestore non inizializzato - verificare environment variables');
+      console.error('Firestore non inizializzato - verificare environment variables');
       return {
         ordersToday: 0,
         revenueToday: 0,
@@ -347,23 +339,20 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       };
     }
 
-    console.log('📈 Caricamento statistiche...');
+    console.log('Caricamento statistiche...');
     
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    // Ordini di oggi
     const todayOrders = await getOrdersByDate(today);
     const todayRevenue = todayOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
     
-    // Ordini ultimi 30 giorni
     const thirtyDaysAgo = new Date(today);
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     
     const allOrders = await getOrdersByDateRange(thirtyDaysAgo, new Date());
     const totalRevenue = allOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
     
-    // Clienti unici
     const uniqueCustomers = new Set(
       allOrders.map(order => `${order.customerName}_${order.customerPhone}`)
     ).size;
@@ -377,11 +366,11 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       uniqueCustomers: uniqueCustomers
     };
     
-    console.log('✅ Statistiche caricate:', stats);
+    console.log('Statistiche caricate:', stats);
     return stats;
     
   } catch (error: any) {
-    console.error('❌ Errore caricamento statistiche:', error.message);
+    console.error('Errore caricamento statistiche:', error.message);
     return {
       ordersToday: 0,
       revenueToday: 0,
@@ -393,11 +382,10 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   }
 }
 
-// Ottieni prodotti più venduti
 export async function getTopProducts(limitCount: number = 10, days: number = 30): Promise<ProductSales[]> {
   try {
     if (!db) {
-      console.error('❌ Firestore non inizializzato - verificare environment variables');
+      console.error('Firestore non inizializzato - verificare environment variables');
       return [];
     }
 
@@ -430,20 +418,19 @@ export async function getTopProducts(limitCount: number = 10, days: number = 30)
         revenue: productRevenue[name]
       }));
     
-    console.log(`✅ Top ${limitCount} prodotti degli ultimi ${days} giorni:`, sortedProducts);
+    console.log(`Top ${limitCount} prodotti degli ultimi ${days} giorni:`, sortedProducts);
     return sortedProducts;
     
   } catch (error: any) {
-    console.error('❌ Errore caricamento top products:', error.message);
+    console.error('Errore caricamento top products:', error.message);
     return [];
   }
 }
 
-// Ottieni clienti unici
 export async function getUniqueCustomers(days: number = 365): Promise<Customer[]> {
   try {
     if (!db) {
-      console.error('❌ Firestore non inizializzato - verificare environment variables');
+      console.error('Firestore non inizializzato - verificare environment variables');
       return [];
     }
 
@@ -486,26 +473,25 @@ export async function getUniqueCustomers(days: number = 365): Promise<Customer[]
     
     const customers = Object.values(customerMap).sort((a, b) => b.totalSpent - a.totalSpent);
     
-    console.log(`✅ ${customers.length} clienti unici trovati negli ultimi ${days} giorni`);
+    console.log(`${customers.length} clienti unici trovati negli ultimi ${days} giorni`);
     return customers;
     
   } catch (error: any) {
-    console.error('❌ Errore caricamento clienti unici:', error.message);
+    console.error('Errore caricamento clienti unici:', error.message);
     return [];
   }
 }
 
-// Listener per nuovi ordini in tempo reale
 export function listenForNewOrders(
   callback: (order: Order) => void
 ): Unsubscribe | (() => void) {
   try {
     if (!db) {
-      console.error('❌ Firestore non inizializzato - verificare environment variables');
+      console.error('Firestore non inizializzato - verificare environment variables');
       return () => {};
     }
 
-    console.log('👂 Avvio listener per nuovi ordini...');
+    console.log('Avvio listener per nuovi ordini...');
     
     const ordersRef = collection(db, 'orders');
     const q = query(ordersRef, orderBy('timestamp', 'desc'), limit(1));
@@ -520,30 +506,29 @@ export function listenForNewOrders(
             timestamp: data.timestamp?.toDate?.() || new Date()
           } as Order;
           
-          console.log('🔔 Nuovo ordine rilevato:', newOrder);
+          console.log('Nuovo ordine rilevato:', newOrder);
           callback(newOrder);
         }
       });
     }, (error) => {
-      console.error('❌ Errore listener ordini:', error);
+      console.error('Errore listener ordini:', error);
     });
     
     return unsubscribe;
     
   } catch (error: any) {
-    console.error('❌ Errore listener ordini:', error.message);
+    console.error('Errore listener ordini:', error.message);
     return () => {};
   }
 }
 
-// Listener per tutti gli ordini con filtri
 export function listenToOrders(
   callback: (orders: Order[]) => void,
   limitCount: number = 500
 ): Unsubscribe | (() => void) {
   try {
     if (!db) {
-      console.error('❌ Firestore non inizializzato - verificare environment variables');
+      console.error('Firestore non inizializzato - verificare environment variables');
       return () => {};
     }
 
@@ -564,18 +549,17 @@ export function listenToOrders(
       
       callback(orders);
     }, (error) => {
-      console.error('❌ Errore listener ordini:', error);
+      console.error('Errore listener ordini:', error);
     });
     
     return unsubscribe;
     
   } catch (error: any) {
-    console.error('❌ Errore setup listener:', error.message);
+    console.error('Errore setup listener:', error.message);
     return () => {};
   }
 }
 
-// Utility per formattare date
 export function formatDate(timestamp: any): string {
   try {
     const date = timestamp?.toDate ? timestamp.toDate() : new Date(timestamp);
@@ -591,11 +575,10 @@ export function formatDate(timestamp: any): string {
   }
 }
 
-// Test di connessione Firebase
 export async function testFirebaseConnection(): Promise<boolean> {
   try {
     if (!db) {
-      console.error('❌ Firestore non inizializzato - verificare environment variables');
+      console.error('Firestore non inizializzato - verificare environment variables');
       console.error('Assicurati di aver configurato su Vercel:');
       console.error('- NEXT_PUBLIC_FIREBASE_API_KEY');
       console.error('- NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN');
@@ -606,23 +589,21 @@ export async function testFirebaseConnection(): Promise<boolean> {
       return false;
     }
 
-    console.log('🔍 Test connessione Firebase...');
+    console.log('Test connessione Firebase...');
     
-    // Prova a leggere la collezione orders (anche se vuota)
     const ordersRef = collection(db, 'orders');
     const q = query(ordersRef, limit(1));
     await getDocs(q);
     
-    console.log('✅ Connessione Firebase OK!');
+    console.log('Connessione Firebase OK!');
     return true;
     
   } catch (error: any) {
-    console.error('❌ Test connessione Firebase fallito:', error.message);
+    console.error('Test connessione Firebase fallito:', error.message);
     return false;
   }
 }
 
-// Esporta tutte le funzioni
 export default {
   getOrders,
   getOrdersByDate,

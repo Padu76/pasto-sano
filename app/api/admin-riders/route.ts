@@ -1,0 +1,36 @@
+import { NextResponse } from 'next/server';
+import { db } from '@/lib/firebase';
+import { collection, getDocs, orderBy, query } from 'firebase/firestore';
+
+export async function GET() {
+  try {
+    const ridersRef = collection(db, 'riders');
+    const q = query(ridersRef, orderBy('createdAt', 'desc'));
+    const snapshot = await getDocs(q);
+
+    const riders: any[] = [];
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      riders.push({
+        id: doc.id,
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        status: data.status || 'active',
+        createdAt: data.createdAt?.toDate?.() || new Date()
+      });
+    });
+
+    return NextResponse.json({
+      success: true,
+      riders
+    });
+
+  } catch (error: any) {
+    console.error('Errore caricamento rider:', error);
+    return NextResponse.json(
+      { success: false, error: 'Errore durante il caricamento' },
+      { status: 500 }
+    );
+  }
+}
