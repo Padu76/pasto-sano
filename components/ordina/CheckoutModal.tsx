@@ -16,7 +16,10 @@ import {
   Check,
   Tag,
   Clock,
-  MessageSquare
+  MessageSquare,
+  FileText,
+  Building2,
+  Home
 } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
@@ -68,12 +71,19 @@ export default function CheckoutModal({
   minimumItems = 3
 }: CheckoutModalProps) {
 
-  // Stati form
+  // Stati form base
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [pickupDate, setPickupDate] = useState('');
   const [notes, setNotes] = useState('');
+  
+  // Stati dati fatturazione
+  const [fiscalCode, setFiscalCode] = useState('');
+  const [address, setAddress] = useState('');
+  const [cap, setCap] = useState('');
+  const [city, setCity] = useState('');
+  const [province, setProvince] = useState('');
   
   // Stati sconto
   const [discountCode, setDiscountCode] = useState('');
@@ -96,7 +106,7 @@ export default function CheckoutModal({
       minDate.setDate(minDate.getDate() + 1);
       const dayOfWeek = minDate.getDay();
       
-      if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Escludi weekend
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
         daysAdded++;
       }
     }
@@ -147,6 +157,22 @@ export default function CheckoutModal({
     return items.reduce((total, item) => total + item.quantity, 0);
   };
 
+  // Validazione Codice Fiscale
+  const validateFiscalCode = (code: string): boolean => {
+    const fiscalCodeRegex = /^[A-Z]{6}[0-9]{2}[A-Z][0-9]{2}[A-Z][0-9]{3}[A-Z]$/i;
+    return fiscalCodeRegex.test(code);
+  };
+
+  // Validazione CAP
+  const validateCAP = (cap: string): boolean => {
+    return /^\d{5}$/.test(cap);
+  };
+
+  // Validazione Provincia
+  const validateProvince = (prov: string): boolean => {
+    return /^[A-Z]{2}$/i.test(prov);
+  };
+
   // Gestione sconto
   const applyDiscountCode = () => {
     const code = discountCode.toUpperCase().trim();
@@ -175,11 +201,40 @@ export default function CheckoutModal({
     setDiscountError('');
   };
 
-  // Validazione form
+  // Validazione form completa
   const validateForm = () => {
+    // Validazione base
     if (!customerName || !customerPhone || !pickupDate) {
       setError('Compila tutti i campi obbligatori');
       return false;
+    }
+    
+    // Validazione dati fatturazione (solo per pagamenti online)
+    if (paymentMethod === 'stripe' || paymentMethod === 'paypal') {
+      if (!fiscalCode || !address || !cap || !city || !province) {
+        setError('Per i pagamenti online è obbligatorio compilare tutti i dati di fatturazione');
+        return false;
+      }
+      
+      if (!validateFiscalCode(fiscalCode)) {
+        setError('Codice Fiscale non valido (formato: RSSMRA85M01H501Z)');
+        return false;
+      }
+      
+      if (!validateCAP(cap)) {
+        setError('CAP non valido (5 cifre)');
+        return false;
+      }
+      
+      if (!validateProvince(province)) {
+        setError('Provincia non valida (2 lettere, es: VR)');
+        return false;
+      }
+      
+      if (!customerEmail) {
+        setError('Email obbligatoria per ricevere la fattura');
+        return false;
+      }
     }
     
     const selectedDate = new Date(pickupDate);
@@ -246,6 +301,13 @@ export default function CheckoutModal({
           discountCode: appliedDiscount ? appliedDiscount.code : '',
           discountPercent: appliedDiscount ? appliedDiscount.percent.toString() : '0',
           originalAmount: getOriginalPrice().toString(),
+          // Dati fatturazione
+          fiscalCode,
+          invoiceAddress: address,
+          invoiceCap: cap,
+          invoiceCity: city,
+          invoiceProvince: province.toUpperCase(),
+          requiresInvoice: 'true',
           orderItems: JSON.stringify(items.map(item => ({
             name: item.nome,
             description: item.descrizione || '',
@@ -298,7 +360,7 @@ export default function CheckoutModal({
     }
   };
 
-  // Ordine contanti
+  // Ordine contanti (no fattura richiesta)
   const handleCashOrder = async () => {
     if (!validateForm()) return;
     
@@ -358,7 +420,7 @@ export default function CheckoutModal({
         <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
           <div className="relative bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             {/* Header */}
-            <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
+            <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center z-10">
               <h2 className="text-2xl font-bold text-gray-800">Checkout</h2>
               <button
                 onClick={onClose}
@@ -385,6 +447,7 @@ export default function CheckoutModal({
                           value={customerName}
                           onChange={(e) => setCustomerName(e.target.value)}
                           className="w-full p-3 border rounded-lg focus:outline-none focus:border-orange-500"
+                          placeholder="Mario Rossi"
                           required
                         />
                       </div>
@@ -398,6 +461,7 @@ export default function CheckoutModal({
                           value={customerPhone}
                           onChange={(e) => setCustomerPhone(e.target.value)}
                           className="w-full p-3 border rounded-lg focus:outline-none focus:border-orange-500"
+                          placeholder="333 1234567"
                           required
                         />
                       </div>
@@ -406,14 +470,104 @@ export default function CheckoutModal({
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         <Mail className="w-4 h-4 inline mr-1" />
-                        Email (opzionale)
+                        Email *
                       </label>
                       <input
                         type="email"
                         value={customerEmail}
                         onChange={(e) => setCustomerEmail(e.target.value)}
                         className="w-full p-3 border rounded-lg focus:outline-none focus:border-orange-500"
+                        placeholder="mario.rossi@email.com"
+                        required
                       />
+                      <p className="text-xs text-gray-500 mt-1">Riceverai la fattura via email</p>
+                    </div>
+
+                    {/* Sezione Dati Fatturazione */}
+                    <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-5 mt-6">
+                      <div className="flex items-center gap-2 mb-4">
+                        <FileText className="w-5 h-5 text-blue-600" />
+                        <h3 className="text-lg font-semibold text-gray-800">Dati Fatturazione</h3>
+                      </div>
+                      <p className="text-sm text-blue-700 mb-4">
+                        Obbligatori per pagamenti online (carta/PayPal)
+                      </p>
+                      
+                      <div className="space-y-4">
+                        {/* Codice Fiscale */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <Building2 className="w-4 h-4 inline mr-1" />
+                            Codice Fiscale *
+                          </label>
+                          <input
+                            type="text"
+                            value={fiscalCode}
+                            onChange={(e) => setFiscalCode(e.target.value.toUpperCase())}
+                            className="w-full p-3 border rounded-lg focus:outline-none focus:border-blue-500 uppercase"
+                            placeholder="RSSMRA85M01H501Z"
+                            maxLength={16}
+                          />
+                          <p className="text-xs text-gray-500 mt-1">16 caratteri</p>
+                        </div>
+
+                        {/* Indirizzo */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <Home className="w-4 h-4 inline mr-1" />
+                            Indirizzo *
+                          </label>
+                          <input
+                            type="text"
+                            value={address}
+                            onChange={(e) => setAddress(e.target.value)}
+                            className="w-full p-3 border rounded-lg focus:outline-none focus:border-blue-500"
+                            placeholder="Via Roma, 123"
+                          />
+                        </div>
+
+                        {/* CAP, Città, Provincia */}
+                        <div className="grid grid-cols-3 gap-3">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              CAP *
+                            </label>
+                            <input
+                              type="text"
+                              value={cap}
+                              onChange={(e) => setCap(e.target.value.replace(/\D/g, '').slice(0, 5))}
+                              className="w-full p-3 border rounded-lg focus:outline-none focus:border-blue-500"
+                              placeholder="37100"
+                              maxLength={5}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Città *
+                            </label>
+                            <input
+                              type="text"
+                              value={city}
+                              onChange={(e) => setCity(e.target.value)}
+                              className="w-full p-3 border rounded-lg focus:outline-none focus:border-blue-500"
+                              placeholder="Verona"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Prov *
+                            </label>
+                            <input
+                              type="text"
+                              value={province}
+                              onChange={(e) => setProvince(e.target.value.toUpperCase())}
+                              className="w-full p-3 border rounded-lg focus:outline-none focus:border-blue-500 uppercase"
+                              placeholder="VR"
+                              maxLength={2}
+                            />
+                          </div>
+                        </div>
+                      </div>
                     </div>
                     
                     {/* Codice Sconto */}
@@ -474,9 +628,9 @@ export default function CheckoutModal({
                     </div>
                     
                     {/* Data Ritiro */}
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                       <div className="flex items-center gap-2 mb-3">
-                        <Calendar className="w-5 h-5 text-blue-600" />
+                        <Calendar className="w-5 h-5 text-amber-600" />
                         <label className="text-sm font-medium text-gray-700">
                           Data Ritiro Ordine *
                         </label>
@@ -487,14 +641,14 @@ export default function CheckoutModal({
                         value={pickupDate}
                         onChange={handleDateChange}
                         min={minPickupDate}
-                        className="w-full p-3 border rounded-lg focus:outline-none focus:border-blue-500 mb-3"
+                        className="w-full p-3 border rounded-lg focus:outline-none focus:border-amber-500 mb-3"
                         required
                       />
                       
                       {pickupDate && (
                         <div className="bg-white rounded-lg p-3">
                           <p className="font-medium text-gray-800 flex items-center gap-1">
-                            <Clock className="w-4 h-4 text-blue-600" />
+                            <Clock className="w-4 h-4 text-amber-600" />
                             {getDayName(new Date(pickupDate))}, {new Date(pickupDate).toLocaleDateString('it-IT')}
                           </p>
                           <p className="text-sm text-gray-600 mt-1 flex items-center gap-1">
@@ -559,7 +713,10 @@ export default function CheckoutModal({
                       className="w-full p-4 border-2 rounded-lg hover:border-blue-500 transition-colors flex items-center justify-center space-x-3 disabled:opacity-50"
                     >
                       <CreditCard className="w-6 h-6 text-blue-500" />
-                      <span className="font-semibold">Carta di Credito/Debito</span>
+                      <div className="text-left">
+                        <div className="font-semibold">Carta di Credito/Debito</div>
+                        <div className="text-xs text-gray-500">Fattura elettronica inclusa</div>
+                      </div>
                     </button>
                     
                     <button
@@ -568,7 +725,10 @@ export default function CheckoutModal({
                       className="w-full p-4 border-2 rounded-lg hover:border-yellow-500 transition-colors flex items-center justify-center space-x-3 disabled:opacity-50"
                     >
                       <Smartphone className="w-6 h-6 text-yellow-500" />
-                      <span className="font-semibold">PayPal</span>
+                      <div className="text-left">
+                        <div className="font-semibold">PayPal</div>
+                        <div className="text-xs text-gray-500">Fattura elettronica inclusa</div>
+                      </div>
                     </button>
                     
                     <button
@@ -577,7 +737,10 @@ export default function CheckoutModal({
                       className="w-full p-4 border-2 rounded-lg hover:border-green-500 transition-colors flex items-center justify-center space-x-3 disabled:opacity-50"
                     >
                       <Banknote className="w-6 h-6 text-green-500" />
-                      <span className="font-semibold">Contanti al Ritiro</span>
+                      <div className="text-left">
+                        <div className="font-semibold">Contanti al Ritiro</div>
+                        <div className="text-xs text-gray-500">Senza fattura</div>
+                      </div>
                     </button>
                   </div>
                 </>
@@ -588,6 +751,12 @@ export default function CheckoutModal({
                     <>
                       <h3 className="text-lg font-semibold">Pagamento con Carta</h3>
                       <p className="text-gray-600">Verrai reindirizzato a Stripe per il pagamento sicuro.</p>
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <p className="text-sm text-blue-800 flex items-center gap-2">
+                          <FileText className="w-4 h-4" />
+                          Riceverai la fattura elettronica via email
+                        </p>
+                      </div>
                       <div className="bg-gray-50 p-4 rounded-lg">
                         <p className="font-semibold">Totale: €{getTotalPrice().toFixed(2)}</p>
                       </div>
@@ -623,6 +792,12 @@ export default function CheckoutModal({
                   {paymentMethod === 'paypal' && (
                     <>
                       <h3 className="text-lg font-semibold">Pagamento con PayPal</h3>
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <p className="text-sm text-blue-800 flex items-center gap-2">
+                          <FileText className="w-4 h-4" />
+                          Riceverai la fattura elettronica via email
+                        </p>
+                      </div>
                       <div className="bg-gray-50 p-4 rounded-lg">
                         <p className="font-semibold">Totale: €{getTotalPrice().toFixed(2)}</p>
                       </div>
