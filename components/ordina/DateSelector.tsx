@@ -33,27 +33,24 @@ export default function DateSelector({
     // Seleziona la prima data (oggi)
     if (dates.length > 0) {
       setSelectedDate(dates[0]);
-      // Ma passa la data di RITIRO alla callback (oggi + minDaysAdvance)
-      const pickupDate = new Date(dates[0]);
-      pickupDate.setDate(dates[0].getDate() + minDaysAdvance);
-      onDateChange(getEffectivePickupDate(pickupDate));
+      onDateChange(getEffectivePickupDate(dates[0], minDaysAdvance));
     }
   }, [minDaysAdvance, onDateChange]);
   
-  // Calcola la data di ritiro effettiva considerando i weekend e il venerdì
-  const getEffectivePickupDate = (date: Date): Date => {
-    const dayOfWeek = date.getDay();
-    const pickupDate = new Date(date);
+  // Calcola la data di ritiro effettiva considerando i weekend
+  const getEffectivePickupDate = (orderDate: Date, daysAdvance: number): Date => {
+    // Prima calcola la data base (orderDate + daysAdvance)
+    const basePickupDate = new Date(orderDate);
+    basePickupDate.setDate(orderDate.getDate() + daysAdvance);
     
-    // Se cade di venerdì (5), sposta a lunedì (+3 giorni)
-    if (dayOfWeek === 5) {
-      pickupDate.setDate(pickupDate.getDate() + 3);
-    }
-    // Se cade di sabato (6), sposta a lunedì (+2 giorni)
-    else if (dayOfWeek === 6) {
+    const dayOfWeek = basePickupDate.getDay();
+    const pickupDate = new Date(basePickupDate);
+    
+    // Se il ritiro cade di sabato (6), sposta a lunedì (+2 giorni)
+    if (dayOfWeek === 6) {
       pickupDate.setDate(pickupDate.getDate() + 2);
     }
-    // Se cade di domenica (0), sposta a martedì (+2 giorni)
+    // Se il ritiro cade di domenica (0), sposta a martedì (+2 giorni)
     else if (dayOfWeek === 0) {
       pickupDate.setDate(pickupDate.getDate() + 2);
     }
@@ -63,13 +60,7 @@ export default function DateSelector({
   
   const handleDateSelect = (orderDate: Date) => {
     setSelectedDate(orderDate);
-    
-    // Calcola la data di ritiro (orderDate + minDaysAdvance)
-    const pickupDate = new Date(orderDate);
-    pickupDate.setDate(orderDate.getDate() + minDaysAdvance);
-    
-    // Passa la data di ritiro effettiva (considerando weekend)
-    onDateChange(getEffectivePickupDate(pickupDate));
+    onDateChange(getEffectivePickupDate(orderDate, minDaysAdvance));
   };
   
   const formatFullDate = (date: Date) => {
@@ -94,20 +85,22 @@ export default function DateSelector({
 
   // Calcola il giorno di ritiro per la data dell'ordine
   const getRitiroInfo = (orderDate: Date) => {
-    // Data ritiro = data ordine + minDaysAdvance
-    const pickupDate = new Date(orderDate);
-    pickupDate.setDate(orderDate.getDate() + minDaysAdvance);
-    
-    // Applica la logica weekend
-    const effectivePickupDate = getEffectivePickupDate(pickupDate);
+    const effectivePickupDate = getEffectivePickupDate(orderDate, minDaysAdvance);
     
     const giorni = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
     const dayName = giorni[effectivePickupDate.getDay()];
     const dayNumber = effectivePickupDate.getDate();
     
+    // Calcola la data base senza slittamenti
+    const basePickupDate = new Date(orderDate);
+    basePickupDate.setDate(orderDate.getDate() + minDaysAdvance);
+    
+    // Verifica se è stato slittato (weekend)
+    const isWeekendShifted = basePickupDate.getTime() !== effectivePickupDate.getTime();
+    
     return {
       label: `Ritiro ${dayName} ${dayNumber}`,
-      isWeekendShifted: pickupDate.getDay() === 0 || pickupDate.getDay() === 6
+      isWeekendShifted
     };
   };
 
@@ -139,7 +132,7 @@ export default function DateSelector({
           <div className="text-right">
             <p className="text-sm text-gray-600 mb-1">Ritirerai il:</p>
             <p className="text-xl font-bold text-amber-600 capitalize">
-              {formatFullDate(getEffectivePickupDate(new Date(selectedDate.getTime() + minDaysAdvance * 24 * 60 * 60 * 1000)))}
+              {formatFullDate(getEffectivePickupDate(selectedDate, minDaysAdvance))}
             </p>
           </div>
         </div>
