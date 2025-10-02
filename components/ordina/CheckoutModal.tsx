@@ -25,10 +25,8 @@ import { loadStripe } from '@stripe/stripe-js';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { MenuItem } from '@/lib/menuRotativo';
 
-// Inizializza Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
-// Configurazione PayPal
 const initialPayPalOptions = {
   clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!,
   currency: "EUR",
@@ -36,7 +34,6 @@ const initialPayPalOptions = {
   locale: "it_IT"
 };
 
-// Estende MenuItem per carrello
 interface CartItem extends MenuItem {
   id: string;
   quantity: number;
@@ -56,13 +53,6 @@ interface CheckoutModalProps {
   minimumItems?: number;
 }
 
-// Codici sconto disponibili
-const DISCOUNT_CODES: { [key: string]: { percent: number; description: string } } = {
-  'BENVENUTO': { percent: 10, description: '10% di sconto' },
-  'PASTOSANO20': { percent: 20, description: '20% di sconto' },
-  'AMICO': { percent: 15, description: '15% di sconto' }
-};
-
 export default function CheckoutModal({ 
   isOpen, 
   onClose, 
@@ -71,32 +61,28 @@ export default function CheckoutModal({
   minimumItems = 3
 }: CheckoutModalProps) {
 
-  // Stati form base
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [pickupDate, setPickupDate] = useState('');
   const [notes, setNotes] = useState('');
   
-  // Stati dati fatturazione
   const [fiscalCode, setFiscalCode] = useState('');
   const [address, setAddress] = useState('');
   const [cap, setCap] = useState('');
   const [city, setCity] = useState('');
   const [province, setProvince] = useState('');
   
-  // Stati sconto
   const [discountCode, setDiscountCode] = useState('');
-  const [appliedDiscount, setAppliedDiscount] = useState<{ code: string; percent: number; description: string } | null>(null);
+  const [appliedDiscount, setAppliedDiscount] = useState<{ code: string; percent: number; description: string; singleUse?: boolean } | null>(null);
   const [discountError, setDiscountError] = useState('');
+  const [isCheckingDiscount, setIsCheckingDiscount] = useState(false);
   
-  // Stati UI
   const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'paypal' | 'cash' | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [minPickupDate, setMinPickupDate] = useState('');
 
-  // Calcola data minima per ritiro (2 giorni lavorativi)
   const calculateMinPickupDate = () => {
     const today = new Date();
     let minDate = new Date(today);
@@ -131,7 +117,6 @@ export default function CheckoutModal({
     return days[date.getDay()];
   };
 
-  // Setup date minima al mount
   useEffect(() => {
     const minDate = calculateMinPickupDate();
     const minDateString = formatDateForInput(minDate);
@@ -139,7 +124,6 @@ export default function CheckoutModal({
     setPickupDate(minDateString);
   }, []);
 
-  // Calcoli prezzi
   const getOriginalPrice = () => {
     return items.reduce((total, item) => total + (item.prezzo * item.quantity), 0);
   };
@@ -157,24 +141,21 @@ export default function CheckoutModal({
     return items.reduce((total, item) => total + item.quantity, 0);
   };
 
-  // Validazione Codice Fiscale
   const validateFiscalCode = (code: string): boolean => {
     const fiscalCodeRegex = /^[A-Z]{6}[0-9]{2}[A-Z][0-9]{2}[A-Z][0-9]{3}[A-Z]$/i;
     return fiscalCodeRegex.test(code);
   };
 
-  // Validazione CAP
   const validateCAP = (cap: string): boolean => {
     return /^\d{5}$/.test(cap);
   };
 
-  // Validazione Provincia
   const validateProvince = (prov: string): boolean => {
     return /^[A-Z]{2}$/i.test(prov);
   };
 
-  // Gestione sconto
-  const applyDiscountCode = () => {
+  // Verifica codice sconto tramite API
+  const applyDiscountCode = async () => {
     const code = discountCode.toUpperCase().trim();
     
     if (!code) {
@@ -182,16 +163,43 @@ export default function CheckoutModal({
       return;
     }
 
-    if (DISCOUNT_CODES[code]) {
-      setAppliedDiscount({
-        code,
-        ...DISCOUNT_CODES[code]
+    setIsCheckingDiscount(true);
+    setDiscountError('');
+
+    try {
+      const response = await fetch('/api/check-discount', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          code,
+          email: customerEmail || null,
+          phone: customerPhone || null
+        })
       });
-      setDiscountError('');
-      setDiscountCode('');
-    } else {
-      setDiscountError('Codice sconto non valido');
+
+      const result = await response.json();
+
+      if (result.valid) {
+        setAppliedDiscount({
+          code: result.code,
+          percent: result.percent,
+          description: result.description,
+          singleUse: result.singleUse
+        });
+        setDiscountError('');
+        setDiscountCode('');
+      } else {
+        setDiscountError(result.message || result.error || 'Codice sconto non valido');
+        setAppliedDiscount(null);
+      }
+    } catch (error) {
+      console.error('Errore verifica codice:', error);
+      setDiscountError('Errore durante la verifica del codice');
       setAppliedDiscount(null);
+    } finally {
+      setIsCheckingDiscount(false);
     }
   };
 
@@ -201,15 +209,12 @@ export default function CheckoutModal({
     setDiscountError('');
   };
 
-  // Validazione form completa
   const validateForm = () => {
-    // Validazione base
     if (!customerName || !customerPhone || !pickupDate) {
       setError('Compila tutti i campi obbligatori');
       return false;
     }
     
-    // Validazione dati fatturazione (solo per pagamenti online)
     if (paymentMethod === 'stripe' || paymentMethod === 'paypal') {
       if (!fiscalCode || !address || !cap || !city || !province) {
         setError('Per i pagamenti online è obbligatorio compilare tutti i dati di fatturazione');
@@ -258,7 +263,6 @@ export default function CheckoutModal({
     return true;
   };
 
-  // Gestione cambio data
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedDate = new Date(e.target.value);
     
@@ -271,7 +275,6 @@ export default function CheckoutModal({
     setPickupDate(e.target.value);
   };
 
-  // Pagamento Stripe
   const handleStripeCheckout = async () => {
     if (!validateForm()) return;
     
@@ -301,7 +304,6 @@ export default function CheckoutModal({
           discountCode: appliedDiscount ? appliedDiscount.code : '',
           discountPercent: appliedDiscount ? appliedDiscount.percent.toString() : '0',
           originalAmount: getOriginalPrice().toString(),
-          // Dati fatturazione
           fiscalCode,
           invoiceAddress: address,
           invoiceCap: cap,
@@ -331,6 +333,28 @@ export default function CheckoutModal({
       }
 
       const { sessionId } = await response.json();
+      
+      // Registra uso codice sconto se applicato e single-use
+      if (appliedDiscount && appliedDiscount.singleUse) {
+        try {
+          await fetch('/api/use-discount', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              code: appliedDiscount.code,
+              email: customerEmail,
+              phone: customerPhone,
+              customerName,
+              orderId: sessionId
+            })
+          });
+        } catch (discountError) {
+          console.error('Errore registrazione uso sconto:', discountError);
+        }
+      }
+      
       const stripe = await stripePromise;
       
       if (stripe) {
@@ -346,11 +370,31 @@ export default function CheckoutModal({
     }
   };
 
-  // Pagamento PayPal
   const handlePayPalApprove = async (_data: any, actions: any) => {
     setIsLoading(true);
     try {
       await actions.order.capture();
+      
+      if (appliedDiscount && appliedDiscount.singleUse) {
+        try {
+          await fetch('/api/use-discount', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              code: appliedDiscount.code,
+              email: customerEmail,
+              phone: customerPhone,
+              customerName,
+              orderId: _data.orderID
+            })
+          });
+        } catch (discountError) {
+          console.error('Errore registrazione uso sconto:', discountError);
+        }
+      }
+      
       onOrderComplete();
       window.location.href = '/success?method=paypal';
     } catch (error: any) {
@@ -360,7 +404,6 @@ export default function CheckoutModal({
     }
   };
 
-  // Ordine contanti (no fattura richiesta)
   const handleCashOrder = async () => {
     if (!validateForm()) return;
     
@@ -395,6 +438,27 @@ export default function CheckoutModal({
         throw new Error('Errore nell\'invio dell\'ordine');
       }
       
+      if (appliedDiscount && appliedDiscount.singleUse) {
+        try {
+          const result = await response.json();
+          await fetch('/api/use-discount', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              code: appliedDiscount.code,
+              email: customerEmail,
+              phone: customerPhone,
+              customerName,
+              orderId: result.orderId
+            })
+          });
+        } catch (discountError) {
+          console.error('Errore registrazione uso sconto:', discountError);
+        }
+      }
+      
       onOrderComplete();
       window.location.href = '/success?method=cash';
       
@@ -410,16 +474,13 @@ export default function CheckoutModal({
   return (
     <PayPalScriptProvider options={initialPayPalOptions}>
       <>
-        {/* Overlay */}
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-40"
           onClick={() => !isLoading && onClose()}
         />
         
-        {/* Modal */}
         <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
           <div className="relative bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            {/* Header */}
             <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center z-10">
               <h2 className="text-2xl font-bold text-gray-800">Checkout</h2>
               <button
@@ -434,7 +495,6 @@ export default function CheckoutModal({
             <div className="p-6">
               {!paymentMethod ? (
                 <>
-                  {/* Form Dati Cliente */}
                   <div className="space-y-4 mb-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
@@ -483,7 +543,6 @@ export default function CheckoutModal({
                       <p className="text-xs text-gray-500 mt-1">Riceverai la fattura via email</p>
                     </div>
 
-                    {/* Sezione Dati Fatturazione */}
                     <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-5 mt-6">
                       <div className="flex items-center gap-2 mb-4">
                         <FileText className="w-5 h-5 text-blue-600" />
@@ -494,7 +553,6 @@ export default function CheckoutModal({
                       </p>
                       
                       <div className="space-y-4">
-                        {/* Codice Fiscale */}
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             <Building2 className="w-4 h-4 inline mr-1" />
@@ -511,7 +569,6 @@ export default function CheckoutModal({
                           <p className="text-xs text-gray-500 mt-1">16 caratteri</p>
                         </div>
 
-                        {/* Indirizzo */}
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             <Home className="w-4 h-4 inline mr-1" />
@@ -526,7 +583,6 @@ export default function CheckoutModal({
                           />
                         </div>
 
-                        {/* CAP, Città, Provincia */}
                         <div className="grid grid-cols-3 gap-3">
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -570,7 +626,6 @@ export default function CheckoutModal({
                       </div>
                     </div>
                     
-                    {/* Codice Sconto */}
                     <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                       <div className="flex items-center gap-2 mb-3">
                         <Tag className="w-5 h-5 text-green-600" />
@@ -586,14 +641,23 @@ export default function CheckoutModal({
                               type="text"
                               value={discountCode}
                               onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
-                              placeholder="CODICE"
+                              placeholder="SCONTO5"
                               className="flex-1 p-2 border rounded-lg focus:outline-none focus:border-green-500"
+                              disabled={isCheckingDiscount}
                             />
                             <button
                               onClick={applyDiscountCode}
-                              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                              disabled={isCheckingDiscount}
+                              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:opacity-50 flex items-center gap-2"
                             >
-                              Applica
+                              {isCheckingDiscount ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                  <span>Verifica...</span>
+                                </>
+                              ) : (
+                                <span>Applica</span>
+                              )}
                             </button>
                           </div>
                           
@@ -627,7 +691,6 @@ export default function CheckoutModal({
                       )}
                     </div>
                     
-                    {/* Data Ritiro */}
                     <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                       <div className="flex items-center gap-2 mb-3">
                         <Calendar className="w-5 h-5 text-amber-600" />
@@ -659,7 +722,6 @@ export default function CheckoutModal({
                       )}
                     </div>
                     
-                    {/* Note */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         <MessageSquare className="w-4 h-4 inline mr-1" />
@@ -675,7 +737,6 @@ export default function CheckoutModal({
                     </div>
                   </div>
 
-                  {/* Errori */}
                   {error && (
                     <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
                       <AlertCircle className="w-5 h-5" />
@@ -683,7 +744,6 @@ export default function CheckoutModal({
                     </div>
                   )}
 
-                  {/* Riepilogo Ordine */}
                   <div className="bg-gray-50 rounded-lg p-4 mb-6">
                     <h4 className="font-semibold mb-3">Riepilogo Ordine</h4>
                     <div className="space-y-2 text-sm">
@@ -704,7 +764,6 @@ export default function CheckoutModal({
                     </div>
                   </div>
 
-                  {/* Metodi Pagamento */}
                   <h3 className="text-lg font-semibold mb-4">Scegli il metodo di pagamento</h3>
                   <div className="space-y-3">
                     <button
@@ -745,7 +804,6 @@ export default function CheckoutModal({
                   </div>
                 </>
               ) : (
-                /* Pagamento Selezionato */
                 <div className="space-y-4">
                   {paymentMethod === 'stripe' && (
                     <>
