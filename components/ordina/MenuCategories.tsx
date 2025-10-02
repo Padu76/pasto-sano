@@ -13,7 +13,7 @@ import {
 interface MenuCategory {
   id: string;
   name: string;
-  icon: React.ReactNode;
+  icon: React.ComponentType<{ className?: string }>;
   description: string;
   badge?: string;
   badgeColor?: string;
@@ -36,7 +36,7 @@ export default function MenuCategories({
     {
       id: 'menu-giorno',
       name: 'Menu del Giorno',
-      icon: <Utensils className="w-5 h-5" />,
+      icon: Utensils,
       description: 'Primi, secondi e contorni freschi',
       badge: 'OGGI',
       badgeColor: 'bg-red-500',
@@ -45,7 +45,7 @@ export default function MenuCategories({
     {
       id: 'combo',
       name: 'Menu Combo',
-      icon: <Package className="w-5 h-5" />,
+      icon: Package,
       description: 'Risparmia con i nostri menu completi',
       badge: 'RISPARMIO',
       badgeColor: 'bg-green-500',
@@ -54,39 +54,39 @@ export default function MenuCategories({
     {
       id: 'focacce',
       name: 'Focacce',
-      icon: <Pizza className="w-5 h-5" />,
+      icon: Pizza,
       description: 'Focacce farcite artigianali',
       available: true
     },
     {
       id: 'piadine',
       name: 'Piadine',
-      icon: <Sandwich className="w-5 h-5" />,
+      icon: Sandwich,
       description: 'Piadine romagnole',
       available: true
     },
     {
       id: 'insalatone',
       name: 'Insalatone',
-      icon: <Salad className="w-5 h-5" />,
+      icon: Salad,
       description: 'Insalate complete e nutrienti',
       available: true
     },
     {
       id: 'extra',
       name: 'Extra',
-      icon: <Cherry className="w-5 h-5" />,
+      icon: Cherry,
       description: 'Dolci e aggiunte',
       available: true
     }
   ];
 
-  // Versione mobile - scroll orizzontale
   const MobileCategories = () => (
     <div className="lg:hidden mb-8">
       <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
         {categories.map(category => {
           const isActive = activeCategory === category.id;
+          const Icon = category.icon;
           
           return (
             <button
@@ -94,8 +94,8 @@ export default function MenuCategories({
               onClick={() => onCategoryChange(category.id)}
               disabled={!category.available}
               className={`
-                flex-shrink-0 px-4 py-3 rounded-xl transition-all duration-300
-                flex items-center gap-2 relative
+                flex-shrink-0 px-5 py-4 rounded-xl transition-all duration-300
+                flex flex-col items-center gap-2 relative min-w-[100px]
                 ${isActive 
                   ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg scale-105' 
                   : category.available
@@ -104,12 +104,12 @@ export default function MenuCategories({
                 }
               `}
             >
-              {category.icon}
-              <span className="font-semibold whitespace-nowrap">{category.name}</span>
+              <Icon className="w-8 h-8" />
+              <span className="font-semibold text-xs text-center whitespace-nowrap">{category.name}</span>
               
               {category.badge && category.available && (
                 <span className={`
-                  absolute -top-2 -right-2 text-xs px-2 py-0.5 rounded-full text-white font-bold
+                  absolute -top-2 -right-2 text-[10px] px-2 py-0.5 rounded-full text-white font-bold
                   ${category.badgeColor || 'bg-amber-500'}
                   animate-pulse
                 `}>
@@ -123,12 +123,12 @@ export default function MenuCategories({
     </div>
   );
 
-  // Versione desktop - grid
   const DesktopCategories = () => (
     <div className="hidden lg:block mb-12">
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {categories.map(category => {
           const isActive = activeCategory === category.id;
+          const Icon = category.icon;
           
           return (
             <button
@@ -145,7 +145,6 @@ export default function MenuCategories({
                 }
               `}
             >
-              {/* Badge */}
               {category.badge && category.available && (
                 <div className={`
                   absolute -top-3 -right-3 px-3 py-1 rounded-full text-xs font-bold text-white
@@ -156,7 +155,6 @@ export default function MenuCategories({
                 </div>
               )}
               
-              {/* Icon */}
               <div className={`
                 w-14 h-14 mx-auto mb-3 rounded-xl flex items-center justify-center
                 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3
@@ -165,12 +163,9 @@ export default function MenuCategories({
                   : 'bg-gradient-to-r from-amber-100 to-orange-100'
                 }
               `}>
-                <div className={isActive ? 'text-white' : 'text-amber-600'}>
-                  {category.icon}
-                </div>
+                <Icon className={`w-7 h-7 ${isActive ? 'text-white' : 'text-amber-600'}`} />
               </div>
               
-              {/* Text */}
               <h3 className={`
                 font-bold text-base mb-1
                 ${isActive ? 'text-white' : 'text-gray-800'}
@@ -185,7 +180,6 @@ export default function MenuCategories({
                 {category.description}
               </p>
               
-              {/* Indicatore disponibilità */}
               {!category.available && (
                 <div className="absolute inset-0 bg-gray-500/10 rounded-2xl flex items-center justify-center">
                   <span className="bg-gray-800/80 text-white px-3 py-1 rounded-full text-sm font-semibold">
@@ -200,18 +194,19 @@ export default function MenuCategories({
     </div>
   );
 
-  // Info bar attiva
   const ActiveCategoryInfo = () => {
     const active = categories.find(c => c.id === activeCategory);
     
     if (!active) return null;
+    
+    const Icon = active.icon;
     
     return (
       <div className="mb-6 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-amber-600 shadow-sm">
-              {active.icon}
+              <Icon className="w-5 h-5" />
             </div>
             <div>
               <h3 className="font-bold text-gray-800">{active.name}</h3>
@@ -234,13 +229,8 @@ export default function MenuCategories({
 
   return (
     <>
-      {/* Mobile */}
       <MobileCategories />
-      
-      {/* Desktop */}
       <DesktopCategories />
-      
-      {/* Info categoria attiva */}
       <ActiveCategoryInfo />
     </>
   );

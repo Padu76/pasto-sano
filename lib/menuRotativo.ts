@@ -44,7 +44,7 @@ export const PREZZI = {
   comboSecondoMacedonia: 11.20
 };
 
-// MENU ROTATIVO - 4 SETTIMANE
+// MENU ROTATIVO - 4 SETTIMANE (AGGIORNATO DA EXCEL)
 export const MENU_ROTATIVO: { [key: string]: MenuSettimana } = {
   settimana1: {
     lunedi: {
@@ -77,12 +77,12 @@ export const MENU_ROTATIVO: { [key: string]: MenuSettimana } = {
     },
     mercoledi: {
       primi: [
-        "Lasagna tradizionale alla Bolognese",
-        "Pasta all'amatriciana"
+        "Lasagna alla parmigiana",
+        "Calamarata alla carbonara di mare"
       ],
       secondi: [
-        "Pollo al limone",
-        "Filetto di branzino alla griglia"
+        "Petto di pollo alla diavola",
+        "Saltimbocca alla romana"
       ],
       contorni: [
         "Patate arrosto",
@@ -91,12 +91,12 @@ export const MENU_ROTATIVO: { [key: string]: MenuSettimana } = {
     },
     giovedi: {
       primi: [
-        "Crespelle con ricotta e spinaci",
-        "Carbonara"
+        "Spaghettone ai 2 pomodori",
+        "Paella di pesce e carne"
       ],
       secondi: [
-        "Tagliata di manzo con rucola",
-        "Salmone alla griglia"
+        "Sovracoscia di pollo al forno",
+        "Filetto di orata alla griglia"
       ],
       contorni: [
         "Patate arrosto",
@@ -105,12 +105,12 @@ export const MENU_ROTATIVO: { [key: string]: MenuSettimana } = {
     },
     venerdi: {
       primi: [
-        "Lasagna di pesce",
-        "Spaghetti alle vongole"
+        "Lasagna con verdure di stagione e briè",
+        "Mezzi paccheri all'amatriciana"
       ],
       secondi: [
-        "Filetto di orata al sale",
-        "Polpette di pesce"
+        "Hamburger in bella vista",
+        "Costine laccate in salsa BBQ"
       ],
       contorni: [
         "Patate arrosto",
@@ -177,12 +177,12 @@ export const MENU_ROTATIVO: { [key: string]: MenuSettimana } = {
     },
     mercoledi: {
       primi: [
-        "Lasagna vegetariana",
-        "Pasta alla Norma"
+        "Pasta gratinata con caponata e scamorza",
+        "Maccheroncino al ragù alla bolognese"
       ],
       secondi: [
-        "Involtini di pollo",
-        "Merluzzo al forno"
+        "Bocconcini di pollo gratinati",
+        "Filetto di orata alla griglia con gremolada"
       ],
       contorni: [
         "Patate arrosto",
@@ -191,12 +191,12 @@ export const MENU_ROTATIVO: { [key: string]: MenuSettimana } = {
     },
     giovedi: {
       primi: [
-        "Crespelle ai funghi porcini",
-        "Spaghetti aglio olio e peperoncino"
+        "Mezzi paccheri con spada melanzane e ric.aff.",
+        "Risotto alla Milanese con zucchine"
       ],
       secondi: [
-        "Saltimbocca alla romana",
-        "Trancio di tonno alla griglia"
+        "Polpette di carne al sugo",
+        "Paillard di tacchino alla griglia"
       ],
       contorni: [
         "Patate arrosto",
@@ -205,12 +205,12 @@ export const MENU_ROTATIVO: { [key: string]: MenuSettimana } = {
     },
     venerdi: {
       primi: [
-        "Lasagna al salmone",
-        "Linguine allo scoglio"
+        "Spaghetti datt.giallo menta stracciatella",
+        "Calamarata cozze al prof.d arancia e pomodorini"
       ],
       secondi: [
-        "Calamari ripieni",
-        "Pesce spada alla siciliana"
+        "Coscetta di pollo laccata in salsa BBQ",
+        "Lonza marinata alla griglia"
       ],
       contorni: [
         "Patate arrosto",
@@ -277,12 +277,12 @@ export const MENU_ROTATIVO: { [key: string]: MenuSettimana } = {
     },
     mercoledi: {
       primi: [
-        "Lasagna ai quattro formaggi",
-        "Pasta alla gricia"
+        "Lasagna al ragù bianco di pesce zucch. E lime",
+        "Bigoli al ragù alla Bolognese"
       ],
       secondi: [
-        "Polpettone della nonna",
-        "Sogliola alla mugnaia"
+        "Hamburger di manzo in bella vista",
+        "Medaglione di maiale alla griglia"
       ],
       contorni: [
         "Patate arrosto",
@@ -291,12 +291,12 @@ export const MENU_ROTATIVO: { [key: string]: MenuSettimana } = {
     },
     giovedi: {
       primi: [
-        "Crespelle radicchio e gorgonzola",
-        "Bucatini all'amatriciana"
+        "Gnocchi alla Sorrentina",
+        "Pasta alla puttanesca di mare"
       ],
       secondi: [
-        "Costolette di agnello",
-        "Rombo al forno"
+        "Trancio di salm.alla griglia con zeste di arrancia",
+        "Bocco. Di pollo al limone e mandorle"
       ],
       contorni: [
         "Patate arrosto",
@@ -305,12 +305,12 @@ export const MENU_ROTATIVO: { [key: string]: MenuSettimana } = {
     },
     venerdi: {
       primi: [
-        "Lasagna di mare",
-        "Spaghetti ai ricci di mare"
+        "Pasta pomodoro fetta e olive",
+        "Lasagna con verdure di stagione e briè"
       ],
       secondi: [
-        "Frittura mista di pesce",
-        "Branzino al sale"
+        "Bistecca di scamone alla griglia",
+        "Coscetta di pollo al forno"
       ],
       contorni: [
         "Patate arrosto",
@@ -350,7 +350,7 @@ export const MENU_ROTATIVO: { [key: string]: MenuSettimana } = {
     lunedi: {
       primi: [
         "Lasagna al ragù alla Bolognese",
-        "Pasta con sals.datt.rosso, tropea e pecorino"
+        "Pasta con sals.datt.rosso,tropea e pecorino"
       ],
       secondi: [
         "Paillard di tacchino alla griglia",
@@ -377,12 +377,12 @@ export const MENU_ROTATIVO: { [key: string]: MenuSettimana } = {
     },
     mercoledi: {
       primi: [
-        "Lasagna con melanzane e mozzarella",
-        "Pasta pomodoro e basilico"
+        "Macch. Al ragù bianco di vitello",
+        "Linguine mare e orto con pomod. E zucchine"
       ],
       secondi: [
-        "Involtini di vitello",
-        "Cernia al forno"
+        "Filetto di orata piastrato",
+        "Bistecca di scamone alla griglia"
       ],
       contorni: [
         "Patate arrosto",
@@ -391,12 +391,12 @@ export const MENU_ROTATIVO: { [key: string]: MenuSettimana } = {
     },
     giovedi: {
       primi: [
-        "Crespelle zucca e amaretti",
-        "Rigatoni alla carbonara"
+        "Paella di carne e pesce",
+        "Tortellini di carne burro sfuso e salvia"
       ],
       secondi: [
-        "Tagliata con rosmarino",
-        "Seppie in umido"
+        "Bocc. Di pollo gratinati",
+        "Trancio di salmone alla griglia"
       ],
       contorni: [
         "Patate arrosto",
@@ -405,12 +405,12 @@ export const MENU_ROTATIVO: { [key: string]: MenuSettimana } = {
     },
     venerdi: {
       primi: [
-        "Lasagna con frutti di mare",
-        "Paccheri con scampi"
+        "Lasagna al ragù di pesce bianco e lime",
+        "Bigoli Al ragù alla Bolognese"
       ],
       secondi: [
-        "Grigliata mista di pesce",
-        "Rana pescatrice al forno"
+        "Costine in salsa BBQ",
+        "Spiedini di carne all'inglese"
       ],
       contorni: [
         "Patate arrosto",
@@ -659,7 +659,6 @@ function generateImagePath(nome: string, categoria: string): string {
 }
 
 // FUNZIONE PER DETERMINARE LA SETTIMANA CORRENTE DEL MESE
-// Gestisce automaticamente anche i mesi con 5 settimane (ripete settimana1)
 export function getSettimanaCorrente(): string {
   const oggi = new Date();
   const giorno = oggi.getDate();
@@ -723,7 +722,6 @@ export function getMenuDelGiorno() {
 }
 
 // FUNZIONE PER OTTENERE IL MENU DI UN GIORNO SPECIFICO
-// Gestisce automaticamente anche i mesi con 5 settimane
 export function getMenuGiornoSpecifico(data: Date) {
   const giorno = data.getDate();
   let settimana: string;
