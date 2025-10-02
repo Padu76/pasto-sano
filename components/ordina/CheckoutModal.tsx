@@ -19,7 +19,9 @@ import {
   MessageSquare,
   FileText,
   Building2,
-  Home
+  Home,
+  Truck,
+  Store
 } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
@@ -33,6 +35,9 @@ const initialPayPalOptions = {
   intent: "capture",
   locale: "it_IT"
 };
+
+// Indirizzo di partenza per calcolo distanze
+const STORE_ADDRESS = 'Via Bionde, 8, 37139 Verona VR, Italy';
 
 interface CartItem extends MenuItem {
   id: string;
@@ -51,6 +56,13 @@ interface CheckoutModalProps {
   items: CartItem[];
   onOrderComplete: () => void;
   minimumItems?: number;
+}
+
+interface DeliveryZone {
+  zone: '1-3km' | '3-6km' | '6-10km';
+  cost: number;
+  riderShare: number;
+  platformShare: number;
 }
 
 export default function CheckoutModal({ 
@@ -72,6 +84,17 @@ export default function CheckoutModal({
   const [cap, setCap] = useState('');
   const [city, setCity] = useState('');
   const [province, setProvince] = useState('');
+  
+  // Delivery states
+  const [deliveryType, setDeliveryType] = useState<'pickup' | 'delivery'>('pickup');
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [deliveryAddressDetails, setDeliveryAddressDetails] = useState('');
+  const [deliveryCity, setDeliveryCity] = useState('Verona');
+  const [deliveryCap, setDeliveryCap] = useState('');
+  const [isCalculatingDistance, setIsCalculatingDistance] = useState(false);
+  const [deliveryZone, setDeliveryZone] = useState<DeliveryZone | null>(null);
+  const [deliveryDistance, setDeliveryDistance] = useState<number | null>(null);
+  const [deliveryError, setDeliveryError] = useState<string | null>(null);
   
   const [discountCode, setDiscountCode] = useState('');
   const [appliedDiscount, setAppliedDiscount] = useState<{ code: string; percent: number; description: string; singleUse?: boolean } | null>(null);
@@ -124,6 +147,87 @@ export default function CheckoutModal({
     setPickupDate(minDateString);
   }, []);
 
+  // Calcola zona e costo delivery in base a distanza
+  const calculateDeliveryZone = (distanceKm: number): DeliveryZone | null => {
+    if (distanceKm <= 3) {
+      return {
+        zone: '1-3km',
+        cost: 3.50,
+        riderShare: 2.45, // 70%
+        platformShare: 1.05 // 30%
+      };
+    } else if (distanceKm <= 6) {
+      return {
+        zone: '3-6km',
+        cost: 4.90,
+        riderShare: 3.43, // 70%
+        platformShare: 1.47 // 30%
+      };
+    } else if (distanceKm <= 10) {
+      return {
+        zone: '6-10km',
+        cost: 6.90,
+        riderShare: 4.83, // 70%
+        platformShare: 2.07 // 30%
+      };
+    }
+    return null;
+  };
+
+  // Calcola distanza usando Google Maps Distance Matrix API
+  const calculateDeliveryDistance = async () => {
+    if (!deliveryAddress || !deliveryCap) {
+      setDeliveryError('Inserisci indirizzo completo e CAP');
+      return;
+    }
+
+    setIsCalculatingDistance(true);
+    setDeliveryError(null);
+
+    try {
+      const destination = `${deliveryAddress}, ${deliveryCity}, ${deliveryCap}, Italy`;
+      
+      const response = await fetch('/api/calculate-distance', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          origin: STORE_ADDRESS,
+          destination: destination
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Errore nel calcolo della distanza');
+      }
+
+      const distanceKm = data.distance;
+      setDeliveryDistance(distanceKm);
+
+      const zone = calculateDeliveryZone(distanceKm);
+      
+      if (!zone) {
+        setDeliveryError(`Distanza ${distanceKm.toFixed(1)}km - Consegna non disponibile oltre 10km`);
+        setDeliveryZone(null);
+        return;
+      }
+
+      setDeliveryZone(zone);
+      setDeliveryError(null);
+
+    } catch (error: any) {
+      console.error('Errore calcolo distanza:', error);
+      setDeliveryError(error.message || 'Errore nel calcolo della distanza');
+      setDeliveryZone(null);
+      setDeliveryDistance(null);
+    } finally {
+      setIsCalculatingDistance(false);
+    }
+  };
+
   const getOriginalPrice = () => {
     return items.reduce((total, item) => total + (item.prezzo * item.quantity), 0);
   };
@@ -133,8 +237,12 @@ export default function CheckoutModal({
     return (getOriginalPrice() * appliedDiscount.percent) / 100;
   };
 
+  const getDeliveryCost = () => {
+    return deliveryType === 'delivery' && deliveryZone ? deliveryZone.cost : 0;
+  };
+
   const getTotalPrice = () => {
-    return Math.max(0, getOriginalPrice() - getDiscountAmount());
+    return Math.max(0, getOriginalPrice() - getDiscountAmount() + getDeliveryCost());
   };
 
   const getTotalItems = () => {
@@ -154,7 +262,6 @@ export default function CheckoutModal({
     return /^[A-Z]{2}$/i.test(prov);
   };
 
-  // Verifica codice sconto tramite API
   const applyDiscountCode = async () => {
     const code = discountCode.toUpperCase().trim();
     
@@ -214,6 +321,19 @@ export default function CheckoutModal({
       setError('Compila tutti i campi obbligatori');
       return false;
     }
+
+    // Validazione delivery
+    if (deliveryType === 'delivery') {
+      if (!deliveryAddress || !deliveryCap || !deliveryCity) {
+        setError('Inserisci indirizzo di consegna completo');
+        return false;
+      }
+
+      if (!deliveryZone) {
+        setError('Calcola prima la distanza di consegna');
+        return false;
+      }
+    }
     
     if (paymentMethod === 'stripe' || paymentMethod === 'paypal') {
       if (!fiscalCode || !address || !cap || !city || !province) {
@@ -240,6 +360,12 @@ export default function CheckoutModal({
         setError('Email obbligatoria per ricevere la fattura');
         return false;
       }
+    }
+
+    // Consegna a domicilio: solo pagamenti online
+    if (deliveryType === 'delivery' && paymentMethod === 'cash') {
+      setError('Per la consegna a domicilio è necessario il pagamento online');
+      return false;
     }
     
     const selectedDate = new Date(pickupDate);
@@ -275,6 +401,52 @@ export default function CheckoutModal({
     setPickupDate(e.target.value);
   };
 
+  const getOrderMetadata = () => {
+    const baseMetadata = {
+      customerName,
+      customerEmail: customerEmail || '',
+      customerPhone,
+      pickupDate,
+      orderNotes: notes || '',
+      discountCode: appliedDiscount ? appliedDiscount.code : '',
+      discountPercent: appliedDiscount ? appliedDiscount.percent.toString() : '0',
+      originalAmount: getOriginalPrice().toString(),
+      fiscalCode,
+      invoiceAddress: address,
+      invoiceCap: cap,
+      invoiceCity: city,
+      invoiceProvince: province.toUpperCase(),
+      requiresInvoice: 'true',
+      orderItems: JSON.stringify(items.map(item => ({
+        name: item.nome,
+        description: item.descrizione || '',
+        price: item.prezzo,
+        quantity: item.quantity
+      })))
+    };
+
+    if (deliveryType === 'delivery' && deliveryZone && deliveryDistance) {
+      return {
+        ...baseMetadata,
+        deliveryEnabled: 'true',
+        deliveryAddress: `${deliveryAddress}, ${deliveryCity}, ${deliveryCap}`,
+        deliveryAddressDetails: deliveryAddressDetails || '',
+        deliveryDistance: deliveryDistance.toFixed(2),
+        deliveryZone: deliveryZone.zone,
+        deliveryCost: deliveryZone.cost.toFixed(2),
+        deliveryRiderShare: deliveryZone.riderShare.toFixed(2),
+        deliveryPlatformShare: deliveryZone.platformShare.toFixed(2),
+        deliveryStatus: 'pending'
+      };
+    }
+
+    return {
+      ...baseMetadata,
+      deliveryEnabled: 'false',
+      customerAddress: 'Ritiro presso Pasto Sano'
+    };
+  };
+
   const handleStripeCheckout = async () => {
     if (!validateForm()) return;
     
@@ -293,31 +465,22 @@ export default function CheckoutModal({
         customerEmail,
         customerName,
         customerPhone,
-        customerAddress: 'Ritiro presso Pasto Sano',
-        metadata: {
-          customerName,
-          customerEmail: customerEmail || '',
-          customerPhone,
-          customerAddress: 'Ritiro presso Pasto Sano',
-          pickupDate,
-          orderNotes: notes || '',
-          discountCode: appliedDiscount ? appliedDiscount.code : '',
-          discountPercent: appliedDiscount ? appliedDiscount.percent.toString() : '0',
-          originalAmount: getOriginalPrice().toString(),
-          fiscalCode,
-          invoiceAddress: address,
-          invoiceCap: cap,
-          invoiceCity: city,
-          invoiceProvince: province.toUpperCase(),
-          requiresInvoice: 'true',
-          orderItems: JSON.stringify(items.map(item => ({
-            name: item.nome,
-            description: item.descrizione || '',
-            price: item.prezzo,
-            quantity: item.quantity
-          })))
-        }
+        customerAddress: deliveryType === 'delivery' 
+          ? `${deliveryAddress}, ${deliveryCity}, ${deliveryCap}`
+          : 'Ritiro presso Pasto Sano',
+        metadata: getOrderMetadata()
       };
+
+      // Aggiungi costo consegna come item separato se necessario
+      if (deliveryType === 'delivery' && deliveryZone) {
+        stripeData.items.push({
+          name: 'Consegna a domicilio',
+          description: `Zona ${deliveryZone.zone} - ${deliveryDistance?.toFixed(1)}km`,
+          image: '',
+          price: deliveryZone.cost,
+          quantity: 1
+        });
+      }
 
       const response = await fetch('/api/checkout', {
         method: 'POST',
@@ -334,7 +497,6 @@ export default function CheckoutModal({
 
       const { sessionId } = await response.json();
       
-      // Registra uso codice sconto se applicato e single-use
       if (appliedDiscount && appliedDiscount.singleUse) {
         try {
           await fetch('/api/use-discount', {
@@ -495,6 +657,168 @@ export default function CheckoutModal({
             <div className="p-6">
               {!paymentMethod ? (
                 <>
+                  {/* Toggle Ritiro/Consegna */}
+                  <div className="mb-6 bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-200 rounded-xl p-5">
+                    <h3 className="text-lg font-semibold mb-4 text-gray-800">Modalità di ritiro</h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        onClick={() => {
+                          setDeliveryType('pickup');
+                          setDeliveryZone(null);
+                          setDeliveryDistance(null);
+                          setDeliveryError(null);
+                        }}
+                        className={`p-4 border-2 rounded-lg transition-all ${
+                          deliveryType === 'pickup'
+                            ? 'border-orange-500 bg-orange-50 shadow-md'
+                            : 'border-gray-300 bg-white hover:border-orange-300'
+                        }`}
+                      >
+                        <Store className={`w-6 h-6 mx-auto mb-2 ${
+                          deliveryType === 'pickup' ? 'text-orange-600' : 'text-gray-500'
+                        }`} />
+                        <div className="font-semibold">Ritiro in sede</div>
+                        <div className="text-xs text-gray-500 mt-1">Via Bionde, 8</div>
+                      </button>
+                      
+                      <button
+                        onClick={() => setDeliveryType('delivery')}
+                        className={`p-4 border-2 rounded-lg transition-all ${
+                          deliveryType === 'delivery'
+                            ? 'border-blue-500 bg-blue-50 shadow-md'
+                            : 'border-gray-300 bg-white hover:border-blue-300'
+                        }`}
+                      >
+                        <Truck className={`w-6 h-6 mx-auto mb-2 ${
+                          deliveryType === 'delivery' ? 'text-blue-600' : 'text-gray-500'
+                        }`} />
+                        <div className="font-semibold">Consegna a domicilio</div>
+                        <div className="text-xs text-gray-500 mt-1">€3.50 - €6.90</div>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Form consegna se delivery selezionato */}
+                  {deliveryType === 'delivery' && (
+                    <div className="mb-6 bg-blue-50 border-2 border-blue-200 rounded-xl p-5">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Truck className="w-5 h-5 text-blue-600" />
+                        <h3 className="text-lg font-semibold text-gray-800">Indirizzo di consegna</h3>
+                      </div>
+                      
+                      <div className="space-y-3 mb-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Via e numero civico *
+                          </label>
+                          <input
+                            type="text"
+                            value={deliveryAddress}
+                            onChange={(e) => setDeliveryAddress(e.target.value)}
+                            className="w-full p-3 border rounded-lg focus:outline-none focus:border-blue-500"
+                            placeholder="Via Roma, 123"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-3">
+                          <div className="col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Città *
+                            </label>
+                            <input
+                              type="text"
+                              value={deliveryCity}
+                              onChange={(e) => setDeliveryCity(e.target.value)}
+                              className="w-full p-3 border rounded-lg focus:outline-none focus:border-blue-500"
+                              placeholder="Verona"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              CAP *
+                            </label>
+                            <input
+                              type="text"
+                              value={deliveryCap}
+                              onChange={(e) => setDeliveryCap(e.target.value.replace(/\D/g, '').slice(0, 5))}
+                              className="w-full p-3 border rounded-lg focus:outline-none focus:border-blue-500"
+                              placeholder="37100"
+                              maxLength={5}
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Dettagli aggiuntivi (opzionale)
+                          </label>
+                          <input
+                            type="text"
+                            value={deliveryAddressDetails}
+                            onChange={(e) => setDeliveryAddressDetails(e.target.value)}
+                            className="w-full p-3 border rounded-lg focus:outline-none focus:border-blue-500"
+                            placeholder="Scala, piano, citofono..."
+                          />
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={calculateDeliveryDistance}
+                        disabled={isCalculatingDistance || !deliveryAddress || !deliveryCap}
+                        className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                      >
+                        {isCalculatingDistance ? (
+                          <>
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            <span>Calcolo in corso...</span>
+                          </>
+                        ) : (
+                          <>
+                            <MapPin className="w-5 h-5" />
+                            <span>Calcola distanza e costo</span>
+                          </>
+                        )}
+                      </button>
+
+                      {deliveryError && (
+                        <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                          {deliveryError}
+                        </div>
+                      )}
+
+                      {deliveryZone && deliveryDistance && (
+                        <div className="mt-4 bg-white rounded-lg p-4 border-2 border-green-200">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <Check className="w-5 h-5 text-green-600" />
+                              <span className="font-semibold text-green-700">Consegna disponibile!</span>
+                            </div>
+                          </div>
+                          <div className="text-sm space-y-1">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Distanza:</span>
+                              <span className="font-medium">{deliveryDistance.toFixed(1)} km</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Zona:</span>
+                              <span className="font-medium">{deliveryZone.zone}</span>
+                            </div>
+                            <div className="flex justify-between border-t pt-2 mt-2">
+                              <span className="font-semibold">Costo consegna:</span>
+                              <span className="font-bold text-blue-600">€{deliveryZone.cost.toFixed(2)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                        <p className="text-sm text-amber-800">
+                          <strong>Nota:</strong> Per la consegna a domicilio è necessario il pagamento online (carta o PayPal)
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="space-y-4 mb-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
@@ -695,7 +1019,7 @@ export default function CheckoutModal({
                       <div className="flex items-center gap-2 mb-3">
                         <Calendar className="w-5 h-5 text-amber-600" />
                         <label className="text-sm font-medium text-gray-700">
-                          Data Ritiro Ordine *
+                          Data {deliveryType === 'delivery' ? 'Consegna' : 'Ritiro'} Ordine *
                         </label>
                       </div>
                       
@@ -715,8 +1039,17 @@ export default function CheckoutModal({
                             {getDayName(new Date(pickupDate))}, {new Date(pickupDate).toLocaleDateString('it-IT')}
                           </p>
                           <p className="text-sm text-gray-600 mt-1 flex items-center gap-1">
-                            <MapPin className="w-4 h-4 text-gray-500" />
-                            Ritiro presso Pasto Sano
+                            {deliveryType === 'delivery' ? (
+                              <>
+                                <Truck className="w-4 h-4 text-gray-500" />
+                                Consegna a {deliveryAddress || 'indirizzo da specificare'}
+                              </>
+                            ) : (
+                              <>
+                                <MapPin className="w-4 h-4 text-gray-500" />
+                                Ritiro presso Pasto Sano - Via Bionde, 8
+                              </>
+                            )}
                           </p>
                         </div>
                       )}
@@ -757,6 +1090,12 @@ export default function CheckoutModal({
                           <span>-€{getDiscountAmount().toFixed(2)}</span>
                         </div>
                       )}
+                      {deliveryType === 'delivery' && deliveryZone && (
+                        <div className="flex justify-between text-blue-600">
+                          <span>Consegna ({deliveryZone.zone})</span>
+                          <span>+€{deliveryZone.cost.toFixed(2)}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between font-bold text-lg border-t pt-2">
                         <span>Totale</span>
                         <span className="text-orange-600">€{getTotalPrice().toFixed(2)}</span>
@@ -790,17 +1129,19 @@ export default function CheckoutModal({
                       </div>
                     </button>
                     
-                    <button
-                      onClick={() => validateForm() && setPaymentMethod('cash')}
-                      disabled={isLoading}
-                      className="w-full p-4 border-2 rounded-lg hover:border-green-500 transition-colors flex items-center justify-center space-x-3 disabled:opacity-50"
-                    >
-                      <Banknote className="w-6 h-6 text-green-500" />
-                      <div className="text-left">
-                        <div className="font-semibold">Contanti al Ritiro</div>
-                        <div className="text-xs text-gray-500">Senza fattura</div>
-                      </div>
-                    </button>
+                    {deliveryType === 'pickup' && (
+                      <button
+                        onClick={() => validateForm() && setPaymentMethod('cash')}
+                        disabled={isLoading}
+                        className="w-full p-4 border-2 rounded-lg hover:border-green-500 transition-colors flex items-center justify-center space-x-3 disabled:opacity-50"
+                      >
+                        <Banknote className="w-6 h-6 text-green-500" />
+                        <div className="text-left">
+                          <div className="font-semibold">Contanti al Ritiro</div>
+                          <div className="text-xs text-gray-500">Senza fattura</div>
+                        </div>
+                      </button>
+                    )}
                   </div>
                 </>
               ) : (
@@ -864,7 +1205,7 @@ export default function CheckoutModal({
                           return actions.order.create({
                             intent: "CAPTURE",
                             purchase_units: [{
-                              description: `Ordine Pasto Sano`,
+                              description: `Ordine Pasto Sano ${deliveryType === 'delivery' ? '(Consegna)' : '(Ritiro)'}`,
                               amount: {
                                 currency_code: "EUR",
                                 value: getTotalPrice().toFixed(2)
