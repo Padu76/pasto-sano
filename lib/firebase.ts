@@ -112,7 +112,6 @@ export interface Order {
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
   
-  // Campi delivery
   deliveryEnabled?: string | boolean;
   deliveryAddress?: string;
   deliveryAddressDetails?: string;
@@ -151,6 +150,25 @@ export interface DashboardStats {
   totalRevenue: number;
   averageOrder: number;
   uniqueCustomers: number;
+}
+
+export interface RiderPayment {
+  id?: string;
+  riderId: string;
+  riderName: string;
+  period: {
+    start: Date | Timestamp;
+    end: Date | Timestamp;
+    label: string;
+  };
+  totalDeliveries: number;
+  totalEarnings: number;
+  totalDistance: number;
+  orders: string[];
+  status: 'pending' | 'paid';
+  paidAt?: Date | Timestamp;
+  notes?: string;
+  createdAt: Date | Timestamp;
 }
 
 export async function addOrder(order: Omit<Order, 'id'>): Promise<string> {

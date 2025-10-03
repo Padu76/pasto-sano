@@ -35,7 +35,9 @@ import {
   Edit,
   CheckCircle,
   XCircle,
-  Navigation
+  Navigation,
+  Wallet,
+  Clock
 } from 'lucide-react';
 import { Line } from 'react-chartjs-2';
 import {
@@ -75,7 +77,22 @@ interface Rider {
   };
 }
 
-type TabType = 'ordini' | 'rider' | 'analytics';
+interface RiderPayment {
+  riderId: string;
+  riderName: string;
+  period: {
+    start: Date;
+    end: Date;
+    label: string;
+  };
+  totalDeliveries: number;
+  totalEarnings: number;
+  totalDistance: number;
+  orders: string[];
+  status: 'pending' | 'paid';
+}
+
+type TabType = 'ordini' | 'rider' | 'analytics' | 'pagamenti';
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('ordini');
@@ -100,6 +117,17 @@ export default function AdminDashboard() {
     phone: '',
     password: ''
   });
+
+  const [payments, setPayments] = useState<RiderPayment[]>([]);
+  const [paymentPeriodType, setPaymentPeriodType] = useState<'week' | 'month' | 'custom'>('month');
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState<RiderPayment | null>(null);
+  const [paymentNotes, setPaymentNotes] = useState('');
+  
+  const [analyticsFilter, setAnalyticsFilter] = useState<'oggi' | 'settimana' | 'mese' | 'tutti'>('mese');
+  const [analyticsOrders, setAnalyticsOrders] = useState<Order[]>([]);
   
   const lastNotificationTime = useRef<number>(Date.now());
   const unsubscribe = useRef<any>(null);
@@ -148,6 +176,66 @@ export default function AdminDashboard() {
     applyDeliveryFilter();
   }, [deliveryFilter, orders, currentFilter]);
 
+  useEffect(() => {
+    if (activeTab === 'pagamenti') {
+      loadPayments();
+    }
+  }, [activeTab, paymentPeriodType, customStartDate, customEndDate]);
+
+  useEffect(() => {
+    if (activeTab === 'analytics') {
+      filterAnalyticsOrders();
+    }
+  }, [activeTab, analyticsFilter, orders]);
+
+  const filterAnalyticsOrders = () => {
+    const now = new Date();
+    now.setHours(23, 59, 59, 999);
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    
+    let filtered: Order[] = [];
+
+    switch (analyticsFilter) {
+      case 'oggi':
+        filtered = orders.filter(order => {
+          const orderDate = order.timestamp instanceof Date 
+            ? order.timestamp 
+            : order.timestamp.toDate();
+          return orderDate >= todayStart && orderDate <= now;
+        });
+        break;
+      case 'settimana':
+        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        filtered = orders.filter(order => {
+          const orderDate = order.timestamp instanceof Date 
+            ? order.timestamp 
+            : order.timestamp.toDate();
+          return orderDate >= weekAgo;
+        });
+        break;
+      case 'mese':
+        const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        filtered = orders.filter(order => {
+          const orderDate = order.timestamp instanceof Date 
+            ? order.timestamp 
+            : order.timestamp.toDate();
+          return orderDate >= monthAgo;
+        });
+        break;
+      default:
+        const threeMonthsAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        filtered = orders.filter(order => {
+          const orderDate = order.timestamp instanceof Date 
+            ? order.timestamp 
+            : order.timestamp.toDate();
+          return orderDate >= threeMonthsAgo;
+        });
+    }
+
+    setAnalyticsOrders(filtered);
+  };
+
   const loadDashboardData = async () => {
     try {
       setLoading(true);
@@ -195,6 +283,25 @@ export default function AdminDashboard() {
     }
   };
 
+  const loadPayments = async () => {
+    try {
+      let url = `/api/admin-rider-payments?periodType=${paymentPeriodType}`;
+      
+      if (paymentPeriodType === 'custom' && customStartDate && customEndDate) {
+        url += `&startDate=${customStartDate}&endDate=${customEndDate}`;
+      }
+
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.success) {
+        setPayments(data.payments);
+      }
+    } catch (error) {
+      console.error('Errore caricamento pagamenti:', error);
+    }
+  };
+
   const getRiderStats = async (riderId: string) => {
     const riderOrders = orders.filter(
       o => o.riderId === riderId && o.deliveryStatus === 'delivered'
@@ -213,6 +320,61 @@ export default function AdminDashboard() {
       totalEarnings,
       averageDistance: riderOrders.length > 0 ? totalDistance / riderOrders.length : 0
     };
+  };
+
+  const handleMarkAsPaid = async () => {
+    if (!selectedPayment) return;
+
+    try {
+      const response = await fetch('/api/admin-rider-payments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...selectedPayment,
+          notes: paymentNotes
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        alert('Pagamento registrato con successo');
+        setShowPaymentModal(false);
+        setSelectedPayment(null);
+        setPaymentNotes('');
+        await loadPayments();
+      }
+    } catch (error) {
+      alert('Errore registrazione pagamento');
+    }
+  };
+
+  const exportPaymentsCSV = () => {
+    if (payments.length === 0) {
+      alert('Nessun pagamento da esportare');
+      return;
+    }
+
+    const headers = ['Rider', 'Consegne', 'Totale €', 'Distanza km', 'Status', 'Periodo'];
+    const rows = payments.map(p => [
+      p.riderName,
+      p.totalDeliveries,
+      p.totalEarnings.toFixed(2),
+      p.totalDistance.toFixed(1),
+      p.status === 'paid' ? 'Pagato' : 'Da Pagare',
+      p.period.label
+    ]);
+
+    const csvContent = [headers, ...rows]
+      .map(row => row.join(','))
+      .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `pagamenti_rider_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
   };
 
   const applyDeliveryFilter = () => {
@@ -532,7 +694,7 @@ export default function AdminDashboard() {
   };
 
   const playNotificationSound = () => {
-    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NST');
+    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NST');
     audio.play().catch(e => console.log('Audio play failed:', e));
   };
 
@@ -540,6 +702,94 @@ export default function AdminDashboard() {
     const cleanPhone = phone.replace(/\D/g, '');
     const whatsappUrl = `https://wa.me/39${cleanPhone}`;
     window.open(whatsappUrl, '_blank');
+  };
+
+  const getAnalyticsChartData = () => {
+    const labels: string[] = [];
+    const data: number[] = [];
+
+    if (analyticsFilter === 'oggi') {
+      for (let hour = 8; hour < 22; hour += 2) {
+        labels.push(`${hour}:00`);
+        const ordersInRange = analyticsOrders.filter(order => {
+          const orderDate = order.timestamp instanceof Date ? order.timestamp : order.timestamp.toDate();
+          const orderHour = orderDate.getHours();
+          return orderHour >= hour && orderHour < hour + 2;
+        });
+        const revenue = ordersInRange.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+        data.push(revenue);
+      }
+    } else if (analyticsFilter === 'settimana') {
+      const now = new Date();
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - i);
+        date.setHours(0, 0, 0, 0);
+        const nextDate = new Date(date);
+        nextDate.setDate(date.getDate() + 1);
+        
+        const ordersInDay = analyticsOrders.filter(order => {
+          const orderDate = order.timestamp instanceof Date ? order.timestamp : order.timestamp.toDate();
+          return orderDate >= date && orderDate < nextDate;
+        });
+        const revenue = ordersInDay.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+        
+        labels.push(date.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric' }));
+        data.push(revenue);
+      }
+    } else if (analyticsFilter === 'mese') {
+      const now = new Date();
+      for (let i = 29; i >= 0; i--) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - i);
+        date.setHours(0, 0, 0, 0);
+        const nextDate = new Date(date);
+        nextDate.setDate(date.getDate() + 1);
+        
+        const ordersInDay = analyticsOrders.filter(order => {
+          const orderDate = order.timestamp instanceof Date ? order.timestamp : order.timestamp.toDate();
+          return orderDate >= date && orderDate < nextDate;
+        });
+        const revenue = ordersInDay.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+        
+        if (i % 3 === 0 || i === 29) {
+          labels.push(date.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' }));
+          data.push(revenue);
+        }
+      }
+    } else {
+      const now = new Date();
+      for (let i = 89; i >= 0; i--) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - i);
+        date.setHours(0, 0, 0, 0);
+        const nextDate = new Date(date);
+        nextDate.setDate(date.getDate() + 1);
+        
+        const ordersInDay = analyticsOrders.filter(order => {
+          const orderDate = order.timestamp instanceof Date ? order.timestamp : order.timestamp.toDate();
+          return orderDate >= date && orderDate < nextDate;
+        });
+        const revenue = ordersInDay.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+        
+        if (i % 7 === 0 || i === 89) {
+          labels.push(date.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' }));
+          data.push(revenue);
+        }
+      }
+    }
+
+    return {
+      labels,
+      datasets: [{
+        label: `Fatturato (${analyticsFilter})`,
+        data,
+        borderColor: '#7a9e7e',
+        backgroundColor: 'rgba(122, 158, 126, 0.1)',
+        tension: 0.4,
+        fill: true
+      }]
+    };
   };
 
   const getChartData = () => {
@@ -604,6 +854,29 @@ export default function AdminDashboard() {
         display: true,
         text: `Fatturato per ${currentFilter === 'oggi' ? 'Fasce Orarie' : 'Giorni'} (${currentFilter.charAt(0).toUpperCase() + currentFilter.slice(1)})`,
         font: { size: 14 }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: function(value: any) {
+            return '€' + value.toFixed(0);
+          }
+        }
+      }
+    }
+  };
+
+  const analyticsChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      title: {
+        display: true,
+        text: `Fatturato ${analyticsFilter.charAt(0).toUpperCase() + analyticsFilter.slice(1)}`,
+        font: { size: 16, weight: 'bold' as const }
       }
     },
     scales: {
@@ -696,6 +969,17 @@ export default function AdminDashboard() {
             >
               <TrendingUp className="w-5 h-5 inline mr-2" />
               Analytics
+            </button>
+            <button
+              onClick={() => setActiveTab('pagamenti')}
+              className={`px-6 py-3 rounded-lg transition font-medium ${
+                activeTab === 'pagamenti' 
+                  ? 'bg-white text-green-700' 
+                  : 'bg-white/20 text-white hover:bg-white/30'
+              }`}
+            >
+              <Wallet className="w-5 h-5 inline mr-2" />
+              Pagamenti
             </button>
           </div>
         </div>
@@ -1071,13 +1355,228 @@ export default function AdminDashboard() {
 
         {activeTab === 'analytics' && (
           <div className="bg-white rounded-xl shadow-md p-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Analytics Dettagliate</h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-800">Analytics Dettagliate</h2>
+              <div className="flex gap-2">
+                {(['oggi', 'settimana', 'mese', 'tutti'] as const).map(filter => (
+                  <button
+                    key={filter}
+                    onClick={() => setAnalyticsFilter(filter)}
+                    className={`px-4 py-2 rounded-lg transition text-sm font-medium ${
+                      analyticsFilter === filter ? 'bg-green-600 text-white' : 'border hover:bg-gray-50'
+                    }`}
+                  >
+                    {filter.charAt(0).toUpperCase() + filter.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-6 text-white">
+                <p className="text-sm opacity-90 mb-1">Ordini Periodo</p>
+                <p className="text-3xl font-bold">{analyticsOrders.length}</p>
+              </div>
+              <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-6 text-white">
+                <p className="text-sm opacity-90 mb-1">Fatturato</p>
+                <p className="text-3xl font-bold">
+                  €{analyticsOrders.reduce((sum, o) => sum + o.totalAmount, 0).toFixed(2)}
+                </p>
+              </div>
+              <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-6 text-white">
+                <p className="text-sm opacity-90 mb-1">Ordine Medio</p>
+                <p className="text-3xl font-bold">
+                  €{analyticsOrders.length > 0 ? (analyticsOrders.reduce((sum, o) => sum + o.totalAmount, 0) / analyticsOrders.length).toFixed(2) : '0.00'}
+                </p>
+              </div>
+            </div>
+
             <div className="h-96">
-              <Line data={getChartData()} options={chartOptions} />
+              <Line data={getAnalyticsChartData()} options={analyticsChartOptions} />
             </div>
           </div>
         )}
+
+        {activeTab === 'pagamenti' && (
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-800">Pagamenti Rider</h2>
+              <button
+                onClick={exportPaymentsCSV}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2"
+              >
+                <Download className="w-5 h-5" />
+                Export CSV
+              </button>
+            </div>
+
+            <div className="flex gap-2 mb-6 items-center flex-wrap">
+              {(['month', 'week', 'custom'] as const).map(type => (
+                <button
+                  key={type}
+                  onClick={() => setPaymentPeriodType(type)}
+                  className={`px-4 py-2 rounded-lg transition text-sm font-medium ${
+                    paymentPeriodType === type ? 'bg-green-600 text-white' : 'border hover:bg-gray-50'
+                  }`}
+                >
+                  {type === 'month' ? 'Mese Corrente' : type === 'week' ? 'Settimana Corrente' : 'Periodo Custom'}
+                </button>
+              ))}
+
+              {paymentPeriodType === 'custom' && (
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="date"
+                    value={customStartDate}
+                    onChange={(e) => setCustomStartDate(e.target.value)}
+                    className="px-3 py-2 border rounded-lg text-sm"
+                  />
+                  <span className="text-gray-500">-</span>
+                  <input
+                    type="date"
+                    value={customEndDate}
+                    onChange={(e) => setCustomEndDate(e.target.value)}
+                    className="px-3 py-2 border rounded-lg text-sm"
+                  />
+                  <button
+                    onClick={loadPayments}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm"
+                  >
+                    Applica
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {payments.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <Wallet className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <p>Nessun pagamento trovato per questo periodo</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {payments.map((payment, idx) => (
+                  <div key={idx} className="border rounded-lg p-4 hover:shadow-md transition">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h3 className="font-bold text-lg text-gray-800">{payment.riderName}</h3>
+                        <p className="text-xs text-gray-500 mt-1">
+                          <Clock className="w-3 h-3 inline mr-1" />
+                          {payment.period.label}
+                        </p>
+                      </div>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        payment.status === 'paid' 
+                          ? 'bg-green-100 text-green-700' 
+                          : 'bg-yellow-100 text-yellow-700'
+                      }`}>
+                        {payment.status === 'paid' ? 'Pagato' : 'Da Pagare'}
+                      </span>
+                    </div>
+
+                    <div className="bg-gray-50 rounded p-3 mb-3 space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Consegne:</span>
+                        <span className="font-semibold">{payment.totalDeliveries}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Distanza totale:</span>
+                        <span className="font-semibold">{payment.totalDistance.toFixed(1)} km</span>
+                      </div>
+                      <div className="flex justify-between border-t pt-2">
+                        <span className="text-gray-700 font-medium">Totale da pagare:</span>
+                        <span className="font-bold text-green-600 text-lg">€{payment.totalEarnings.toFixed(2)}</span>
+                      </div>
+                    </div>
+
+                    {payment.status === 'pending' && (
+                      <button
+                        onClick={() => {
+                          setSelectedPayment(payment);
+                          setShowPaymentModal(true);
+                        }}
+                        className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center justify-center gap-2"
+                      >
+                        <CheckCircle className="w-4 h-4" />
+                        Segna come Pagato
+                      </button>
+                    )}
+
+                    {payment.status === 'paid' && (
+                      <div className="text-center text-sm text-green-600 font-medium py-2">
+                        <CheckCircle className="w-4 h-4 inline mr-1" />
+                        Pagamento Completato
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
+
+      {showPaymentModal && selectedPayment && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-md w-full p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-800">Conferma Pagamento</h2>
+              <button onClick={() => setShowPaymentModal(false)} className="text-gray-500 hover:text-gray-700">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-4 mb-6">
+              <h3 className="font-bold text-lg mb-2">{selectedPayment.riderName}</h3>
+              <p className="text-sm text-gray-600 mb-3">{selectedPayment.period.label}</p>
+              
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Consegne completate:</span>
+                  <span className="font-semibold">{selectedPayment.totalDeliveries}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Distanza totale:</span>
+                  <span className="font-semibold">{selectedPayment.totalDistance.toFixed(1)} km</span>
+                </div>
+                <div className="flex justify-between pt-2 border-t">
+                  <span className="font-medium text-gray-700">Importo da pagare:</span>
+                  <span className="font-bold text-green-600 text-xl">€{selectedPayment.totalEarnings.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Note (opzionale)</label>
+              <textarea
+                value={paymentNotes}
+                onChange={(e) => setPaymentNotes(e.target.value)}
+                className="w-full p-3 border rounded-lg focus:outline-none focus:border-green-500"
+                rows={3}
+                placeholder="Es: Pagato con bonifico, riferimento #12345"
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleMarkAsPaid}
+                className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium"
+              >
+                Conferma Pagamento
+              </button>
+              <button
+                onClick={() => {
+                  setShowPaymentModal(false);
+                  setPaymentNotes('');
+                }}
+                className="px-4 py-3 border rounded-lg hover:bg-gray-50 transition"
+              >
+                Annulla
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showRiderModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
