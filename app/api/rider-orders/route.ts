@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/firebase';
-import { collection, query, where, orderBy, getDocs, or } from 'firebase/firestore';
+import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,27 +16,32 @@ export async function GET(request: NextRequest) {
 
     const ordersRef = collection(db, 'orders');
     
-    // Query per ottenere:
-    // 1. Ordini pending con delivery enabled (disponibili per tutti i rider)
-    // 2. Ordini assegnati a questo rider (in_delivery o delivered)
-    const q = query(
+    // Prima query: ordini pending con delivery
+    const pendingQuery = query(
       ordersRef,
-      or(
-        where('deliveryStatus', '==', 'pending'),
-        where('riderId', '==', riderId)
-      ),
+      where('deliveryStatus', '==', 'pending'),
       orderBy('timestamp', 'desc')
     );
 
-    const snapshot = await getDocs(q);
-    const orders: any[] = [];
+    // Seconda query: ordini del rider
+    const riderQuery = query(
+      ordersRef,
+      where('riderId', '==', riderId),
+      orderBy('timestamp', 'desc')
+    );
 
-    snapshot.forEach((doc) => {
+    const [pendingSnapshot, riderSnapshot] = await Promise.all([
+      getDocs(pendingQuery),
+      getDocs(riderQuery)
+    ]);
+
+    const ordersMap = new Map();
+
+    // Aggiungi ordini pending
+    pendingSnapshot.forEach((doc) => {
       const data = doc.data();
-      
-      // Filtra solo ordini con delivery abilitato
       if (data.deliveryEnabled === 'true' || data.deliveryEnabled === true) {
-        orders.push({
+        ordersMap.set(doc.id, {
           id: doc.id,
           customerName: data.customerName || 'Cliente',
           customerPhone: data.customerPhone || '',
@@ -51,8 +56,8 @@ export async function GET(request: NextRequest) {
           deliveryStatus: data.deliveryStatus || 'pending',
           pickupDate: data.pickupDate || '',
           totalAmount: parseFloat(data.totalAmount) || 0,
-          items: data.orderItems ? JSON.parse(data.orderItems) : [],
-          notes: data.orderNotes || '',
+          items: Array.isArray(data.items) ? data.items : [],
+          notes: data.notes || '',
           timestamp: data.timestamp?.toDate?.() || new Date(),
           riderId: data.riderId || null,
           riderName: data.riderName || null,
@@ -62,6 +67,40 @@ export async function GET(request: NextRequest) {
       }
     });
 
+    // Aggiungi ordini del rider (sovrascrive se già presenti)
+    riderSnapshot.forEach((doc) => {
+      const data = doc.data();
+      if (data.deliveryEnabled === 'true' || data.deliveryEnabled === true) {
+        ordersMap.set(doc.id, {
+          id: doc.id,
+          customerName: data.customerName || 'Cliente',
+          customerPhone: data.customerPhone || '',
+          customerEmail: data.customerEmail || '',
+          deliveryAddress: data.deliveryAddress || '',
+          deliveryAddressDetails: data.deliveryAddressDetails || '',
+          deliveryDistance: parseFloat(data.deliveryDistance) || 0,
+          deliveryZone: data.deliveryZone || '',
+          deliveryCost: parseFloat(data.deliveryCost) || 0,
+          deliveryRiderShare: parseFloat(data.deliveryRiderShare) || 0,
+          deliveryPlatformShare: parseFloat(data.deliveryPlatformShare) || 0,
+          deliveryStatus: data.deliveryStatus || 'pending',
+          pickupDate: data.pickupDate || '',
+          totalAmount: parseFloat(data.totalAmount) || 0,
+          items: Array.isArray(data.items) ? data.items : [],
+          notes: data.notes || '',
+          timestamp: data.timestamp?.toDate?.() || new Date(),
+          riderId: data.riderId || null,
+          riderName: data.riderName || null,
+          assignedAt: data.assignedAt?.toDate?.() || null,
+          deliveredAt: data.deliveredAt?.toDate?.() || null
+        });
+      }
+    });
+
+    const orders = Array.from(ordersMap.values()).sort((a, b) => 
+      b.timestamp.getTime() - a.timestamp.getTime()
+    );
+
     return NextResponse.json({
       success: true,
       orders: orders
@@ -70,7 +109,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Errore caricamento ordini rider:', error);
     return NextResponse.json(
-      { success: false, error: 'Errore durante il caricamento' },
+      { success: false, error: 'Errore durante il caricamento', details: error.message },
       { status: 500 }
     );
   }
