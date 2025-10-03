@@ -36,7 +36,6 @@ const initialPayPalOptions = {
   locale: "it_IT"
 };
 
-// Indirizzo di partenza per calcolo distanze
 const STORE_ADDRESS = 'Via Bionde, 8, 37139 Verona VR, Italy';
 
 interface CartItem extends MenuItem {
@@ -85,12 +84,12 @@ export default function CheckoutModal({
   const [city, setCity] = useState('');
   const [province, setProvince] = useState('');
   
-  // Delivery states
   const [deliveryType, setDeliveryType] = useState<'pickup' | 'delivery'>('pickup');
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [deliveryAddressDetails, setDeliveryAddressDetails] = useState('');
   const [deliveryCity, setDeliveryCity] = useState('Verona');
   const [deliveryCap, setDeliveryCap] = useState('');
+  const [deliveryTimeSlot, setDeliveryTimeSlot] = useState<'12-14' | '16-18' | '19-21'>('12-14');
   const [isCalculatingDistance, setIsCalculatingDistance] = useState(false);
   const [deliveryZone, setDeliveryZone] = useState<DeliveryZone | null>(null);
   const [deliveryDistance, setDeliveryDistance] = useState<number | null>(null);
@@ -147,34 +146,32 @@ export default function CheckoutModal({
     setPickupDate(minDateString);
   }, []);
 
-  // Calcola zona e costo delivery in base a distanza
   const calculateDeliveryZone = (distanceKm: number): DeliveryZone | null => {
     if (distanceKm <= 3) {
       return {
         zone: '1-3km',
         cost: 3.50,
-        riderShare: 2.45, // 70%
-        platformShare: 1.05 // 30%
+        riderShare: 2.45,
+        platformShare: 1.05
       };
     } else if (distanceKm <= 6) {
       return {
         zone: '3-6km',
         cost: 4.90,
-        riderShare: 3.43, // 70%
-        platformShare: 1.47 // 30%
+        riderShare: 3.43,
+        platformShare: 1.47
       };
     } else if (distanceKm <= 10) {
       return {
         zone: '6-10km',
         cost: 6.90,
-        riderShare: 4.83, // 70%
-        platformShare: 2.07 // 30%
+        riderShare: 4.83,
+        platformShare: 2.07
       };
     }
     return null;
   };
 
-  // Calcola distanza usando Google Maps Distance Matrix API
   const calculateDeliveryDistance = async () => {
     if (!deliveryAddress || !deliveryCap) {
       setDeliveryError('Inserisci indirizzo completo e CAP');
@@ -322,7 +319,6 @@ export default function CheckoutModal({
       return false;
     }
 
-    // Validazione delivery
     if (deliveryType === 'delivery') {
       if (!deliveryAddress || !deliveryCap || !deliveryCity) {
         setError('Inserisci indirizzo di consegna completo');
@@ -362,7 +358,6 @@ export default function CheckoutModal({
       }
     }
 
-    // Consegna a domicilio: solo pagamenti online
     if (deliveryType === 'delivery' && paymentMethod === 'cash') {
       setError('Per la consegna a domicilio è necessario il pagamento online');
       return false;
@@ -436,7 +431,8 @@ export default function CheckoutModal({
         deliveryCost: deliveryZone.cost.toFixed(2),
         deliveryRiderShare: deliveryZone.riderShare.toFixed(2),
         deliveryPlatformShare: deliveryZone.platformShare.toFixed(2),
-        deliveryStatus: 'pending'
+        deliveryStatus: 'pending',
+        deliveryTimeSlot: deliveryTimeSlot
       };
     }
 
@@ -471,7 +467,6 @@ export default function CheckoutModal({
         metadata: getOrderMetadata()
       };
 
-      // Aggiungi costo consegna come item separato se necessario
       if (deliveryType === 'delivery' && deliveryZone) {
         stripeData.items.push({
           name: 'Consegna a domicilio',
@@ -657,7 +652,6 @@ export default function CheckoutModal({
             <div className="p-6">
               {!paymentMethod ? (
                 <>
-                  {/* Toggle Ritiro/Consegna */}
                   <div className="mb-6 bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-200 rounded-xl p-5">
                     <h3 className="text-lg font-semibold mb-4 text-gray-800">Modalità di ritiro</h3>
                     <div className="grid grid-cols-2 gap-3">
@@ -698,7 +692,6 @@ export default function CheckoutModal({
                     </div>
                   </div>
 
-                  {/* Form consegna se delivery selezionato */}
                   {deliveryType === 'delivery' && (
                     <div className="mb-6 bg-blue-50 border-2 border-blue-200 rounded-xl p-5">
                       <div className="flex items-center gap-2 mb-4">
@@ -760,6 +753,23 @@ export default function CheckoutModal({
                             placeholder="Scala, piano, citofono..."
                           />
                         </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <Clock className="w-4 h-4 inline mr-1" />
+                            Fascia Oraria Consegna *
+                          </label>
+                          <select
+                            value={deliveryTimeSlot}
+                            onChange={(e) => setDeliveryTimeSlot(e.target.value as any)}
+                            className="w-full p-3 border rounded-lg focus:outline-none focus:border-blue-500"
+                            required
+                          >
+                            <option value="12-14">12:00 - 14:00</option>
+                            <option value="16-18">16:00 - 18:00</option>
+                            <option value="19-21">19:00 - 21:00</option>
+                          </select>
+                        </div>
                       </div>
 
                       <button
@@ -802,6 +812,10 @@ export default function CheckoutModal({
                             <div className="flex justify-between">
                               <span className="text-gray-600">Zona:</span>
                               <span className="font-medium">{deliveryZone.zone}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Fascia oraria:</span>
+                              <span className="font-medium">{deliveryTimeSlot.replace('-', ':00 - ')}:00</span>
                             </div>
                             <div className="flex justify-between border-t pt-2 mt-2">
                               <span className="font-semibold">Costo consegna:</span>
@@ -1042,7 +1056,7 @@ export default function CheckoutModal({
                             {deliveryType === 'delivery' ? (
                               <>
                                 <Truck className="w-4 h-4 text-gray-500" />
-                                Consegna a {deliveryAddress || 'indirizzo da specificare'}
+                                Consegna {deliveryTimeSlot.replace('-', ':00 - ')}:00 a {deliveryAddress || 'indirizzo da specificare'}
                               </>
                             ) : (
                               <>
