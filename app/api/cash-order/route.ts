@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { addOrder } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
+import { collection, query, where, getDocs, limit, updateDoc, doc } from 'firebase/firestore';
 
 export async function POST(request: NextRequest) {
   try {
     const orderData = await request.json();
     
-    // Validazione dati
     const { 
       customerName, 
       customerPhone, 
@@ -14,7 +15,15 @@ export async function POST(request: NextRequest) {
       pickupDate, 
       items, 
       totalAmount,
-      notes 
+      notes,
+      deliveryEnabled,
+      deliveryAddress,
+      deliveryAddressDetails,
+      deliveryDistance,
+      deliveryZone,
+      deliveryCost,
+      deliveryRiderShare,
+      deliveryTimeSlot
     } = orderData;
     
     if (!customerName || !customerPhone || !pickupDate || !items || !totalAmount) {
@@ -27,39 +36,81 @@ export async function POST(request: NextRequest) {
     console.log('💰 Ordine contanti ricevuto:', {
       customer: customerName,
       phone: customerPhone,
-      total: totalAmount
+      total: totalAmount,
+      delivery: deliveryEnabled
     });
 
-    // Salva ordine su Firebase
-    try {
-      const orderId = await addOrder({
-        customerName,
-        customerEmail: customerEmail || '',
-        customerPhone,
-        customerAddress: customerAddress || '',
-        items,
-        totalAmount,
-        paymentMethod: 'cash',
-        paymentMethodName: 'Contanti alla Consegna',
-        paymentStatus: 'pending',
-        orderStatus: 'confirmed',
-        pickupDate,
-        notes: notes || '',
-        source: 'website',
-        timestamp: new Date(),
-      });
-      
-      console.log('✅ Ordine salvato su Firebase con ID:', orderId);
-    } catch (firebaseError) {
-      console.error('❌ Errore salvataggio Firebase:', firebaseError);
-      // Continua comunque con l'invio email
+    let orderDoc: any = {
+      customerName,
+      customerEmail: customerEmail || '',
+      customerPhone,
+      customerAddress: customerAddress || '',
+      items,
+      totalAmount,
+      paymentMethod: 'cash',
+      paymentMethodName: 'Contanti alla Consegna',
+      paymentStatus: 'pending',
+      orderStatus: 'confirmed',
+      pickupDate,
+      notes: notes || '',
+      source: 'website',
+      timestamp: new Date(),
+    };
+
+    if (deliveryEnabled) {
+      orderDoc = {
+        ...orderDoc,
+        deliveryEnabled: 'true',
+        deliveryAddress: deliveryAddress || '',
+        deliveryAddressDetails: deliveryAddressDetails || '',
+        deliveryDistance: parseFloat(deliveryDistance || '0'),
+        deliveryZone: deliveryZone || '',
+        deliveryCost: parseFloat(deliveryCost || '0'),
+        deliveryRiderShare: parseFloat(deliveryRiderShare || '0'),
+        deliveryTimeSlot: deliveryTimeSlot || '',
+        deliveryStatus: 'pending',
+      };
     }
 
-    // Invia email e WhatsApp notification
+    try {
+      const orderId = await addOrder(orderDoc);
+      console.log('✅ Ordine salvato su Firebase con ID:', orderId);
+
+      // AUTO-ASSEGNAZIONE RIDER
+      if (deliveryEnabled && orderId) {
+        try {
+          const ridersRef = collection(db, 'riders');
+          const q = query(ridersRef, where('active', '==', true), limit(1));
+          const ridersSnapshot = await getDocs(q);
+
+          if (!ridersSnapshot.empty) {
+            const riderDoc = ridersSnapshot.docs[0];
+            const riderData = riderDoc.data();
+            
+            const orderRef = doc(db, 'orders', orderId);
+            await updateDoc(orderRef, {
+              riderId: riderDoc.id,
+              riderName: riderData.name,
+              deliveryStatus: 'assigned',
+              assignedAt: new Date()
+            });
+
+            console.log(`✅ Ordine delivery auto-assegnato a rider: ${riderData.name}`);
+          } else {
+            console.log('⚠️ Nessun rider attivo disponibile - ordine resta in pending');
+          }
+        } catch (riderError) {
+          console.error('⚠️ Errore auto-assegnazione rider:', riderError);
+        }
+      }
+
+    } catch (firebaseError) {
+      console.error('❌ Errore salvataggio Firebase:', firebaseError);
+    }
+
     let emailSent = false;
     let whatsappUrl = '';
 
-    // Prepara messaggio WhatsApp
     const itemsList = items.map((item: any) => 
       `• ${item.name} x${item.quantity}`
     ).join('\n');
@@ -72,14 +123,13 @@ export async function POST(request: NextRequest) {
       `💰 *Totale:* €${totalAmount.toFixed(2)}\n` +
       `💵 *Pagamento:* CONTANTI ALLA CONSEGNA\n\n` +
       `📋 *Ordine:*\n${itemsList}\n\n` +
+      `${deliveryEnabled ? `🚚 *DELIVERY*\n📍 ${deliveryAddress}\n⏰ Fascia: ${deliveryTimeSlot}\n\n` : ''}` +
       `${notes ? `📝 Note: ${notes}` : ''}`
     );
 
-    // Genera link WhatsApp (sostituisci con il tuo numero)
     const restaurantWhatsApp = process.env.RESTAURANT_WHATSAPP || '393331234567';
     whatsappUrl = `https://wa.me/${restaurantWhatsApp}?text=${whatsappMessage}`;
 
-    // Invia email tramite EmailJS
     if (process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID && process.env.EMAILJS_PRIVATE_KEY) {
       try {
         await sendCashOrderEmail(orderData);
@@ -110,7 +160,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Funzione per inviare email ordine contanti
 async function sendCashOrderEmail(orderData: any) {
   const { 
     customerName, 
@@ -120,18 +169,18 @@ async function sendCashOrderEmail(orderData: any) {
     pickupDate, 
     items, 
     totalAmount,
-    notes
+    notes,
+    deliveryEnabled,
+    deliveryAddress,
+    deliveryTimeSlot
   } = orderData;
   
-  // Calcola totale articoli
   const totalItems = items.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0);
   
-  // Genera lista prodotti per email
   const itemsList = items.map((item: any) => 
     `• ${item.name} x${item.quantity} = €${(item.price * item.quantity).toFixed(2)}`
   ).join('\n');
 
-  // Formatta data ritiro
   const pickupDateFormatted = new Date(pickupDate).toLocaleDateString('it-IT', {
     weekday: 'long',
     year: 'numeric',
@@ -141,41 +190,33 @@ async function sendCashOrderEmail(orderData: any) {
     minute: '2-digit'
   });
 
-  // Dati per il template EmailJS
   const templateParams = {
     to_email: process.env.NOTIFICATION_EMAIL || 'ordini@pastosano.it',
     subject: `💰 Ordine Contanti: ${customerName} - €${totalAmount.toFixed(2)}`,
     
-    // Dati cliente
-    order_type: 'ORDINE CONTANTI',
+    order_type: deliveryEnabled ? 'ORDINE DELIVERY - CONTANTI' : 'ORDINE CONTANTI',
     customer_name: customerName,
     customer_phone: customerPhone,
     customer_email: customerEmail || 'Non fornita',
     customer_address: customerAddress || 'Ritiro in sede',
     
-    // Dettagli ordine
     pickup_date: pickupDateFormatted,
     payment_method: 'Contanti alla Consegna',
     payment_status: 'DA RISCUOTERE',
     
-    // Riepilogo ordine
     total_amount: `€${totalAmount.toFixed(2)}`,
     items_list: itemsList,
     total_items: totalItems.toString(),
     
-    // Note
-    special_notes: `⚠️ PAGAMENTO IN CONTANTI: Il cliente pagherà €${totalAmount.toFixed(2)} al momento del ritiro. ${notes ? `Note cliente: ${notes}` : ''}`,
+    special_notes: `⚠️ PAGAMENTO IN CONTANTI: Il cliente pagherà €${totalAmount.toFixed(2)} al momento del ritiro. ${deliveryEnabled ? `\n🚚 DELIVERY: ${deliveryAddress}\n⏰ Fascia: ${deliveryTimeSlot}` : ''} ${notes ? `\nNote cliente: ${notes}` : ''}`,
     order_notes: notes || 'Nessuna nota',
     
-    // Timestamp
     order_date: new Date().toLocaleDateString('it-IT'),
     order_time: new Date().toLocaleTimeString('it-IT'),
     
-    // ID ordine
     order_id: `CASH-${Date.now()}`
   };
 
-  // Chiamata API EmailJS
   const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
     method: 'POST',
     headers: {
@@ -196,7 +237,6 @@ async function sendCashOrderEmail(orderData: any) {
   }
 }
 
-// GET endpoint per verificare che l'endpoint sia attivo
 export async function GET() {
   return NextResponse.json({
     status: 'active',

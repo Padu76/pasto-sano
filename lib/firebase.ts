@@ -120,7 +120,8 @@ export interface Order {
   deliveryCost?: string | number;
   deliveryRiderShare?: string | number;
   deliveryPlatformShare?: string | number;
-  deliveryStatus?: 'pending' | 'in_delivery' | 'delivered';
+  deliveryTimeSlot?: string;
+  deliveryStatus?: 'pending' | 'assigned' | 'in_delivery' | 'delivered';
   riderId?: string;
   riderName?: string;
   assignedAt?: Date | Timestamp;

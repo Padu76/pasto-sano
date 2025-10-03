@@ -466,24 +466,6 @@ export default function AdminDashboard() {
     setCurrentFilter(filter);
   };
 
-  const handleAssignRider = async (orderId: string, riderId: string) => {
-    try {
-      const response = await fetch('/api/admin-assign-rider', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId, riderId })
-      });
-      
-      const data = await response.json();
-      if (data.success) {
-        alert('Rider assegnato con successo');
-        await loadDashboardData();
-      }
-    } catch (error) {
-      alert('Errore assegnazione rider');
-    }
-  };
-
   const handleSaveRider = async () => {
     try {
       const url = editingRider ? '/api/admin-update-rider' : '/api/admin-create-rider';
@@ -689,12 +671,46 @@ export default function AdminDashboard() {
     );
   };
 
+  const getDeliveryStatusBadge = (status?: string) => {
+    const statusMap = {
+      'pending': { label: 'Da assegnare', color: 'bg-gray-100 text-gray-700' },
+      'assigned': { label: 'Assegnato', color: 'bg-amber-100 text-amber-700' },
+      'in_delivery': { label: 'In consegna', color: 'bg-blue-100 text-blue-700' },
+      'delivered': { label: 'Consegnato', color: 'bg-green-100 text-green-700' }
+    };
+
+    const statusInfo = statusMap[status as keyof typeof statusMap] || statusMap.pending;
+
+    return (
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusInfo.color}`}>
+        {statusInfo.label}
+      </span>
+    );
+  };
+
+  const getTimeSlotBadge = (slot?: string) => {
+    if (!slot) return null;
+    
+    const colors: Record<string, string> = {
+      '12-14': 'bg-orange-100 text-orange-700',
+      '16-18': 'bg-purple-100 text-purple-700',
+      '19-21': 'bg-blue-100 text-blue-700'
+    };
+
+    return (
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors[slot] || 'bg-gray-100 text-gray-700'} flex items-center gap-1`}>
+        <Clock className="w-3 h-3" />
+        {slot}
+      </span>
+    );
+  };
+
   const showNotification = (message: string) => {
     console.log('Notifica:', message);
   };
 
   const playNotificationSound = () => {
-    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NST');
+    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NSTQQ0UXrTp66hVFApGn+DyvmwhBi+Ey/DZhjQIHW259NST');
     audio.play().catch(e => console.log('Audio play failed:', e));
   };
 
@@ -1131,7 +1147,7 @@ export default function AdminDashboard() {
                               </span>
                               {getPaymentStatusBadge(order)}
                               {order.deliveryEnabled && (
-                                <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 flex items-center gap-1">
+                                <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-600 text-white flex items-center gap-1">
                                   <Truck className="w-3 h-3" />
                                   DELIVERY
                                 </span>
@@ -1143,41 +1159,31 @@ export default function AdminDashboard() {
                           </div>
 
                           {order.deliveryEnabled && (
-                            <div className="bg-blue-50 rounded-lg p-3 mb-3">
+                            <div className="bg-blue-50 rounded-lg p-3 mb-3 border border-blue-200">
                               <div className="flex items-start gap-2 mb-2">
                                 <MapPin className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
-                                <div className="text-sm">
+                                <div className="text-sm flex-1">
                                   <p className="font-medium text-gray-800">{order.deliveryAddress}</p>
+                                  <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                    <p className="text-gray-600 text-xs">
+                                      <Navigation className="w-3 h-3 inline mr-1" />
+                                      {order.deliveryDistance} km - {order.deliveryZone}
+                                    </p>
+                                    {getTimeSlotBadge(order.deliveryTimeSlot)}
+                                  </div>
                                   <p className="text-gray-600 text-xs mt-1">
-                                    <Navigation className="w-3 h-3 inline mr-1" />
-                                    {order.deliveryDistance} km - {order.deliveryZone}
-                                  </p>
-                                  <p className="text-gray-600 text-xs">
                                     Costo: €{order.deliveryCost} (Rider: €{order.deliveryRiderShare})
                                   </p>
                                 </div>
                               </div>
-                              {order.deliveryStatus === 'pending' && (
-                                <select
-                                  onChange={(e) => e.target.value && handleAssignRider(order.id!, e.target.value)}
-                                  className="w-full p-2 border rounded text-sm"
-                                >
-                                  <option value="">Assegna rider...</option>
-                                  {riders.filter(r => r.status === 'active').map(rider => (
-                                    <option key={rider.id} value={rider.id}>{rider.name}</option>
-                                  ))}
-                                </select>
-                              )}
-                              {order.deliveryStatus !== 'pending' && (
-                                <div className={`text-xs px-2 py-1 rounded ${
-                                  order.deliveryStatus === 'delivered' 
-                                    ? 'bg-green-100 text-green-700' 
-                                    : 'bg-amber-100 text-amber-700'
-                                }`}>
-                                  {order.deliveryStatus === 'delivered' ? 'Consegnato' : 'In consegna'} 
-                                  {order.riderName && ` - ${order.riderName}`}
-                                </div>
-                              )}
+                              <div className="flex items-center justify-between">
+                                {getDeliveryStatusBadge(order.deliveryStatus)}
+                                {order.riderName && (
+                                  <span className="text-xs text-gray-600">
+                                    Rider: <strong>{order.riderName}</strong>
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           )}
 

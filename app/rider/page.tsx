@@ -11,7 +11,6 @@ import {
   TrendingUp,
   Euro,
   LogOut,
-  Filter,
   Calendar,
   User,
   AlertCircle,
@@ -30,6 +29,7 @@ interface DeliveryOrder {
   deliveryCost: number;
   deliveryRiderShare: number;
   deliveryStatus: 'pending' | 'assigned' | 'in_delivery' | 'delivered';
+  deliveryTimeSlot?: string;
   pickupDate: string;
   totalAmount: number;
   items: Array<{ name: string; quantity: number; price: number }>;
@@ -51,12 +51,8 @@ export default function RiderDashboard() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const [orders, setOrders] = useState<DeliveryOrder[]>([]);
-  const [filteredOrders, setFilteredOrders] = useState<DeliveryOrder[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'in_delivery' | 'delivered'>('all');
-  const [selectedDate, setSelectedDate] = useState<string>('');
 
   const [stats, setStats] = useState({
     todayDeliveries: 0,
@@ -90,9 +86,8 @@ export default function RiderDashboard() {
   }, [isLoggedIn, riderId]);
 
   useEffect(() => {
-    applyFilters();
     calculateStats();
-  }, [orders, filterStatus, selectedDate]);
+  }, [orders]);
 
   const handleLogin = async () => {
     setLoginError('');
@@ -163,25 +158,6 @@ export default function RiderDashboard() {
     }
   };
 
-  const applyFilters = () => {
-    let filtered = [...orders];
-
-    if (filterStatus !== 'all') {
-      filtered = filtered.filter(order => order.deliveryStatus === filterStatus);
-    }
-
-    if (selectedDate) {
-      filtered = filtered.filter(order => {
-        const orderDate = new Date(order.pickupDate).toISOString().split('T')[0];
-        return orderDate === selectedDate;
-      });
-    }
-
-    filtered.sort((a, b) => new Date(b.pickupDate).getTime() - new Date(a.pickupDate).getTime());
-
-    setFilteredOrders(filtered);
-  };
-
   const calculateStats = () => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -217,33 +193,6 @@ export default function RiderDashboard() {
       monthEarnings,
       averageDistance: avgDistance
     });
-  };
-
-  const handleTakeOrder = async (orderId: string) => {
-    try {
-      const response = await fetch('/api/rider-take-order', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          orderId,
-          riderId,
-          riderName
-        })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Errore durante l\'assegnazione');
-      }
-
-      await loadOrders();
-
-    } catch (error: any) {
-      alert(error.message || 'Errore durante l\'assegnazione');
-    }
   };
 
   const handleCompleteDelivery = async (orderId: string) => {
@@ -282,6 +231,195 @@ export default function RiderDashboard() {
   const callCustomer = (phone: string) => {
     window.location.href = `tel:${phone}`;
   };
+
+  const getTimeSlotBadge = (slot?: string) => {
+    if (!slot) return null;
+    
+    const colors: Record<string, string> = {
+      '12-14': 'bg-orange-100 text-orange-700',
+      '16-18': 'bg-purple-100 text-purple-700',
+      '19-21': 'bg-blue-100 text-blue-700'
+    };
+
+    return (
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors[slot] || 'bg-gray-100 text-gray-700'} flex items-center gap-1`}>
+        <Clock className="w-3 h-3" />
+        {slot}
+      </span>
+    );
+  };
+
+  const groupOrdersByDay = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const todayOrders: DeliveryOrder[] = [];
+    const futureOrders: DeliveryOrder[] = [];
+
+    orders.forEach(order => {
+      const orderDate = new Date(order.pickupDate);
+      orderDate.setHours(0, 0, 0, 0);
+
+      if (orderDate.getTime() === today.getTime()) {
+        todayOrders.push(order);
+      } else if (orderDate > today) {
+        futureOrders.push(order);
+      }
+    });
+
+    todayOrders.sort((a, b) => {
+      const slotOrder = { '12-14': 1, '16-18': 2, '19-21': 3 };
+      const aSlot = slotOrder[a.deliveryTimeSlot as keyof typeof slotOrder] || 999;
+      const bSlot = slotOrder[b.deliveryTimeSlot as keyof typeof slotOrder] || 999;
+      return aSlot - bSlot;
+    });
+
+    futureOrders.sort((a, b) => {
+      const dateCompare = new Date(a.pickupDate).getTime() - new Date(b.pickupDate).getTime();
+      if (dateCompare !== 0) return dateCompare;
+      
+      const slotOrder = { '12-14': 1, '16-18': 2, '19-21': 3 };
+      const aSlot = slotOrder[a.deliveryTimeSlot as keyof typeof slotOrder] || 999;
+      const bSlot = slotOrder[b.deliveryTimeSlot as keyof typeof slotOrder] || 999;
+      return aSlot - bSlot;
+    });
+
+    return { todayOrders, futureOrders };
+  };
+
+  const renderOrderCard = (order: DeliveryOrder) => (
+    <div
+      key={order.id}
+      className={`bg-white rounded-xl shadow-sm p-5 border-l-4 ${
+        order.deliveryStatus === 'assigned'
+          ? 'border-amber-500'
+          : order.deliveryStatus === 'in_delivery'
+          ? 'border-blue-500'
+          : 'border-green-500'
+      }`}
+    >
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <User className="w-5 h-5 text-gray-600" />
+            <h3 className="font-bold text-lg text-gray-800">{order.customerName}</h3>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-1 text-sm text-gray-600">
+              <Calendar className="w-4 h-4" />
+              <span>{new Date(order.pickupDate).toLocaleDateString('it-IT', {
+                weekday: 'short',
+                day: 'numeric',
+                month: 'short'
+              })}</span>
+            </div>
+            {getTimeSlotBadge(order.deliveryTimeSlot)}
+          </div>
+        </div>
+
+        <div className="text-right">
+          <div className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+            order.deliveryStatus === 'assigned'
+              ? 'bg-amber-100 text-amber-800'
+              : order.deliveryStatus === 'in_delivery'
+              ? 'bg-blue-100 text-blue-800'
+              : 'bg-green-100 text-green-800'
+          }`}>
+            {order.deliveryStatus === 'assigned' ? 'Assegnato' :
+             order.deliveryStatus === 'in_delivery' ? 'In consegna' : 'Consegnato'}
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-gray-50 rounded-lg p-4 mb-4 space-y-3">
+        <div className="flex items-start gap-3">
+          <MapPin className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="font-medium text-gray-800">{order.deliveryAddress}</p>
+            {order.deliveryAddressDetails && (
+              <p className="text-sm text-gray-600 mt-1">{order.deliveryAddressDetails}</p>
+            )}
+          </div>
+          <button
+            onClick={() => openMaps(order.deliveryAddress)}
+            className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            title="Apri Maps"
+          >
+            <ExternalLink className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="flex items-center gap-2">
+            <Navigation className="w-4 h-4 text-gray-500" />
+            <span className="text-gray-600">{order.deliveryDistance.toFixed(1)} km</span>
+            <span className="text-xs text-gray-500">({order.deliveryZone})</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Phone className="w-4 h-4 text-gray-500" />
+            <button
+              onClick={() => callCustomer(order.customerPhone)}
+              className="text-blue-600 hover:underline"
+            >
+              {order.customerPhone}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-blue-50 rounded-lg p-3 mb-4">
+        <p className="text-xs font-semibold text-gray-600 mb-2">ARTICOLI:</p>
+        <div className="space-y-1">
+          {order.items.map((item, idx) => (
+            <div key={idx} className="flex justify-between text-sm">
+              <span className="text-gray-700">{item.quantity}x {item.name}</span>
+              <span className="text-gray-600">€{(item.price * item.quantity).toFixed(2)}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {order.notes && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+          <p className="text-xs font-semibold text-amber-800 mb-1">NOTE:</p>
+          <p className="text-sm text-amber-900">{order.notes}</p>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between pt-4 border-t">
+        <div className="space-y-1">
+          <div className="text-sm text-gray-600">
+            Totale ordine: <span className="font-semibold">€{order.totalAmount.toFixed(2)}</span>
+          </div>
+          <div className="text-lg font-bold text-green-600">
+            Tuo guadagno: €{order.deliveryRiderShare.toFixed(2)}
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          {order.deliveryStatus === 'assigned' && order.riderId === riderId && (
+            <button
+              onClick={() => handleCompleteDelivery(order.id)}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2"
+            >
+              <CheckCircle className="w-4 h-4" />
+              <span>Consegnato</span>
+            </button>
+          )}
+
+          {order.deliveryStatus === 'in_delivery' && order.riderId === riderId && (
+            <button
+              onClick={() => handleCompleteDelivery(order.id)}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2"
+            >
+              <CheckCircle className="w-4 h-4" />
+              <span>Consegnato</span>
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 
   if (!isLoggedIn) {
     return (
@@ -351,6 +489,8 @@ export default function RiderDashboard() {
     );
   }
 
+  const { todayOrders, futureOrders } = groupOrdersByDay();
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white shadow-sm border-b sticky top-0 z-10">
@@ -410,227 +550,58 @@ export default function RiderDashboard() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Filter className="w-5 h-5 text-gray-600" />
-            <h2 className="font-semibold text-gray-800">Filtri</h2>
+        {isLoading ? (
+          <div className="bg-white rounded-xl shadow-sm p-8 text-center">
+            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-blue-600" />
+            <p className="text-gray-600">Caricamento ordini...</p>
           </div>
-
-          <div className="flex flex-wrap gap-3">
+        ) : error ? (
+          <div className="bg-white rounded-xl shadow-sm p-8 text-center">
+            <AlertCircle className="w-8 h-8 mx-auto mb-2 text-red-600" />
+            <p className="text-red-600">{error}</p>
             <button
-              onClick={() => setFilterStatus('all')}
-              className={`px-4 py-2 rounded-lg transition ${
-                filterStatus === 'all'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              onClick={loadOrders}
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
             >
-              Tutti ({orders.length})
+              Riprova
             </button>
-            <button
-              onClick={() => setFilterStatus('pending')}
-              className={`px-4 py-2 rounded-lg transition ${
-                filterStatus === 'pending'
-                  ? 'bg-amber-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Da assegnare ({orders.filter(o => o.deliveryStatus === 'pending').length})
-            </button>
-            <button
-              onClick={() => setFilterStatus('in_delivery')}
-              className={`px-4 py-2 rounded-lg transition ${
-                filterStatus === 'in_delivery'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              In consegna ({orders.filter(o => o.deliveryStatus === 'in_delivery').length})
-            </button>
-            <button
-              onClick={() => setFilterStatus('delivered')}
-              className={`px-4 py-2 rounded-lg transition ${
-                filterStatus === 'delivered'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Consegnati ({orders.filter(o => o.deliveryStatus === 'delivered').length})
-            </button>
-
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-            />
-            
-            {selectedDate && (
-              <button
-                onClick={() => setSelectedDate('')}
-                className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-              >
-                Reset data
-              </button>
-            )}
           </div>
-        </div>
-
-        <div className="space-y-4">
-          {isLoading ? (
-            <div className="bg-white rounded-xl shadow-sm p-8 text-center">
-              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-blue-600" />
-              <p className="text-gray-600">Caricamento ordini...</p>
-            </div>
-          ) : error ? (
-            <div className="bg-white rounded-xl shadow-sm p-8 text-center">
-              <AlertCircle className="w-8 h-8 mx-auto mb-2 text-red-600" />
-              <p className="text-red-600">{error}</p>
-              <button
-                onClick={loadOrders}
-                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-              >
-                Riprova
-              </button>
-            </div>
-          ) : filteredOrders.length === 0 ? (
-            <div className="bg-white rounded-xl shadow-sm p-8 text-center">
-              <Package className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-              <p className="text-gray-600">Nessun ordine trovato</p>
-            </div>
-          ) : (
-            filteredOrders.map((order) => (
-              <div
-                key={order.id}
-                className={`bg-white rounded-xl shadow-sm p-5 border-l-4 ${
-                  order.deliveryStatus === 'pending'
-                    ? 'border-amber-500'
-                    : order.deliveryStatus === 'in_delivery'
-                    ? 'border-blue-500'
-                    : 'border-green-500'
-                }`}
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <User className="w-5 h-5 text-gray-600" />
-                      <h3 className="font-bold text-lg text-gray-800">{order.customerName}</h3>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Clock className="w-4 h-4" />
-                      <span>{new Date(order.pickupDate).toLocaleDateString('it-IT', {
-                        weekday: 'short',
-                        day: 'numeric',
-                        month: 'short'
-                      })}</span>
-                    </div>
-                  </div>
-
-                  <div className="text-right">
-                    <div className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                      order.deliveryStatus === 'pending'
-                        ? 'bg-amber-100 text-amber-800'
-                        : order.deliveryStatus === 'in_delivery'
-                        ? 'bg-blue-100 text-blue-800'
-                        : 'bg-green-100 text-green-800'
-                    }`}>
-                      {order.deliveryStatus === 'pending' ? 'Da assegnare' :
-                       order.deliveryStatus === 'in_delivery' ? 'In consegna' : 'Consegnato'}
-                    </div>
+        ) : (
+          <>
+            {todayOrders.length > 0 && (
+              <div className="mb-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold">
+                    OGGI - {todayOrders.length} {todayOrders.length === 1 ? 'ordine' : 'ordini'}
                   </div>
                 </div>
-
-                <div className="bg-gray-50 rounded-lg p-4 mb-4 space-y-3">
-                  <div className="flex items-start gap-3">
-                    <MapPin className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-800">{order.deliveryAddress}</p>
-                      {order.deliveryAddressDetails && (
-                        <p className="text-sm text-gray-600 mt-1">{order.deliveryAddressDetails}</p>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => openMaps(order.deliveryAddress)}
-                      className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                      title="Apri Maps"
-                    >
-                      <ExternalLink className="w-5 h-5" />
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="flex items-center gap-2">
-                      <Navigation className="w-4 h-4 text-gray-500" />
-                      <span className="text-gray-600">{order.deliveryDistance.toFixed(1)} km</span>
-                      <span className="text-xs text-gray-500">({order.deliveryZone})</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Phone className="w-4 h-4 text-gray-500" />
-                      <button
-                        onClick={() => callCustomer(order.customerPhone)}
-                        className="text-blue-600 hover:underline"
-                      >
-                        {order.customerPhone}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-blue-50 rounded-lg p-3 mb-4">
-                  <p className="text-xs font-semibold text-gray-600 mb-2">ARTICOLI:</p>
-                  <div className="space-y-1">
-                    {order.items.map((item, idx) => (
-                      <div key={idx} className="flex justify-between text-sm">
-                        <span className="text-gray-700">{item.quantity}x {item.name}</span>
-                        <span className="text-gray-600">€{(item.price * item.quantity).toFixed(2)}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {order.notes && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
-                    <p className="text-xs font-semibold text-amber-800 mb-1">NOTE:</p>
-                    <p className="text-sm text-amber-900">{order.notes}</p>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between pt-4 border-t">
-                  <div className="space-y-1">
-                    <div className="text-sm text-gray-600">
-                      Totale ordine: <span className="font-semibold">€{order.totalAmount.toFixed(2)}</span>
-                    </div>
-                    <div className="text-lg font-bold text-green-600">
-                      Tuo guadagno: €{order.deliveryRiderShare.toFixed(2)}
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    {order.deliveryStatus === 'pending' && (
-                      <button
-                        onClick={() => handleTakeOrder(order.id)}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
-                      >
-                        <Package className="w-4 h-4" />
-                        <span>Prendi in carico</span>
-                      </button>
-                    )}
-
-                    {order.deliveryStatus === 'in_delivery' && order.riderId === riderId && (
-                      <button
-                        onClick={() => handleCompleteDelivery(order.id)}
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2"
-                      >
-                        <CheckCircle className="w-4 h-4" />
-                        <span>Consegnato</span>
-                      </button>
-                    )}
-                  </div>
+                <div className="space-y-4">
+                  {todayOrders.map(renderOrderCard)}
                 </div>
               </div>
-            ))
-          )}
-        </div>
+            )}
+
+            {futureOrders.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="bg-purple-600 text-white px-4 py-2 rounded-lg font-bold">
+                    PROSSIMI GIORNI - {futureOrders.length} {futureOrders.length === 1 ? 'ordine' : 'ordini'}
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  {futureOrders.map(renderOrderCard)}
+                </div>
+              </div>
+            )}
+
+            {todayOrders.length === 0 && futureOrders.length === 0 && (
+              <div className="bg-white rounded-xl shadow-sm p-8 text-center">
+                <Package className="w-12 h-12 mx-auto mb-2 text-gray-400" />
+                <p className="text-gray-600">Nessun ordine assegnato</p>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
