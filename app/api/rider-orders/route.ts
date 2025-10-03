@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/firebase';
-import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,18 +16,16 @@ export async function GET(request: NextRequest) {
 
     const ordersRef = collection(db, 'orders');
     
-    // Prima query: ordini pending con delivery
+    // Query 1: ordini pending
     const pendingQuery = query(
       ordersRef,
-      where('deliveryStatus', '==', 'pending'),
-      orderBy('timestamp', 'desc')
+      where('deliveryStatus', '==', 'pending')
     );
 
-    // Seconda query: ordini del rider
+    // Query 2: ordini del rider
     const riderQuery = query(
       ordersRef,
-      where('riderId', '==', riderId),
-      orderBy('timestamp', 'desc')
+      where('riderId', '==', riderId)
     );
 
     const [pendingSnapshot, riderSnapshot] = await Promise.all([
@@ -37,7 +35,7 @@ export async function GET(request: NextRequest) {
 
     const ordersMap = new Map();
 
-    // Aggiungi ordini pending
+    // Aggiungi ordini pending con delivery
     pendingSnapshot.forEach((doc) => {
       const data = doc.data();
       if (data.deliveryEnabled === 'true' || data.deliveryEnabled === true) {
@@ -67,7 +65,7 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    // Aggiungi ordini del rider (sovrascrive se già presenti)
+    // Aggiungi ordini del rider (sovrascrive pending se già presenti)
     riderSnapshot.forEach((doc) => {
       const data = doc.data();
       if (data.deliveryEnabled === 'true' || data.deliveryEnabled === true) {
@@ -97,6 +95,7 @@ export async function GET(request: NextRequest) {
       }
     });
 
+    // Converti Map in array e ordina per timestamp (lato server)
     const orders = Array.from(ordersMap.values()).sort((a, b) => 
       b.timestamp.getTime() - a.timestamp.getTime()
     );
@@ -108,8 +107,13 @@ export async function GET(request: NextRequest) {
 
   } catch (error: any) {
     console.error('Errore caricamento ordini rider:', error);
+    console.error('Stack:', error.stack);
     return NextResponse.json(
-      { success: false, error: 'Errore durante il caricamento', details: error.message },
+      { 
+        success: false, 
+        error: 'Errore durante il caricamento', 
+        details: error.message 
+      },
       { status: 500 }
     );
   }
