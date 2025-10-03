@@ -44,6 +44,10 @@ export const PREZZI = {
   comboSecondoMacedonia: 11.20
 };
 
+// DATA DI RIFERIMENTO: Lunedì 6 ottobre 2025 = inizio SETTIMANA 3
+const REFERENCE_DATE = new Date('2025-10-06'); // Lunedì 6 ottobre 2025
+const REFERENCE_WEEK = 3; // Questa data corrisponde alla settimana 3
+
 // MENU ROTATIVO - 4 SETTIMANE (AGGIORNATO DA EXCEL)
 export const MENU_ROTATIVO: { [key: string]: MenuSettimana } = {
   settimana1: {
@@ -105,7 +109,7 @@ export const MENU_ROTATIVO: { [key: string]: MenuSettimana } = {
     },
     venerdi: {
       primi: [
-        "Lasagna con verdure di stagione e briè",
+        "Lasagna con verdure di stagione e brié",
         "Mezzi paccheri all'amatriciana"
       ],
       secondi: [
@@ -306,7 +310,7 @@ export const MENU_ROTATIVO: { [key: string]: MenuSettimana } = {
     venerdi: {
       primi: [
         "Pasta pomodoro fetta e olive",
-        "Lasagna con verdure di stagione e briè"
+        "Lasagna con verdure di stagione e brié"
       ],
       secondi: [
         "Bistecca di scamone alla griglia",
@@ -658,34 +662,57 @@ function generateImagePath(nome: string, categoria: string): string {
   return `/images/${categoria}/${nomeFile}.jpg`;
 }
 
-// FUNZIONE PER DETERMINARE LA SETTIMANA CORRENTE DEL MESE
-export function getSettimanaCorrente(): string {
-  const oggi = new Date();
-  const giorno = oggi.getDate();
+// FUNZIONE PER CALCOLARE LA SETTIMANA IN BASE ALLA DATA DI RIFERIMENTO
+export function getSettimanaFromDate(date: Date): string {
+  // Copia la data per non modificare l'originale
+  const targetDate = new Date(date);
+  targetDate.setHours(0, 0, 0, 0);
   
-  if (giorno <= 7) return 'settimana1';
-  else if (giorno <= 14) return 'settimana2';
-  else if (giorno <= 21) return 'settimana3';
-  else if (giorno <= 28) return 'settimana4';
-  else return 'settimana1';
+  // Trova il lunedì della settimana della data target
+  const dayOfWeek = targetDate.getDay();
+  const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Se domenica, torna indietro di 6 giorni
+  const monday = new Date(targetDate);
+  monday.setDate(targetDate.getDate() + diff);
+  
+  // Calcola la differenza in settimane dalla data di riferimento
+  const refMonday = new Date(REFERENCE_DATE);
+  refMonday.setHours(0, 0, 0, 0);
+  
+  const diffTime = monday.getTime() - refMonday.getTime();
+  const diffWeeks = Math.floor(diffTime / (7 * 24 * 60 * 60 * 1000));
+  
+  // Calcola quale settimana del ciclo di 4 settimane
+  // diffWeeks può essere negativo (prima della reference date) o positivo (dopo)
+  const weekOffset = ((diffWeeks % 4) + 4) % 4; // Assicura che sia sempre 0-3
+  
+  // Mappa alla settimana corretta (reference week = 3)
+  const weekNumber = ((REFERENCE_WEEK - 1 + weekOffset) % 4) + 1;
+  
+  return `settimana${weekNumber}`;
+}
+
+// FUNZIONE PER DETERMINARE LA SETTIMANA CORRENTE DEL MESE (deprecata, usa getSettimanaFromDate)
+export function getSettimanaCorrente(): string {
+  return getSettimanaFromDate(new Date());
 }
 
 // FUNZIONE PER OTTENERE IL GIORNO DELLA SETTIMANA
-export function getGiornoSettimana(): keyof MenuSettimana {
-  const oggi = new Date();
+export function getGiornoSettimana(date?: Date): keyof MenuSettimana {
+  const targetDate = date || new Date();
   const giorni: (keyof MenuSettimana)[] = ['domenica', 'lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato'];
-  return giorni[oggi.getDay()];
+  return giorni[targetDate.getDay()];
 }
 
 // FUNZIONE PRINCIPALE PER OTTENERE IL MENU DEL GIORNO
 export function getMenuDelGiorno() {
-  const settimana = getSettimanaCorrente();
-  const giorno = getGiornoSettimana();
+  const oggi = new Date();
+  const settimana = getSettimanaFromDate(oggi);
+  const giorno = getGiornoSettimana(oggi);
   
   const menuRotativoGiornaliero = MENU_ROTATIVO[settimana][giorno];
   
   return {
-    data: new Date().toLocaleDateString('it-IT', { 
+    data: oggi.toLocaleDateString('it-IT', { 
       weekday: 'long', 
       year: 'numeric', 
       month: 'long', 
@@ -723,17 +750,8 @@ export function getMenuDelGiorno() {
 
 // FUNZIONE PER OTTENERE IL MENU DI UN GIORNO SPECIFICO
 export function getMenuGiornoSpecifico(data: Date) {
-  const giorno = data.getDate();
-  let settimana: string;
-  
-  if (giorno <= 7) settimana = 'settimana1';
-  else if (giorno <= 14) settimana = 'settimana2';
-  else if (giorno <= 21) settimana = 'settimana3';
-  else if (giorno <= 28) settimana = 'settimana4';
-  else settimana = 'settimana1';
-  
-  const giorni: (keyof MenuSettimana)[] = ['domenica', 'lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato'];
-  const giornoSettimana = giorni[data.getDay()];
+  const settimana = getSettimanaFromDate(data);
+  const giornoSettimana = getGiornoSettimana(data);
   
   const menuRotativoGiornaliero = MENU_ROTATIVO[settimana][giornoSettimana];
   
@@ -776,7 +794,8 @@ export function getMenuGiornoSpecifico(data: Date) {
 
 // FUNZIONE PER OTTENERE IL MENU DELLA SETTIMANA CORRENTE
 export function getMenuSettimanale() {
-  const settimana = getSettimanaCorrente();
+  const oggi = new Date();
+  const settimana = getSettimanaFromDate(oggi);
   const menuSettimana = MENU_ROTATIVO[settimana];
   
   const result: any = {};
