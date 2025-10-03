@@ -7,12 +7,40 @@ export interface MenuItem {
   disponibile: 'sempre' | 'giornaliero';
   immagine?: string;
   descrizione?: string;
-  allergeni?: string[];
-  calorie?: number;
-  proteine?: number;
-  carboidrati?: number;
-  grassi?: number;
 }
+
+export interface MenuGiornaliero {
+  primi: string[];
+  secondi: string[];
+  contorni: string[];
+}
+
+export interface MenuSettimana {
+  lunedi: MenuGiornaliero;
+  martedi: MenuGiornaliero;
+  mercoledi: MenuGiornaliero;
+  giovedi: MenuGiornaliero;
+  venerdi: MenuGiornaliero;
+}
+
+// PREZZI FISSI
+export const PREZZI = {
+  primo: 6.50,
+  secondo: 7.50,
+  contorno: 3.90,
+  focaccia: 7.50,
+  piadina: 7.50,
+  insalatona: 8.50,
+  muffin: 2.50,
+  macedonia: 5.00,
+  carneSalada: 7.50,
+  // Prezzi Combo
+  comboPrimoContorno: 9.00,
+  comboSecondoContorno: 10.20,
+  comboPrimoSecondoContorno: 15.60,
+  comboPrimoMacedonia: 10.00,
+  comboSecondoMacedonia: 11.20
+};
 
 // Data di riferimento: Lunedì 6 ottobre 2025 = inizio Settimana 3
 const REFERENCE_DATE = new Date('2025-10-06'); // Lunedì 6 ottobre 2025
@@ -34,7 +62,6 @@ function getSettimanaFromDate(data: Date): number {
   const diffWeeks = Math.floor(diffDays / 7);
   
   // Calcola quale settimana del ciclo (1-4)
-  // Usa modulo per ciclare: se diffWeeks = 0 -> settimana 3, se = 1 -> settimana 4, ecc.
   let settimana = ((REFERENCE_WEEK - 1 + diffWeeks) % 4) + 1;
   
   // Gestisci settimane negative (prima della data di riferimento)
@@ -48,8 +75,6 @@ function getSettimanaFromDate(data: Date): number {
 function getGiornoSettimana(data: Date): string {
   const giorni = ['domenica', 'lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato'];
   // CRITICAL FIX: Usa la data locale invece di UTC per evitare sfasamenti di fuso orario
-  // Quando la data arriva come ISO string da pickupDate, può essere in UTC
-  // Quindi ricostruiamo la data usando solo anno/mese/giorno locali
   const year = data.getFullYear();
   const month = data.getMonth();
   const day = data.getDate();
@@ -57,381 +82,678 @@ function getGiornoSettimana(data: Date): string {
   return giorni[localDate.getDay()];
 }
 
-// SETTIMANA 1
-const MENU_SETTIMANA_1 = {
-  lunedi: {
-    primi: [
-      { nome: 'Lasagna zucchine e salmone', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/lasagna-zucchine-salmone.jpg' },
-      { nome: 'Tortelli alla crema di parmigiano', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/tortelli-parmigiano.jpg' }
-    ],
-    secondi: [
-      { nome: 'Scaloppine di pollo al limone', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/scaloppine-pollo-limone.jpg' },
-      { nome: 'Paillard di tacchino alla griglia', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/paillard-tacchino.jpg' }
-    ],
-    contorni: [
-      { nome: 'Patate arrosto', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/patate-arrosto.jpg' },
-      { nome: 'Verdure cotte di stagione', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/verdure-cotte.jpg' }
-    ]
+// Helper function per generare il path dell'immagine basato sul nome del piatto
+function generateImagePath(nome: string, categoria: string): string {
+  const nomeFile = nome.toLowerCase()
+    .replace(/[àá]/g, 'a')
+    .replace(/[èé]/g, 'e')
+    .replace(/[ìí]/g, 'i')
+    .replace(/[òó]/g, 'o')
+    .replace(/[ùú]/g, 'u')
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .substring(0, 50);
+  
+  return `/images/${categoria}/${nomeFile}.jpg`;
+}
+
+// MENU ROTATIVO - 4 SETTIMANE (Solo lun-ven)
+export const MENU_ROTATIVO: { [key: string]: MenuSettimana } = {
+  settimana1: {
+    lunedi: {
+      primi: [
+        "Lasagna zucchine e salmone",
+        "Tortelli alla crema di parmigiano"
+      ],
+      secondi: [
+        "Scaloppine di pollo al limone",
+        "Paillard di tacchino alla griglia"
+      ],
+      contorni: [
+        "Patate arrosto",
+        "Verdure cotta di stagione"
+      ]
+    },
+    martedi: {
+      primi: [
+        "Crespelle ricotto, spinaci e cotto",
+        "Penne alla puttanesca Napoletana"
+      ],
+      secondi: [
+        "Filetto di branzino alla piastra con gremolada",
+        "Medaglione di maiale alla griglia"
+      ],
+      contorni: [
+        "Patate arrosto",
+        "Verdure cotta di stagione"
+      ]
+    },
+    mercoledi: {
+      primi: [
+        "Lasagna alla parmigiana",
+        "Calamarata alla carbonara di mare"
+      ],
+      secondi: [
+        "Petto di pollo alla diavola",
+        "Saltimbocca alla romana"
+      ],
+      contorni: [
+        "Patate arrosto",
+        "Verdure cotta di stagione"
+      ]
+    },
+    giovedi: {
+      primi: [
+        "Spaghettone ai 2 pomodori",
+        "Paella di pesce e carne"
+      ],
+      secondi: [
+        "Sovracoscia di pollo al forno",
+        "Filetto di orata alla griglia"
+      ],
+      contorni: [
+        "Patate arrosto",
+        "Verdure cotta di stagione"
+      ]
+    },
+    venerdi: {
+      primi: [
+        "Lasagna con verdure di stagione e brié",
+        "Mezzi paccheri all'amatriciana"
+      ],
+      secondi: [
+        "Hamburger in bella vista",
+        "Costine laccate in salsa BBQ"
+      ],
+      contorni: [
+        "Patate arrosto",
+        "Verdure cotta di stagione"
+      ]
+    }
   },
-  martedi: {
-    primi: [
-      { nome: 'Crespelle ricotta, spinaci e cotto', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/crespelle-ricotta-spinaci.jpg' },
-      { nome: 'Penne alla puttanesca Napoletana', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/penne-puttanesca.jpg' }
-    ],
-    secondi: [
-      { nome: 'Filetto di branzino alla piastra con gremolada', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/branzino-gremolada.jpg' },
-      { nome: 'Medaglione di maiale alla griglia', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/medaglione-maiale.jpg' }
-    ],
-    contorni: [
-      { nome: 'Patate arrosto', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/patate-arrosto.jpg' },
-      { nome: 'Verdure cotte di stagione', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/verdure-cotte.jpg' }
-    ]
+  settimana2: {
+    lunedi: {
+      primi: [
+        "Lasagna con crema di asparagi e bacon crocc",
+        "Mezze maniche cacio pepe"
+      ],
+      secondi: [
+        "Scaloppina di tacchino agli agrumi",
+        "Filetto di branzino alla griglia"
+      ],
+      contorni: [
+        "Patate arrosto",
+        "Verdure cotta di stagione"
+      ]
+    },
+    martedi: {
+      primi: [
+        "Crespelle gamberetti",
+        "Pasta all'arrabbiata"
+      ],
+      secondi: [
+        "Cotoletta di tacchino alla milanese",
+        "Bistecca di scamone alla griglia"
+      ],
+      contorni: [
+        "Patate arrosto",
+        "Verdure cotta di stagione"
+      ]
+    },
+    mercoledi: {
+      primi: [
+        "Pasta gratinata con caponata e scamorza",
+        "Maccheroncino al ragù alla bolognese"
+      ],
+      secondi: [
+        "Bocconcini di pollo gratinati",
+        "Filetto di orata alla griglia con gremolada"
+      ],
+      contorni: [
+        "Patate arrosto",
+        "Verdure cotta di stagione"
+      ]
+    },
+    giovedi: {
+      primi: [
+        "Mezzi paccheri con spada melanzane e ric.aff.",
+        "Risotto alla Milanese con zucchine"
+      ],
+      secondi: [
+        "Polpette di carne al sugo",
+        "Paillard di tacchino alla griglia"
+      ],
+      contorni: [
+        "Patate arrosto",
+        "Verdure cotta di stagione"
+      ]
+    },
+    venerdi: {
+      primi: [
+        "Spaghetti datt.giallo menta stracciatella",
+        "Calamarata cozze al prof.d arancia e pomodorini"
+      ],
+      secondi: [
+        "Coscetta di pollo laccata in salsa BBQ",
+        "Lonza marinata alla griglia"
+      ],
+      contorni: [
+        "Patate arrosto",
+        "Verdure cotta di stagione"
+      ]
+    }
   },
-  mercoledi: {
-    primi: [
-      { nome: 'Lasagna alla parmigiana', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/lasagna-parmigiana.jpg' },
-      { nome: 'Calamarata alla carbonara di mare', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/calamarata-carbonara-mare.jpg' }
-    ],
-    secondi: [
-      { nome: 'Petto di pollo alla diavola', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/pollo-diavola.jpg' },
-      { nome: 'Saltimbocca alla romana', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/saltimbocca-romana.jpg' }
-    ],
-    contorni: [
-      { nome: 'Patate arrosto', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/patate-arrosto.jpg' },
-      { nome: 'Verdure cotte di stagione', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/verdure-cotte.jpg' }
-    ]
+  settimana3: {
+    lunedi: {
+      primi: [
+        "Lasagna alla Ligure",
+        "Caserecce capperi e zucchine"
+      ],
+      secondi: [
+        "Spiedini di carne all'inglese",
+        "Frittata di vedure di stagione"
+      ],
+      contorni: [
+        "Patate arrosto",
+        "Verdure cotta di stagione"
+      ]
+    },
+    martedi: {
+      primi: [
+        "Crespelle carciofi e scamorza",
+        "Spaghetti datt. Rosso e stracciatella"
+      ],
+      secondi: [
+        "Braciola alla griglia e olio aromatico",
+        "Filetto di persico in crosta di erbe fine"
+      ],
+      contorni: [
+        "Patate arrosto",
+        "Verdure cotta di stagione"
+      ]
+    },
+    mercoledi: {
+      primi: [
+        "Lasagna al ragù bianco di pesce zucch. E lime",
+        "Bigoli al ragù alla Bolognese"
+      ],
+      secondi: [
+        "Hamburger di manzo in bella vista",
+        "Medaglione di maiale alla griglia"
+      ],
+      contorni: [
+        "Patate arrosto",
+        "Verdure cotta di stagione"
+      ]
+    },
+    giovedi: {
+      primi: [
+        "Gnocchi alla Sorrentina",
+        "Pasta alla puttanesca di mare"
+      ],
+      secondi: [
+        "Trancio di salm.alla griglia con zeste di arrancia",
+        "Bocco. Di pollo al limone e mandorle"
+      ],
+      contorni: [
+        "Patate arrosto",
+        "Verdure cotta di stagione"
+      ]
+    },
+    venerdi: {
+      primi: [
+        "Pasta pomodoro fetta e olive",
+        "Lasagna con verdure di stagione e brié"
+      ],
+      secondi: [
+        "Bistecca di scamone alla griglia",
+        "Coscetta di pollo al forno"
+      ],
+      contorni: [
+        "Patate arrosto",
+        "Verdure cotta di stagione"
+      ]
+    }
   },
-  giovedi: {
-    primi: [
-      { nome: 'Spaghettone ai 2 pomodori', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/spaghettone-2-pomodori.jpg' },
-      { nome: 'Paella di pesce e carne', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/paella-pesce-carne.jpg' }
-    ],
-    secondi: [
-      { nome: 'Sovracoscia di pollo al forno', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/sovracoscia-pollo-forno.jpg' },
-      { nome: 'Filetto di orata alla griglia', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/orata-griglia.jpg' }
-    ],
-    contorni: [
-      { nome: 'Patate arrosto', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/patate-arrosto.jpg' },
-      { nome: 'Verdure cotte di stagione', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/verdure-cotte.jpg' }
-    ]
-  },
-  venerdi: {
-    primi: [
-      { nome: 'Lasagna con verdure di stagione e brie', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/lasagna-verdure-brie.jpg' },
-      { nome: "Mezzi paccheri all'amatriciana", prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/paccheri-amatriciana.jpg' }
-    ],
-    secondi: [
-      { nome: 'Hamburger in bella vista', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/hamburger-bella-vista.jpg' },
-      { nome: 'Costine laccate in salsa BBQ', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/costine-bbq.jpg' }
-    ],
-    contorni: [
-      { nome: 'Patate arrosto', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/patate-arrosto.jpg' },
-      { nome: 'Verdure cotte di stagione', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/verdure-cotte.jpg' }
-    ]
+  settimana4: {
+    lunedi: {
+      primi: [
+        "Lasagna al ragù alla Bolognese",
+        "Pasta con sals.datt.rosso,tropea e pecorino"
+      ],
+      secondi: [
+        "Paillard di tacchino alla griglia",
+        "Trancio di persico gratinato"
+      ],
+      contorni: [
+        "Patate arrosto",
+        "Verdure cotta di stagione"
+      ]
+    },
+    martedi: {
+      primi: [
+        "Crespelle prosciutto, funghi e mozzarella",
+        "Spaghettone cacio e pepe"
+      ],
+      secondi: [
+        "Lonza marinata con olio aromatico",
+        "Cotoletta di tacchino alla Milanese"
+      ],
+      contorni: [
+        "Patate arrosto",
+        "Verdure cotta di stagione"
+      ]
+    },
+    mercoledi: {
+      primi: [
+        "Macch. Al ragù bianco di vitello",
+        "Linguine mare e orto con pomod. E zucchine"
+      ],
+      secondi: [
+        "Filetto di orata piastrato",
+        "Bistecca di scamone alla griglia"
+      ],
+      contorni: [
+        "Patate arrosto",
+        "Verdure cotta di stagione"
+      ]
+    },
+    giovedi: {
+      primi: [
+        "Paella di carne e pesce",
+        "Tortellini di carne burro sfuso e salvia"
+      ],
+      secondi: [
+        "Bocc. Di pollo gratinati",
+        "Trancio di salmone alla griglia"
+      ],
+      contorni: [
+        "Patate arrosto",
+        "Verdure cotta di stagione"
+      ]
+    },
+    venerdi: {
+      primi: [
+        "Lasagna al ragù di pesce bianco e lime",
+        "Bigoli Al ragù alla Bolognese"
+      ],
+      secondi: [
+        "Costine in salsa BBQ",
+        "Spiedini di carne all'inglese"
+      ],
+      contorni: [
+        "Patate arrosto",
+        "Verdure cotta di stagione"
+      ]
+    }
   }
 };
 
-// SETTIMANA 2
-const MENU_SETTIMANA_2 = {
-  lunedi: {
-    primi: [
-      { nome: 'Lasagna con crema di asparagi e bacon crocc', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/lasagna-asparagi-bacon.jpg' },
-      { nome: 'Mezze maniche cacio e pepe', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/mezze-maniche-cacio-pepe.jpg' }
-    ],
-    secondi: [
-      { nome: 'Scaloppina di tacchino agli agrumi', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/scaloppina-tacchino-agrumi.jpg' },
-      { nome: 'Filetto di branzino alla griglia', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/branzino-griglia.jpg' }
-    ],
-    contorni: [
-      { nome: 'Patate arrosto', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/patate-arrosto.jpg' },
-      { nome: 'Verdure cotte di stagione', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/verdure-cotte.jpg' }
-    ]
-  },
-  martedi: {
-    primi: [
-      { nome: 'Crespelle gamberetti', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/crespelle-gamberetti.jpg' },
-      { nome: "Pasta all'arrabbiata", prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/pasta-arrabbiata.jpg' }
-    ],
-    secondi: [
-      { nome: 'Cotoletta di tacchino alla milanese', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/cotoletta-tacchino-milanese.jpg' },
-      { nome: 'Bistecca di scamone alla griglia', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/bistecca-scamone.jpg' }
-    ],
-    contorni: [
-      { nome: 'Patate arrosto', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/patate-arrosto.jpg' },
-      { nome: 'Verdure cotte di stagione', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/verdure-cotte.jpg' }
-    ]
-  },
-  mercoledi: {
-    primi: [
-      { nome: 'Pasta gratinata con caponata e scamorza', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/pasta-caponata-scamorza.jpg' },
-      { nome: 'Maccheroncino al ragù alla bolognese', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/maccheroncino-ragu.jpg' }
-    ],
-    secondi: [
-      { nome: 'Bocconcini di pollo gratinati', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/bocconcini-pollo-gratinati.jpg' },
-      { nome: 'Filetto di orata alla griglia con gremolada', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/orata-gremolada.jpg' }
-    ],
-    contorni: [
-      { nome: 'Patate arrosto', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/patate-arrosto.jpg' },
-      { nome: 'Verdure cotte di stagione', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/verdure-cotte.jpg' }
-    ]
-  },
-  giovedi: {
-    primi: [
-      { nome: 'Mezzi paccheri con spada melanzane e ric.aff.', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/paccheri-spada-melanzane.jpg' },
-      { nome: 'Risotto alla Milanese con zucchine', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/risotto-milanese-zucchine.jpg' }
-    ],
-    secondi: [
-      { nome: 'Polpette di carne al sugo', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/polpette-sugo.jpg' },
-      { nome: 'Paillard di tacchino alla griglia', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/paillard-tacchino.jpg' }
-    ],
-    contorni: [
-      { nome: 'Patate arrosto', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/patate-arrosto.jpg' },
-      { nome: 'Verdure cotte di stagione', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/verdure-cotte.jpg' }
-    ]
-  },
-  venerdi: {
-    primi: [
-      { nome: 'Spaghetti datt.giallo menta stracciatella', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/spaghetti-datterino-menta.jpg' },
-      { nome: "Calamarata cozze al prof.d'arancia e pomodorini", prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/calamarata-cozze-arancia.jpg' }
-    ],
-    secondi: [
-      { nome: 'Coscetta di pollo laccata in salsa BBQ', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/coscetta-pollo-bbq.jpg' },
-      { nome: 'Lonza marinata alla griglia', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/lonza-marinata.jpg' }
-    ],
-    contorni: [
-      { nome: 'Patate arrosto', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/patate-arrosto.jpg' },
-      { nome: 'Verdure cotte di stagione', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/verdure-cotte.jpg' }
-    ]
-  }
-};
-
-// SETTIMANA 3
-const MENU_SETTIMANA_3 = {
-  lunedi: {
-    primi: [
-      { nome: 'Lasagna alla Ligure', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/lasagna-ligure.jpg' },
-      { nome: 'Caserecce capperi e zucchine', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/caserecce-capperi-zucchine.jpg' }
-    ],
-    secondi: [
-      { nome: "Spiedini di carne all'inglese", prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/spiedini-carne-inglese.jpg' },
-      { nome: 'Frittata di verdure di stagione', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/frittata-verdure.jpg' }
-    ],
-    contorni: [
-      { nome: 'Patate arrosto', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/patate-arrosto.jpg' },
-      { nome: 'Verdure cotte di stagione', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/verdure-cotte.jpg' }
-    ]
-  },
-  martedi: {
-    primi: [
-      { nome: 'Crespelle carciofi e scamorza', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/crespelle-carciofi-scamorza.jpg' },
-      { nome: 'Spaghetti datt. Rosso e stracciatella', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/spaghetti-datterino-stracciatella.jpg' }
-    ],
-    secondi: [
-      { nome: 'Braciola alla griglia e olio aromatico', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/braciola-griglia.jpg' },
-      { nome: 'Filetto di persico in crosta di erbe fine', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/persico-crosta-erbe.jpg' }
-    ],
-    contorni: [
-      { nome: 'Patate arrosto', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/patate-arrosto.jpg' },
-      { nome: 'Verdure cotte di stagione', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/verdure-cotte.jpg' }
-    ]
-  },
-  mercoledi: {
-    primi: [
-      { nome: 'Lasagna al ragù bianco di pesce zucch. E lime', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/lasagna-ragu-pesce-lime.jpg' },
-      { nome: 'Bigoli al ragù alla Bolognese', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/bigoli-ragu-bolognese.jpg' }
-    ],
-    secondi: [
-      { nome: 'Hamburger di manzo in bella vista', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/hamburger-manzo-bella-vista.jpg' },
-      { nome: 'Medaglione di maiale alla griglia', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/medaglione-maiale.jpg' }
-    ],
-    contorni: [
-      { nome: 'Patate arrosto', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/patate-arrosto.jpg' },
-      { nome: 'Verdure cotte di stagione', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/verdure-cotte.jpg' }
-    ]
-  },
-  giovedi: {
-    primi: [
-      { nome: 'Gnocchi alla Sorrentina', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/gnocchi-sorrentina.jpg' },
-      { nome: 'Pasta alla puttanesca di mare', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/pasta-puttanesca-mare.jpg' }
-    ],
-    secondi: [
-      { nome: 'Trancio di salm.alla griglia con zeste di arrancia', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/salmone-zeste-arancia.jpg' },
-      { nome: 'Bocco. Di pollo al limone e mandorle', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/bocconcini-pollo-limone-mandorle.jpg' }
-    ],
-    contorni: [
-      { nome: 'Patate arrosto', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/patate-arrosto.jpg' },
-      { nome: 'Verdure cotte di stagione', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/verdure-cotte.jpg' }
-    ]
-  },
-  venerdi: {
-    primi: [
-      { nome: 'Pasta pomodoro feta e olive', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/pasta-pomodoro-feta-olive.jpg' },
-      { nome: 'Lasagna con verdure di stagione e brie', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/lasagna-verdure-brie.jpg' }
-    ],
-    secondi: [
-      { nome: 'Bistecca di scamone alla griglia', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/bistecca-scamone.jpg' },
-      { nome: 'Coscetta di pollo al forno', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/coscetta-pollo-forno.jpg' }
-    ],
-    contorni: [
-      { nome: 'Patate arrosto', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/patate-arrosto.jpg' },
-      { nome: 'Verdure cotte di stagione', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/verdure-cotte.jpg' }
-    ]
-  }
-};
-
-// SETTIMANA 4
-const MENU_SETTIMANA_4 = {
-  lunedi: {
-    primi: [
-      { nome: 'Lasagna al ragù alla Bolognese', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/lasagna-ragu-bolognese.jpg' },
-      { nome: 'Pasta con sals.datt.rosso, tropea e pecorino', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/pasta-datterino-tropea-pecorino.jpg' }
-    ],
-    secondi: [
-      { nome: 'Paillard di tacchino alla griglia', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/paillard-tacchino.jpg' },
-      { nome: 'Trancio di persico gratinato', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/persico-gratinato.jpg' }
-    ],
-    contorni: [
-      { nome: 'Patate arrosto', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/patate-arrosto.jpg' },
-      { nome: 'Verdure cotte di stagione', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/verdure-cotte.jpg' }
-    ]
-  },
-  martedi: {
-    primi: [
-      { nome: 'Crespelle prosciutto, funghi e mozzarella', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/crespelle-prosciutto-funghi.jpg' },
-      { nome: 'Spaghettone cacio e pepe', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/spaghettone-cacio-pepe.jpg' }
-    ],
-    secondi: [
-      { nome: 'Lonza marinata con olio aromatico', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/lonza-marinata-olio.jpg' },
-      { nome: 'Cotoletta di tacchino alla Milanese', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/cotoletta-tacchino-milanese.jpg' }
-    ],
-    contorni: [
-      { nome: 'Patate arrosto', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/patate-arrosto.jpg' },
-      { nome: 'Verdure cotte di stagione', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/verdure-cotte.jpg' }
-    ]
-  },
-  mercoledi: {
-    primi: [
-      { nome: 'Macch. Al ragù bianco di vitello', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/maccheroni-ragu-vitello.jpg' },
-      { nome: 'Linguine mare e orto con pomod. E zucchine', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/linguine-mare-orto.jpg' }
-    ],
-    secondi: [
-      { nome: 'Filetto di orata piastrato', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/orata-piastrato.jpg' },
-      { nome: 'Bistecca di scamone alla griglia', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/bistecca-scamone.jpg' }
-    ],
-    contorni: [
-      { nome: 'Patate arrosto', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/patate-arrosto.jpg' },
-      { nome: 'Verdure cotte di stagione', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/verdure-cotte.jpg' }
-    ]
-  },
-  giovedi: {
-    primi: [
-      { nome: 'Paella di carne e pesce', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/paella-carne-pesce.jpg' },
-      { nome: 'Tortellini di carne burro sfuso e salvia', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/tortellini-burro-salvia.jpg' }
-    ],
-    secondi: [
-      { nome: 'Bocco. Di pollo gratinati', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/bocconcini-pollo-gratinati.jpg' },
-      { nome: 'Trancio di salmone alla griglia', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/salmone-griglia.jpg' }
-    ],
-    contorni: [
-      { nome: 'Patate arrosto', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/patate-arrosto.jpg' },
-      { nome: 'Verdure cotte di stagione', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/verdure-cotte.jpg' }
-    ]
-  },
-  venerdi: {
-    primi: [
-      { nome: 'Lasagna al ragù di pesce bianco e lime', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/lasagna-ragu-pesce-lime.jpg' },
-      { nome: 'Bigoli Al ragù alla Bolognese', prezzo: 8.50, categoria: 'primo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/bigoli-ragu-bolognese.jpg' }
-    ],
-    secondi: [
-      { nome: 'Costine in salsa BBQ', prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/costine-bbq.jpg' },
-      { nome: "Spiedini di carne all'inglese", prezzo: 8.50, categoria: 'secondo' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/spiedini-carne-inglese.jpg' }
-    ],
-    contorni: [
-      { nome: 'Patate arrosto', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/patate-arrosto.jpg' },
-      { nome: 'Verdure cotte di stagione', prezzo: 4.50, categoria: 'contorno' as const, disponibile: 'giornaliero' as const, immagine: '/images/meals/verdure-cotte.jpg' }
-    ]
-  }
-};
-
-// Menu fisso (sempre disponibile)
+// MENU FISSO - SEMPRE DISPONIBILE
 export const MENU_FISSO: MenuItem[] = [
-  // Focacce
-  { nome: 'Focaccia Prosciutto Crudo', prezzo: 5.50, categoria: 'focaccia', disponibile: 'sempre', immagine: '/images/meals/focaccia-prosciutto-crudo.jpg' },
-  { nome: 'Focaccia Prosciutto Cotto', prezzo: 5.50, categoria: 'focaccia', disponibile: 'sempre', immagine: '/images/meals/focaccia-prosciutto-cotto.jpg' },
-  { nome: 'Focaccia Salame', prezzo: 5.50, categoria: 'focaccia', disponibile: 'sempre', immagine: '/images/meals/focaccia-salame.jpg' },
-  { nome: 'Focaccia Bresaola', prezzo: 5.50, categoria: 'focaccia', disponibile: 'sempre', immagine: '/images/meals/focaccia-bresaola.jpg' },
-  { nome: 'Focaccia Tonno', prezzo: 5.50, categoria: 'focaccia', disponibile: 'sempre', immagine: '/images/meals/focaccia-tonno.jpg' },
-  { nome: 'Focaccia Vegetariana', prezzo: 5.50, categoria: 'focaccia', disponibile: 'sempre', immagine: '/images/meals/focaccia-vegetariana.jpg' },
-  
-  // Piadine
-  { nome: 'Piadina Prosciutto Crudo', prezzo: 5.50, categoria: 'piadina', disponibile: 'sempre', immagine: '/images/meals/piadina-prosciutto-crudo.jpg' },
-  { nome: 'Piadina Prosciutto Cotto', prezzo: 5.50, categoria: 'piadina', disponibile: 'sempre', immagine: '/images/meals/piadina-prosciutto-cotto.jpg' },
-  { nome: 'Piadina Salame', prezzo: 5.50, categoria: 'piadina', disponibile: 'sempre', immagine: '/images/meals/piadina-salame.jpg' },
-  { nome: 'Piadina Bresaola', prezzo: 5.50, categoria: 'piadina', disponibile: 'sempre', immagine: '/images/meals/piadina-bresaola.jpg' },
-  { nome: 'Piadina Tonno', prezzo: 5.50, categoria: 'piadina', disponibile: 'sempre', immagine: '/images/meals/piadina-tonno.jpg' },
-  { nome: 'Piadina Vegetariana', prezzo: 5.50, categoria: 'piadina', disponibile: 'sempre', immagine: '/images/meals/piadina-vegetariana.jpg' },
-  
-  // Insalatone
-  { nome: 'Insalatona Pollo Grigliato', prezzo: 7.50, categoria: 'insalatona', disponibile: 'sempre', immagine: '/images/meals/insalatona-pollo.jpg' },
-  { nome: 'Insalatona Tonno', prezzo: 7.50, categoria: 'insalatona', disponibile: 'sempre', immagine: '/images/meals/insalatona-tonno.jpg' },
-  { nome: 'Insalatona Gamberetti', prezzo: 7.50, categoria: 'insalatona', disponibile: 'sempre', immagine: '/images/meals/insalatona-gamberetti.jpg' },
-  { nome: 'Insalatona Vegetariana', prezzo: 7.50, categoria: 'insalatona', disponibile: 'sempre', immagine: '/images/meals/insalatona-vegetariana.jpg' },
-  
-  // Extra
-  { nome: 'Macedonia di frutta fresca', prezzo: 4.50, categoria: 'extra', disponibile: 'sempre', immagine: '/images/meals/macedonia.jpg' },
-  { nome: 'Pane', prezzo: 1.00, categoria: 'extra', disponibile: 'sempre', immagine: '/images/meals/pane.jpg' },
-  { nome: 'Acqua 50cl', prezzo: 1.00, categoria: 'extra', disponibile: 'sempre', immagine: '/images/meals/acqua.jpg' }
-];
-
-// Menu combo
-export const MENU_COMBO: MenuItem[] = [
-  { 
-    nome: 'Combo Primo + Secondo + Contorno', 
-    prezzo: 18.00, 
-    categoria: 'combo', 
-    disponibile: 'giornaliero',
-    descrizione: 'Scegli 1 primo + 1 secondo + 1 contorno dal menu del giorno',
-    immagine: '/images/meals/combo-completo.jpg'
+  // FOCACCE
+  {
+    nome: "Focaccia Praga (cotto, edamer, salsa tonnata)",
+    prezzo: PREZZI.focaccia,
+    categoria: 'focaccia',
+    disponibile: 'sempre',
+    immagine: '/images/focacce/focaccia-praga.jpg'
   },
-  { 
-    nome: 'Combo Primo + Secondo + Contorno + Macedonia', 
-    prezzo: 21.00, 
-    categoria: 'combo', 
-    disponibile: 'giornaliero',
-    descrizione: 'Scegli 1 primo + 1 secondo + 1 contorno + macedonia dal menu del giorno',
-    immagine: '/images/meals/combo-completo-macedonia.jpg'
+  {
+    nome: "Focaccia Capri (pomodoro, mozzarella, basilico)",
+    prezzo: PREZZI.focaccia,
+    categoria: 'focaccia',
+    disponibile: 'sempre',
+    immagine: '/images/focacce/focaccia-capri.jpg'
+  },
+  {
+    nome: "Focaccia Milano (cotoletta, insalata, pomodoro, maionese)",
+    prezzo: PREZZI.focaccia,
+    categoria: 'focaccia',
+    disponibile: 'sempre',
+    immagine: '/images/focacce/focaccia-milano.jpg'
+  },
+  {
+    nome: "Focaccia Parma (crudo, mozzarella, basilico)",
+    prezzo: PREZZI.focaccia,
+    categoria: 'focaccia',
+    disponibile: 'sempre',
+    immagine: '/images/focacce/focaccia-parma.jpg'
+  },
+  {
+    nome: "Focaccia Valtellina (rucola, bresaola, Filadelfia)",
+    prezzo: PREZZI.focaccia,
+    categoria: 'focaccia',
+    disponibile: 'sempre',
+    immagine: '/images/focacce/focaccia-valtellina.jpg'
+  },
+  // PIADINE
+  {
+    nome: "Piadina cotto, squacquerone, rucola",
+    prezzo: PREZZI.piadina,
+    categoria: 'piadina',
+    disponibile: 'sempre',
+    immagine: '/images/piadine/piadina-cotto.jpg',
+    descrizione: 'Prosciutto cotto, squacquerone, rucola fresca'
+  },
+  {
+    nome: "Piadina crudo, squacquerone, rucola",
+    prezzo: PREZZI.piadina,
+    categoria: 'piadina',
+    disponibile: 'sempre',
+    immagine: '/images/piadine/piadina-crudo.jpg',
+    descrizione: 'Prosciutto crudo, squacquerone, rucola fresca'
+  },
+  // INSALATONE
+  {
+    nome: "Insalata Fumé",
+    prezzo: PREZZI.insalatona,
+    categoria: 'insalatona',
+    disponibile: 'sempre',
+    immagine: '/images/insalatone/insalatona-1.jpg',
+    descrizione: 'Valeriana, salmone affumicato, philadelphia, arancia, sesamo, crostini'
+  },
+  {
+    nome: "Insalata Prateria",
+    prezzo: PREZZI.insalatona,
+    categoria: 'insalatona',
+    disponibile: 'sempre',
+    immagine: '/images/insalatone/insalatona-2.jpg',
+    descrizione: 'Mista, rucola, pomodoro, carote, philadelphia, filacci di cavallo, capperi'
+  },
+  {
+    nome: "Insalata Trentina",
+    prezzo: PREZZI.insalatona,
+    categoria: 'insalatona',
+    disponibile: 'sempre',
+    immagine: '/images/insalatone/insalatona-3.jpg',
+    descrizione: 'Valeriana, patate, speck, scaglie di grana, aceto balsamico'
+  },
+  {
+    nome: "Insalata Ceasar",
+    prezzo: PREZZI.insalatona,
+    categoria: 'insalatona',
+    disponibile: 'sempre',
+    immagine: '/images/insalatone/insalatona-4.jpg',
+    descrizione: 'Rucola, pomodorini, uovo, pollo, crostini, salsa ceasar'
+  },
+  {
+    nome: "Insalata Re di Sapori",
+    prezzo: PREZZI.insalatona,
+    categoria: 'insalatona',
+    disponibile: 'sempre',
+    immagine: '/images/insalatone/insalatona-5.jpg',
+    descrizione: 'Valeriana, feta, olive taggiasche, pomodorini, peperoni, cetrioli'
+  },
+  {
+    nome: "Insalata Bufalina",
+    prezzo: PREZZI.insalatona,
+    categoria: 'insalatona',
+    disponibile: 'sempre',
+    immagine: '/images/insalatone/insalatona-6.jpg',
+    descrizione: 'Valeriana, pomodoro, mozzarella di bufala, basilico'
+  },
+  {
+    nome: "Insalata Tonnata",
+    prezzo: PREZZI.insalatona,
+    categoria: 'insalatona',
+    disponibile: 'sempre',
+    immagine: '/images/insalatone/insalatona-7.jpg',
+    descrizione: 'Valeriana, mozzarelline, uovo, tonno, pomodoro, carote'
+  },
+  {
+    nome: "Insalatona Valtellina",
+    prezzo: PREZZI.insalatona,
+    categoria: 'insalatona',
+    disponibile: 'sempre',
+    immagine: '/images/insalatone/insalatona-8.jpg',
+    descrizione: 'Mista, rucola, valeriana, bresaola, noci, scaglie di grana, crostini'
+  },
+  // EXTRA
+  {
+    nome: "Muffin albicocca",
+    prezzo: PREZZI.muffin,
+    categoria: 'extra',
+    disponibile: 'sempre',
+    immagine: '/images/extra/muffin-albicocca.jpg'
+  },
+  {
+    nome: "Macedonia di frutta",
+    prezzo: PREZZI.macedonia,
+    categoria: 'extra',
+    disponibile: 'sempre',
+    immagine: '/images/extra/macedonia.jpg'
+  },
+  {
+    nome: "Carne salada",
+    prezzo: PREZZI.carneSalada,
+    categoria: 'extra',
+    disponibile: 'sempre',
+    immagine: '/images/extra/carne-salada.jpg'
+  },
+  {
+    nome: "Roast beef",
+    prezzo: PREZZI.carneSalada,
+    categoria: 'extra',
+    disponibile: 'sempre',
+    immagine: '/images/extra/roast-beef.jpg'
   }
 ];
 
-// Funzione principale per ottenere il menu di uno specifico giorno
+// MENU COMBO - SEMPRE DISPONIBILE
+export const MENU_COMBO: MenuItem[] = [
+  {
+    nome: "Combo Primo + Contorno",
+    prezzo: PREZZI.comboPrimoContorno,
+    categoria: 'combo',
+    disponibile: 'sempre',
+    immagine: '/images/combo/combo-primo-contorno.jpg',
+    descrizione: 'Scegli un primo del giorno + un contorno. Risparmi €1,40!'
+  },
+  {
+    nome: "Combo Secondo + Contorno",
+    prezzo: PREZZI.comboSecondoContorno,
+    categoria: 'combo',
+    disponibile: 'sempre',
+    immagine: '/images/combo/combo-secondo-contorno.jpg',
+    descrizione: 'Scegli un secondo del giorno + un contorno. Risparmi €1,20!'
+  },
+  {
+    nome: "Combo Completo (Primo + Secondo + Contorno)",
+    prezzo: PREZZI.comboPrimoSecondoContorno,
+    categoria: 'combo',
+    disponibile: 'sempre',
+    immagine: '/images/combo/combo-completo.jpg',
+    descrizione: 'Il menu completo: primo, secondo e contorno del giorno. Risparmi €2,30!'
+  },
+  {
+    nome: "Combo Primo + Macedonia",
+    prezzo: PREZZI.comboPrimoMacedonia,
+    categoria: 'combo',
+    disponibile: 'sempre',
+    immagine: '/images/combo/combo-primo-macedonia.jpg',
+    descrizione: 'Scegli un primo del giorno + macedonia fresca. Risparmi €1,50!'
+  },
+  {
+    nome: "Combo Secondo + Macedonia",
+    prezzo: PREZZI.comboSecondoMacedonia,
+    categoria: 'combo',
+    disponibile: 'sempre',
+    immagine: '/images/combo/combo-secondo-macedonia.jpg',
+    descrizione: 'Scegli un secondo del giorno + macedonia fresca. Risparmi €1,30!'
+  }
+];
+
+// FUNZIONE PRINCIPALE PER OTTENERE IL MENU DI UN GIORNO SPECIFICO
 export function getMenuGiornoSpecifico(data: Date) {
   const settimanaNum = getSettimanaFromDate(data);
   const giorno = getGiornoSettimana(data);
   
-  let menuSettimana;
-  switch(settimanaNum) {
-    case 1:
-      menuSettimana = MENU_SETTIMANA_1;
-      break;
-    case 2:
-      menuSettimana = MENU_SETTIMANA_2;
-      break;
-    case 3:
-      menuSettimana = MENU_SETTIMANA_3;
-      break;
-    case 4:
-      menuSettimana = MENU_SETTIMANA_4;
-      break;
-    default:
-      menuSettimana = MENU_SETTIMANA_1;
+  // Controlla se è weekend (sabato o domenica)
+  if (giorno === 'sabato' || giorno === 'domenica') {
+    return {
+      data: data.toLocaleDateString('it-IT', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      }),
+      settimana: `settimana${settimanaNum}`,
+      giorno,
+      isWeekend: true,
+      menuGiornaliero: {
+        primi: [],
+        secondi: [],
+        contorni: []
+      }
+    };
   }
   
-  // Mappa i giorni
-  const menuGiorno = (menuSettimana as any)[giorno] || (menuSettimana as any)['lunedi'];
+  const settimana = `settimana${settimanaNum}`;
+  const menuSettimana = MENU_ROTATIVO[settimana];
+  const menuGiorno = menuSettimana[giorno as keyof MenuSettimana];
   
   return {
-    settimana: `settimana${settimanaNum}`,
+    data: data.toLocaleDateString('it-IT', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    }),
+    settimana,
     giorno,
-    menuGiornaliero: menuGiorno
+    isWeekend: false,
+    menuGiornaliero: {
+      primi: menuGiorno.primi.map(nome => ({
+        nome,
+        prezzo: PREZZI.primo,
+        categoria: 'primo' as const,
+        disponibile: 'giornaliero' as const,
+        immagine: generateImagePath(nome, 'primi')
+      })),
+      secondi: menuGiorno.secondi.map(nome => ({
+        nome,
+        prezzo: PREZZI.secondo,
+        categoria: 'secondo' as const,
+        disponibile: 'giornaliero' as const,
+        immagine: generateImagePath(nome, 'secondi')
+      })),
+      contorni: menuGiorno.contorni.map(nome => ({
+        nome,
+        prezzo: PREZZI.contorno,
+        categoria: 'contorno' as const,
+        disponibile: 'giornaliero' as const,
+        immagine: generateImagePath(nome, 'contorni')
+      }))
+    }
   };
+}
+
+// FUNZIONE PER OTTENERE IL MENU DEL GIORNO CORRENTE
+export function getMenuDelGiorno() {
+  return getMenuGiornoSpecifico(new Date());
+}
+
+// FUNZIONE PER OTTENERE IL MENU DELLA SETTIMANA CORRENTE
+export function getMenuSettimanale() {
+  const oggi = new Date();
+  const settimanaNum = getSettimanaFromDate(oggi);
+  const settimana = `settimana${settimanaNum}`;
+  const menuSettimana = MENU_ROTATIVO[settimana];
+  
+  const result: any = {};
+  const giorni: (keyof MenuSettimana)[] = ['lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi'];
+  
+  giorni.forEach(giorno => {
+    result[giorno] = {
+      primi: menuSettimana[giorno].primi.map(nome => ({
+        nome,
+        prezzo: PREZZI.primo,
+        categoria: 'primo',
+        disponibile: 'giornaliero',
+        immagine: generateImagePath(nome, 'primi')
+      })),
+      secondi: menuSettimana[giorno].secondi.map(nome => ({
+        nome,
+        prezzo: PREZZI.secondo,
+        categoria: 'secondo',
+        disponibile: 'giornaliero',
+        immagine: generateImagePath(nome, 'secondi')
+      })),
+      contorni: menuSettimana[giorno].contorni.map(nome => ({
+        nome,
+        prezzo: PREZZI.contorno,
+        categoria: 'contorno',
+        disponibile: 'giornaliero',
+        immagine: generateImagePath(nome, 'contorni')
+      }))
+    };
+  });
+  
+  return {
+    settimana,
+    menu: result,
+    menuFisso: MENU_FISSO,
+    menuCombo: MENU_COMBO
+  };
+}
+
+// FUNZIONE PER CERCARE UN PIATTO
+export function cercaPiatto(termine: string): MenuItem[] {
+  const risultati: MenuItem[] = [];
+  const termineRicerca = termine.toLowerCase();
+  
+  MENU_FISSO.forEach(item => {
+    if (item.nome.toLowerCase().includes(termineRicerca)) {
+      risultati.push(item);
+    }
+  });
+  
+  MENU_COMBO.forEach(item => {
+    if (item.nome.toLowerCase().includes(termineRicerca)) {
+      risultati.push(item);
+    }
+  });
+  
+  Object.values(MENU_ROTATIVO).forEach(settimana => {
+    Object.values(settimana).forEach(giorno => {
+      giorno.primi.forEach((primo: string) => {
+        if (primo.toLowerCase().includes(termineRicerca)) {
+          risultati.push({
+            nome: primo,
+            prezzo: PREZZI.primo,
+            categoria: 'primo',
+            disponibile: 'giornaliero',
+            immagine: generateImagePath(primo, 'primi')
+          });
+        }
+      });
+      giorno.secondi.forEach((secondo: string) => {
+        if (secondo.toLowerCase().includes(termineRicerca)) {
+          risultati.push({
+            nome: secondo,
+            prezzo: PREZZI.secondo,
+            categoria: 'secondo',
+            disponibile: 'giornaliero',
+            immagine: generateImagePath(secondo, 'secondi')
+          });
+        }
+      });
+      giorno.contorni.forEach((contorno: string) => {
+        if (contorno.toLowerCase().includes(termineRicerca)) {
+          risultati.push({
+            nome: contorno,
+            prezzo: PREZZI.contorno,
+            categoria: 'contorno',
+            disponibile: 'giornaliero',
+            immagine: generateImagePath(contorno, 'contorni')
+          });
+        }
+      });
+    });
+  });
+  
+  return risultati.filter((item, index, self) =>
+    index === self.findIndex((t) => t.nome === item.nome)
+  );
 }
