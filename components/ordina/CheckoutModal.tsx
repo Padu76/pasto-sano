@@ -416,7 +416,8 @@ export default function CheckoutModal({
         name: item.nome,
         description: item.descrizione || '',
         price: item.prezzo,
-        quantity: item.quantity
+        quantity: item.quantity,
+        comboItems: item.comboItems
       })))
     };
 
@@ -456,7 +457,8 @@ export default function CheckoutModal({
           description: item.descrizione || '',
           image: item.immagine || '',
           price: item.prezzo,
-          quantity: item.quantity
+          quantity: item.quantity,
+          comboItems: item.comboItems
         })),
         customerEmail,
         customerName,
@@ -473,7 +475,8 @@ export default function CheckoutModal({
           description: `Zona ${deliveryZone.zone} - ${deliveryDistance?.toFixed(1)}km`,
           image: '',
           price: deliveryZone.cost,
-          quantity: 1
+          quantity: 1,
+          comboItems: undefined
         });
       }
 
@@ -582,7 +585,8 @@ export default function CheckoutModal({
           items: items.map(item => ({
             name: item.nome,
             price: item.prezzo,
-            quantity: item.quantity
+            quantity: item.quantity,
+            comboItems: item.comboItems
           })),
           totalAmount: getTotalPrice(),
           notes: appliedDiscount ? 
