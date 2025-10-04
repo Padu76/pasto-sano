@@ -2,14 +2,24 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
+    if (!db) {
+      console.error('Firestore non inizializzato');
+      return NextResponse.json(
+        { success: false, error: 'Firestore not initialized', orders: [] },
+        { status: 500 }
+      );
+    }
+
     const searchParams = request.nextUrl.searchParams;
     const riderId = searchParams.get('riderId');
 
     if (!riderId) {
       return NextResponse.json(
-        { success: false, error: 'riderId mancante' },
+        { success: false, error: 'riderId mancante', orders: [] },
         { status: 400 }
       );
     }
@@ -112,7 +122,8 @@ export async function GET(request: NextRequest) {
       { 
         success: false, 
         error: 'Errore durante il caricamento', 
-        details: error.message 
+        details: error.message,
+        orders: []
       },
       { status: 500 }
     );
