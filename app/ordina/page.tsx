@@ -37,7 +37,7 @@ import {
 interface CartItem extends MenuItem {
   id: string;
   quantity: number;
-  pickupDate: string; // Data di ritiro per questo item
+  pickupDate: string; // Data di ritiro in formato YYYY-MM-DD
   isCombo?: boolean;
   comboItems?: {
     primo?: string;
@@ -49,6 +49,20 @@ interface CartItem extends MenuItem {
 
 const MINIMUM_ITEMS = 3;
 const MIN_DAYS_ADVANCE = 2;
+
+// Helper per convertire Date in stringa YYYY-MM-DD locale
+function dateToLocalString(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+// Helper per convertire stringa YYYY-MM-DD in Date locale
+function localStringToDate(dateString: string): Date {
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
 
 export default function OrdinaPage() {
   // Stati principali
@@ -116,7 +130,7 @@ export default function OrdinaPage() {
       ...item,
       id: `${item.categoria}-${item.nome}-${Date.now()}`,
       quantity: 1,
-      pickupDate: selectedDate.toISOString()
+      pickupDate: dateToLocalString(selectedDate) // FIX: salva come YYYY-MM-DD
     };
 
     addItemToCart(cartItem);
@@ -127,7 +141,8 @@ export default function OrdinaPage() {
     setCart([...cart, item]);
     
     // Mostra notifica
-    showNotification(`${item.nome} aggiunto per il ${formatDate(new Date(item.pickupDate))}`);
+    const pickupDateObj = localStringToDate(item.pickupDate); // FIX: riconverti correttamente
+    showNotification(`${item.nome} aggiunto per il ${formatDate(pickupDateObj)}`);
   };
 
   // Gestione conferma combo
@@ -140,7 +155,7 @@ export default function OrdinaPage() {
       quantity: 1,
       isCombo: true,
       comboItems,
-      pickupDate: selectedDate.toISOString()
+      pickupDate: dateToLocalString(selectedDate) // FIX: salva come YYYY-MM-DD
     };
 
     addItemToCart(cartItem);
@@ -343,7 +358,7 @@ export default function OrdinaPage() {
         />
 
         {/* Banner info menu */}
-        {menuDelGiorno && (
+        {menuDelGiorno && !menuDelGiorno.isWeekend && (
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-4 mb-6">
             <div className="flex items-start gap-3">
               <Calendar className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
@@ -360,15 +375,35 @@ export default function OrdinaPage() {
           </div>
         )}
 
+        {/* Banner Weekend */}
+        {menuDelGiorno && menuDelGiorno.isWeekend && (
+          <div className="bg-gradient-to-r from-gray-100 to-gray-200 border-2 border-gray-300 rounded-xl p-8 mb-6 text-center">
+            <div className="flex flex-col items-center gap-4">
+              <Calendar className="w-16 h-16 text-gray-400" />
+              <div>
+                <h3 className="text-2xl font-bold text-gray-700 mb-2">
+                  Menu non disponibile nel weekend
+                </h3>
+                <p className="text-gray-600">
+                  Il menu giornaliero è disponibile solo da lunedì a venerdì.
+                </p>
+                <p className="text-gray-600 mt-2">
+                  Puoi comunque ordinare focacce, piadine, insalatone e altri prodotti sempre disponibili.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Menu Categories */}
         <MenuCategories
           activeCategory={selectedCategory}
           onCategoryChange={setSelectedCategory}
-          dailyMenuAvailable={!!menuDelGiorno}
+          dailyMenuAvailable={menuDelGiorno && !menuDelGiorno.isWeekend}
         />
 
         {/* Menu Items */}
-        {selectedCategory === 'menu-giorno' && menuDelGiorno ? (
+        {selectedCategory === 'menu-giorno' && menuDelGiorno && !menuDelGiorno.isWeekend ? (
           <div className="space-y-8">
             {menuDelGiorno.menuGiornaliero.primi.length > 0 && (
               <MenuGrid
@@ -399,6 +434,12 @@ export default function OrdinaPage() {
                 colorScheme="green"
               />
             )}
+          </div>
+        ) : selectedCategory === 'menu-giorno' && menuDelGiorno && menuDelGiorno.isWeekend ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500 text-lg">
+              Seleziona un giorno feriale per visualizzare il menu del giorno
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
