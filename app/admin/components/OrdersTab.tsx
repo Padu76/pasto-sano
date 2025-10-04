@@ -276,9 +276,35 @@ export default function OrdersTab({
                       </p>
                       <div className="text-xs text-gray-600 space-y-1">
                         {order.items.map((item, idx) => (
-                          <div key={idx} className="flex justify-between">
-                            <span>{item.name} x{item.quantity}</span>
-                            <span className="font-medium">€{(item.price * item.quantity).toFixed(2)}</span>
+                          <div key={idx}>
+                            <div className="flex justify-between">
+                              <span>{item.name} x{item.quantity}</span>
+                              <span className="font-medium">€{(item.price * item.quantity).toFixed(2)}</span>
+                            </div>
+                            {item.comboItems && (
+                              <div className="ml-4 mt-1 space-y-0.5 text-gray-500">
+                                {item.comboItems.primo && (
+                                  <div className="flex items-start gap-1">
+                                    <span>• Primo: {item.comboItems.primo}</span>
+                                  </div>
+                                )}
+                                {item.comboItems.secondo && (
+                                  <div className="flex items-start gap-1">
+                                    <span>• Secondo: {item.comboItems.secondo}</span>
+                                  </div>
+                                )}
+                                {item.comboItems.contorno && (
+                                  <div className="flex items-start gap-1">
+                                    <span>• Contorno: {item.comboItems.contorno}</span>
+                                  </div>
+                                )}
+                                {item.comboItems.macedonia && (
+                                  <div className="flex items-start gap-1">
+                                    <span>• Macedonia</span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
