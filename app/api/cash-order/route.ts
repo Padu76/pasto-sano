@@ -72,8 +72,9 @@ export async function POST(request: NextRequest) {
       };
     }
 
+    let orderId = '';
     try {
-      const orderId = await addOrder(orderDoc);
+      orderId = await addOrder(orderDoc);
       console.log('✅ Ordine salvato su Firebase con ID:', orderId);
 
       // AUTO-ASSEGNAZIONE RIDER
@@ -130,16 +131,20 @@ export async function POST(request: NextRequest) {
     const restaurantWhatsApp = process.env.RESTAURANT_WHATSAPP || '393331234567';
     whatsappUrl = `https://wa.me/${restaurantWhatsApp}?text=${whatsappMessage}`;
 
-    if (process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID && process.env.EMAILJS_PRIVATE_KEY) {
+    // FIX: Usa i nomi corretti delle variabili da Vercel
+    if (process.env.EMAILJS_SERVICE_ID && process.env.EMAILJS_PRIVATE_KEY) {
       try {
-        await sendCashOrderEmail(orderData);
+        await sendCashOrderEmail({
+          ...orderData,
+          orderId: orderId || `CASH-${Date.now()}`
+        });
         emailSent = true;
         console.log('✅ Email ordine contanti inviata');
       } catch (emailError) {
         console.error('⚠️ Errore invio email:', emailError);
       }
     } else {
-      console.warn('⚠️ EmailJS non configurato');
+      console.warn('⚠️ EmailJS non configurato - variabili mancanti');
     }
 
     return NextResponse.json({
@@ -147,7 +152,7 @@ export async function POST(request: NextRequest) {
       message: 'Ordine registrato con successo',
       emailSent,
       whatsappUrl,
-      orderId: `CASH-${Date.now()}`
+      orderId: orderId || `CASH-${Date.now()}`
     });
 
   } catch (error: any) {
@@ -172,7 +177,8 @@ async function sendCashOrderEmail(orderData: any) {
     notes,
     deliveryEnabled,
     deliveryAddress,
-    deliveryTimeSlot
+    deliveryTimeSlot,
+    orderId
   } = orderData;
   
   const totalItems = items.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0);
@@ -185,9 +191,7 @@ async function sendCashOrderEmail(orderData: any) {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
+    day: 'numeric'
   });
 
   const templateParams = {
@@ -214,18 +218,19 @@ async function sendCashOrderEmail(orderData: any) {
     order_date: new Date().toLocaleDateString('it-IT'),
     order_time: new Date().toLocaleTimeString('it-IT'),
     
-    order_id: `CASH-${Date.now()}`
+    order_id: orderId
   };
 
+  // FIX: Usa i nomi corretti delle variabili da Vercel
   const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      service_id: process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
-      template_id: process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID,
-      user_id: process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY,
+      service_id: process.env.EMAILJS_SERVICE_ID,
+      template_id: process.env.EMAILJS_TEMPLATE_ID,
+      user_id: process.env.EMAILJS_PUBLIC_KEY,
       accessToken: process.env.EMAILJS_PRIVATE_KEY,
       template_params: templateParams
     })
@@ -235,6 +240,8 @@ async function sendCashOrderEmail(orderData: any) {
     const errorText = await response.text();
     throw new Error(`EmailJS error: ${response.status} - ${errorText}`);
   }
+
+  console.log('✅ Email inviata con successo via EmailJS');
 }
 
 export async function GET() {
@@ -244,7 +251,7 @@ export async function GET() {
     message: 'Cash order endpoint is active',
     timestamp: new Date().toISOString(),
     config: {
-      emailConfigured: !!(process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID && process.env.EMAILJS_PRIVATE_KEY),
+      emailConfigured: !!(process.env.EMAILJS_SERVICE_ID && process.env.EMAILJS_PRIVATE_KEY),
       firebaseConfigured: !!(process.env.NEXT_PUBLIC_FIREBASE_API_KEY)
     }
   });
