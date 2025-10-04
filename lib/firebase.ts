@@ -88,6 +88,12 @@ export interface OrderItem {
   name: string;
   quantity: number;
   price: number;
+  comboItems?: {
+    primo?: string;
+    secondo?: string;
+    contorno?: string;
+    macedonia?: boolean;
+  };
 }
 
 export interface Order {

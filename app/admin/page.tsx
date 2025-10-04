@@ -13,33 +13,13 @@ import {
 } from '@/lib/firebase';
 import { 
   ShoppingCart, 
-  Euro, 
-  Users, 
-  TrendingUp, 
-  Download,
-  FileText,
-  X,
-  Phone,
-  Mail,
-  Calendar,
-  CreditCard,
-  Package,
+  Truck,
+  TrendingUp,
+  Wallet,
   Volume2,
   VolumeX,
-  Banknote,
-  MessageCircle,
-  Smartphone,
-  Truck,
-  MapPin,
-  UserPlus,
-  Edit,
-  CheckCircle,
-  XCircle,
-  Navigation,
-  Wallet,
-  Clock
+  X
 } from 'lucide-react';
-import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -51,6 +31,15 @@ import {
   Legend,
   Filler
 } from 'chart.js';
+
+import StatsCards from './components/StatsCards';
+import OrdersTab from './components/OrdersTab';
+import RiderTab from './components/RiderTab';
+import AnalyticsTab from './components/AnalyticsTab';
+import PaymentsTab from './components/PaymentsTab';
+import CustomersModal from './components/modals/CustomersModal';
+import RiderModal from './components/modals/RiderModal';
+import PaymentModal from './components/modals/PaymentModal';
 
 ChartJS.register(
   CategoryScale,
@@ -241,7 +230,7 @@ export default function AdminDashboard() {
       setLoading(true);
       setError(null);
 
-      const [ordersData, ,productsData, customersData] = await Promise.all([
+      const [ordersData, , productsData, customersData] = await Promise.all([
         getOrders(500),
         getDashboardStats(),
         getTopProducts(10, 30),
@@ -578,10 +567,49 @@ export default function AdminDashboard() {
       }
 
       order.items?.forEach(item => {
-        const productName = item.name.toUpperCase();
-        productionSummary[productName] = (productionSummary[productName] || 0) + item.quantity;
+        if (item.comboItems) {
+          const comboDetails: string[] = [];
+          
+          if (item.comboItems.primo) {
+            comboDetails.push(`Primo: ${item.comboItems.primo}`);
+            const primoKey = `PRIMO - ${item.comboItems.primo.toUpperCase()}`;
+            productionSummary[primoKey] = (productionSummary[primoKey] || 0) + item.quantity;
+          }
+          
+          if (item.comboItems.secondo) {
+            comboDetails.push(`Secondo: ${item.comboItems.secondo}`);
+            const secondoKey = `SECONDO - ${item.comboItems.secondo.toUpperCase()}`;
+            productionSummary[secondoKey] = (productionSummary[secondoKey] || 0) + item.quantity;
+          }
+          
+          if (item.comboItems.contorno) {
+            comboDetails.push(`Contorno: ${item.comboItems.contorno}`);
+            const contornoKey = `CONTORNO - ${item.comboItems.contorno.toUpperCase()}`;
+            productionSummary[contornoKey] = (productionSummary[contornoKey] || 0) + item.quantity;
+          }
+          
+          if (item.comboItems.macedonia) {
+            comboDetails.push('Macedonia');
+            const macedoniaKey = 'FRUTTA - MACEDONIA';
+            productionSummary[macedoniaKey] = (productionSummary[macedoniaKey] || 0) + item.quantity;
+          }
+
+          const comboFullName = `${item.name} (${comboDetails.join(', ')})`;
+          ordersByCustomer[customerKey].push({ 
+            name: comboFullName, 
+            quantity: item.quantity 
+          });
+          
+        } else {
+          const productName = item.name.toUpperCase();
+          productionSummary[productName] = (productionSummary[productName] || 0) + item.quantity;
+          ordersByCustomer[customerKey].push({ 
+            name: productName, 
+            quantity: item.quantity 
+          });
+        }
+        
         totalPieces += item.quantity;
-        ordersByCustomer[customerKey].push({ name: productName, quantity: item.quantity });
       });
     });
 
@@ -597,7 +625,7 @@ export default function AdminDashboard() {
       doc += `• ${product}: ${quantity} porzioni\n`;
     });
 
-    doc += `\nORDINI:\n${'='.repeat(40)}\n\n`;
+    doc += `\nORDINI PER CLIENTE:\n${'='.repeat(40)}\n\n`;
 
     Object.entries(ordersByCustomer).forEach(([customer, items]) => {
       doc += `${customer}\n`;
@@ -638,71 +666,6 @@ export default function AdminDashboard() {
       case 'paypal': return 'PayPal';
       default: return method || 'N/D';
     }
-  };
-
-  const getPaymentMethodIcon = (method: string) => {
-    switch(method?.toLowerCase()) {
-      case 'cash': return <Banknote className="w-4 h-4" />;
-      case 'stripe': return <CreditCard className="w-4 h-4" />;
-      case 'paypal': return <Smartphone className="w-4 h-4" />;
-      default: return <CreditCard className="w-4 h-4" />;
-    }
-  };
-
-  const getPaymentStatusBadge = (order: Order) => {
-    const isPaid = order.paymentStatus === 'paid' || order.paymentMethod !== 'cash';
-    
-    if (order.paymentMethod === 'cash') {
-      return (
-        <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700 flex items-center gap-1">
-          <Banknote className="w-3 h-3" />
-          CONTANTI
-        </span>
-      );
-    }
-    
-    return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${
-        isPaid ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-      }`}>
-        {getPaymentMethodIcon(order.paymentMethod)}
-        {isPaid ? 'PAGATO' : 'DA PAGARE'}
-      </span>
-    );
-  };
-
-  const getDeliveryStatusBadge = (status?: string) => {
-    const statusMap = {
-      'pending': { label: 'Da assegnare', color: 'bg-gray-100 text-gray-700' },
-      'assigned': { label: 'Assegnato', color: 'bg-amber-100 text-amber-700' },
-      'in_delivery': { label: 'In consegna', color: 'bg-blue-100 text-blue-700' },
-      'delivered': { label: 'Consegnato', color: 'bg-green-100 text-green-700' }
-    };
-
-    const statusInfo = statusMap[status as keyof typeof statusMap] || statusMap.pending;
-
-    return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusInfo.color}`}>
-        {statusInfo.label}
-      </span>
-    );
-  };
-
-  const getTimeSlotBadge = (slot?: string) => {
-    if (!slot) return null;
-    
-    const colors: Record<string, string> = {
-      '12-14': 'bg-orange-100 text-orange-700',
-      '16-18': 'bg-purple-100 text-purple-700',
-      '19-21': 'bg-blue-100 text-blue-700'
-    };
-
-    return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors[slot] || 'bg-gray-100 text-gray-700'} flex items-center gap-1`}>
-        <Clock className="w-3 h-3" />
-        {slot}
-      </span>
-    );
   };
 
   const showNotification = (message: string) => {
@@ -1002,761 +965,113 @@ export default function AdminDashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-gray-500 text-sm font-medium uppercase tracking-wider">
-                  {currentFilter === 'oggi' ? 'Ordini Oggi' : 
-                   currentFilter === 'settimana' ? 'Ordini Settimana' :
-                   currentFilter === 'mese' ? 'Ordini Mese' : 'Ordini Totali'}
-                </p>
-                <p className="text-3xl font-bold text-gray-800 mt-2">{filteredStats.ordersCount}</p>
-              </div>
-              <ShoppingCart className="w-8 h-8 text-green-500" />
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-gray-500 text-sm font-medium uppercase tracking-wider">
-                  {currentFilter === 'oggi' ? 'Fatturato Oggi' : 
-                   currentFilter === 'settimana' ? 'Fatturato Settimana' :
-                   currentFilter === 'mese' ? 'Fatturato Mese' : 'Fatturato Totale'}
-                </p>
-                <p className="text-3xl font-bold text-gray-800 mt-2">€{filteredStats.revenue.toFixed(2)}</p>
-              </div>
-              <Euro className="w-8 h-8 text-blue-500" />
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-500">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-gray-500 text-sm font-medium uppercase tracking-wider">Ordine Medio</p>
-                <p className="text-3xl font-bold text-gray-800 mt-2">€{filteredStats.averageOrder.toFixed(2)}</p>
-              </div>
-              <TrendingUp className="w-8 h-8 text-purple-500" />
-            </div>
-          </div>
-
-          <div 
-            className="bg-white rounded-xl shadow-md p-6 border-l-4 border-orange-500 cursor-pointer hover:shadow-lg transition"
-            onClick={() => setShowCustomersModal(true)}
-          >
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-gray-500 text-sm font-medium uppercase tracking-wider">Totale Clienti</p>
-                <p className="text-3xl font-bold text-gray-800 mt-2">{filteredStats.uniqueCustomers}</p>
-              </div>
-              <Users className="w-8 h-8 text-orange-500" />
-            </div>
-          </div>
-        </div>
+        <StatsCards 
+          stats={filteredStats}
+          currentFilter={currentFilter}
+          onCustomersClick={() => setShowCustomersModal(true)}
+        />
 
         {activeTab === 'ordini' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold text-gray-800">Ordini Recenti</h2>
-                <div className="flex gap-2">
-                  <button 
-                    onClick={exportToCSV}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2 text-sm"
-                  >
-                    <Download className="w-4 h-4" />
-                    CSV
-                  </button>
-                  <button 
-                    onClick={generateProductionDoc}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 text-sm"
-                  >
-                    <FileText className="w-4 h-4" />
-                    Produzione
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex gap-2 mb-4 items-center">
-                <button onClick={selectAllOrders} className="px-3 py-1 border rounded-lg hover:bg-gray-50 text-sm">
-                  Seleziona Tutti
-                </button>
-                <button onClick={clearSelection} className="px-3 py-1 border rounded-lg hover:bg-gray-50 text-sm">
-                  Deseleziona
-                </button>
-                <span className="ml-auto px-3 py-1 bg-green-600 text-white rounded-full text-sm">
-                  {selectedOrders.length} selezionati
-                </span>
-              </div>
-
-              <div className="flex gap-2 mb-4">
-                {(['oggi', 'settimana', 'mese', 'tutti'] as const).map(filter => (
-                  <button
-                    key={filter}
-                    onClick={() => filterOrdersByDate(orders, filter)}
-                    className={`px-4 py-2 rounded-lg transition text-sm font-medium ${
-                      currentFilter === filter ? 'bg-green-600 text-white' : 'border hover:bg-gray-50'
-                    }`}
-                  >
-                    {filter.charAt(0).toUpperCase() + filter.slice(1)}
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex gap-2 mb-6">
-                {(['all', 'delivery', 'pickup'] as const).map(filter => (
-                  <button
-                    key={filter}
-                    onClick={() => setDeliveryFilter(filter)}
-                    className={`px-4 py-2 rounded-lg transition text-sm font-medium ${
-                      deliveryFilter === filter ? 'bg-blue-600 text-white' : 'border hover:bg-gray-50'
-                    }`}
-                  >
-                    {filter === 'all' ? 'Tutti' : filter === 'delivery' ? 'Delivery' : 'Ritiro'}
-                  </button>
-                ))}
-              </div>
-
-              <div className="space-y-3 max-h-[600px] overflow-y-auto">
-                {filteredOrders.length === 0 ? (
-                  <div className="text-center py-12 text-gray-500">
-                    <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                    <p>Nessun ordine trovato</p>
-                  </div>
-                ) : (
-                  filteredOrders.map(order => (
-                    <div 
-                      key={order.id}
-                      className={`border rounded-lg p-4 transition hover:shadow-md ${
-                        selectedOrders.includes(order.id!) ? 'border-green-500 bg-green-50' : 'border-gray-200'
-                      }`}
-                    >
-                      <div className="flex items-start gap-3">
-                        <input
-                          type="checkbox"
-                          checked={selectedOrders.includes(order.id!)}
-                          onChange={() => toggleOrderSelection(order.id!)}
-                          className="mt-1"
-                        />
-                        <div className="flex-1">
-                          <div className="flex justify-between items-start mb-2">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-semibold text-gray-800">
-                                #{order.id?.substring(0, 8).toUpperCase()}
-                              </span>
-                              {getPaymentStatusBadge(order)}
-                              {order.deliveryEnabled && (
-                                <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-600 text-white flex items-center gap-1">
-                                  <Truck className="w-3 h-3" />
-                                  DELIVERY
-                                </span>
-                              )}
-                            </div>
-                            <span className="text-xl font-bold text-green-600">
-                              €{order.totalAmount.toFixed(2)}
-                            </span>
-                          </div>
-
-                          {order.deliveryEnabled && (
-                            <div className="bg-blue-50 rounded-lg p-3 mb-3 border border-blue-200">
-                              <div className="flex items-start gap-2 mb-2">
-                                <MapPin className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
-                                <div className="text-sm flex-1">
-                                  <p className="font-medium text-gray-800">{order.deliveryAddress}</p>
-                                  <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                    <p className="text-gray-600 text-xs">
-                                      <Navigation className="w-3 h-3 inline mr-1" />
-                                      {order.deliveryDistance} km - {order.deliveryZone}
-                                    </p>
-                                    {getTimeSlotBadge(order.deliveryTimeSlot)}
-                                  </div>
-                                  <p className="text-gray-600 text-xs mt-1">
-                                    Costo: €{order.deliveryCost} (Rider: €{order.deliveryRiderShare})
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="flex items-center justify-between">
-                                {getDeliveryStatusBadge(order.deliveryStatus)}
-                                {order.riderName && (
-                                  <span className="text-xs text-gray-600">
-                                    Rider: <strong>{order.riderName}</strong>
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          )}
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-3">
-                            <div>
-                              <p className="flex items-center gap-2 mb-1">
-                                <Users className="w-4 h-4 text-gray-500" />
-                                <strong>{order.customerName}</strong>
-                              </p>
-                              <p className="flex items-center gap-2">
-                                <Phone className="w-4 h-4 text-gray-500" />
-                                <a href={`tel:${order.customerPhone}`} className="text-blue-600 hover:underline">
-                                  {order.customerPhone}
-                                </a>
-                                <button
-                                  onClick={() => openWhatsApp(order.customerPhone)}
-                                  className="text-green-600 hover:text-green-700"
-                                >
-                                  <MessageCircle className="w-4 h-4" />
-                                </button>
-                              </p>
-                            </div>
-                            <div>
-                              <p className="flex items-center gap-2 mb-1">
-                                <Calendar className="w-4 h-4 text-gray-500" />
-                                <span><strong>Ritiro:</strong> {order.pickupDate || 'Da definire'}</span>
-                              </p>
-                              <p className="flex items-center gap-2">
-                                {getPaymentMethodIcon(order.paymentMethod)}
-                                <span><strong>{getPaymentMethodLabel(order.paymentMethod)}</strong></span>
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="bg-gray-50 rounded p-2 mb-2">
-                            <p className="text-sm font-medium text-gray-700 mb-1">
-                              Ordine ({order.items.reduce((sum, item) => sum + item.quantity, 0)} pezzi):
-                            </p>
-                            <div className="text-xs text-gray-600 space-y-1">
-                              {order.items.map((item, idx) => (
-                                <div key={idx} className="flex justify-between">
-                                  <span>{item.name} x{item.quantity}</span>
-                                  <span className="font-medium">€{(item.price * item.quantity).toFixed(2)}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="text-xs text-gray-500">
-                            Ordinato il {formatDate(order.timestamp)}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              <div className="bg-white rounded-xl shadow-md p-6">
-                <h3 className="text-lg font-bold text-gray-800 mb-4">Analytics</h3>
-                <div className="h-64">
-                  <Line data={getChartData()} options={chartOptions} />
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl shadow-md p-6">
-                <h3 className="text-lg font-bold text-gray-800 mb-4">Piatti Più Venduti</h3>
-                <div className="space-y-3">
-                  {topProducts.length === 0 ? (
-                    <p className="text-gray-500 text-sm">Nessun dato</p>
-                  ) : (
-                    topProducts.map((product, idx) => (
-                      <div key={idx} className="flex justify-between items-center">
-                        <span className="text-sm text-gray-700 truncate flex-1">{product.name}</span>
-                        <span className="text-sm font-semibold text-green-600 ml-2">{product.sales}</span>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+          <OrdersTab
+            filteredOrders={filteredOrders}
+            selectedOrders={selectedOrders}
+            currentFilter={currentFilter}
+            deliveryFilter={deliveryFilter}
+            topProducts={topProducts}
+            onFilterChange={(filter) => filterOrdersByDate(orders, filter)}
+            onDeliveryFilterChange={setDeliveryFilter}
+            onToggleOrderSelection={toggleOrderSelection}
+            onSelectAll={selectAllOrders}
+            onClearSelection={clearSelection}
+            onExportCSV={exportToCSV}
+            onGenerateProduction={generateProductionDoc}
+            onWhatsAppClick={openWhatsApp}
+            formatDate={formatDate}
+            getPaymentMethodLabel={getPaymentMethodLabel}
+            chartData={getChartData()}
+            chartOptions={chartOptions}
+          />
         )}
 
         {activeTab === 'rider' && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">Gestione Rider</h2>
-                <button
-                  onClick={() => {
-                    setEditingRider(null);
-                    setRiderFormData({ name: '', email: '', phone: '', password: '' });
-                    setShowRiderModal(true);
-                  }}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2"
-                >
-                  <UserPlus className="w-5 h-5" />
-                  Aggiungi Rider
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {riders.map(rider => (
-                  <div key={rider.id} className="border rounded-lg p-4 hover:shadow-md transition">
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <h3 className="font-bold text-lg text-gray-800">{rider.name}</h3>
-                        <p className="text-sm text-gray-600">{rider.email}</p>
-                        <p className="text-sm text-gray-600">{rider.phone}</p>
-                      </div>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        rider.status === 'active' 
-                          ? 'bg-green-100 text-green-700' 
-                          : 'bg-red-100 text-red-700'
-                      }`}>
-                        {rider.status === 'active' ? 'Attivo' : 'Inattivo'}
-                      </span>
-                    </div>
-
-                    {rider.stats && (
-                      <div className="bg-gray-50 rounded p-3 mb-3 space-y-1 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Consegne:</span>
-                          <span className="font-semibold">{rider.stats.totalDeliveries}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Guadagni:</span>
-                          <span className="font-semibold text-green-600">€{rider.stats.totalEarnings.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Media km:</span>
-                          <span className="font-semibold">{rider.stats.averageDistance.toFixed(1)} km</span>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => {
-                          setEditingRider(rider);
-                          setRiderFormData({
-                            name: rider.name,
-                            email: rider.email,
-                            phone: rider.phone,
-                            password: ''
-                          });
-                          setShowRiderModal(true);
-                        }}
-                        className="flex-1 px-3 py-2 border rounded-lg hover:bg-gray-50 transition text-sm flex items-center justify-center gap-1"
-                      >
-                        <Edit className="w-4 h-4" />
-                        Modifica
-                      </button>
-                      <button
-                        onClick={() => handleToggleRiderStatus(rider.id, rider.status)}
-                        className={`flex-1 px-3 py-2 rounded-lg transition text-sm flex items-center justify-center gap-1 ${
-                          rider.status === 'active' 
-                            ? 'bg-red-100 text-red-700 hover:bg-red-200' 
-                            : 'bg-green-100 text-green-700 hover:bg-green-200'
-                        }`}
-                      >
-                        {rider.status === 'active' ? <XCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
-                        {rider.status === 'active' ? 'Disabilita' : 'Attiva'}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          <RiderTab
+            riders={riders}
+            onAddRider={() => {
+              setEditingRider(null);
+              setRiderFormData({ name: '', email: '', phone: '', password: '' });
+              setShowRiderModal(true);
+            }}
+            onEditRider={(rider) => {
+              setEditingRider(rider);
+              setRiderFormData({
+                name: rider.name,
+                email: rider.email,
+                phone: rider.phone,
+                password: ''
+              });
+              setShowRiderModal(true);
+            }}
+            onToggleStatus={handleToggleRiderStatus}
+          />
         )}
 
         {activeTab === 'analytics' && (
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">Analytics Dettagliate</h2>
-              <div className="flex gap-2">
-                {(['oggi', 'settimana', 'mese', 'tutti'] as const).map(filter => (
-                  <button
-                    key={filter}
-                    onClick={() => setAnalyticsFilter(filter)}
-                    className={`px-4 py-2 rounded-lg transition text-sm font-medium ${
-                      analyticsFilter === filter ? 'bg-green-600 text-white' : 'border hover:bg-gray-50'
-                    }`}
-                  >
-                    {filter.charAt(0).toUpperCase() + filter.slice(1)}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-6 text-white">
-                <p className="text-sm opacity-90 mb-1">Ordini Periodo</p>
-                <p className="text-3xl font-bold">{analyticsOrders.length}</p>
-              </div>
-              <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-6 text-white">
-                <p className="text-sm opacity-90 mb-1">Fatturato</p>
-                <p className="text-3xl font-bold">
-                  €{analyticsOrders.reduce((sum, o) => sum + o.totalAmount, 0).toFixed(2)}
-                </p>
-              </div>
-              <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-6 text-white">
-                <p className="text-sm opacity-90 mb-1">Ordine Medio</p>
-                <p className="text-3xl font-bold">
-                  €{analyticsOrders.length > 0 ? (analyticsOrders.reduce((sum, o) => sum + o.totalAmount, 0) / analyticsOrders.length).toFixed(2) : '0.00'}
-                </p>
-              </div>
-            </div>
-
-            <div className="h-96">
-              <Line data={getAnalyticsChartData()} options={analyticsChartOptions} />
-            </div>
-          </div>
+          <AnalyticsTab
+            analyticsOrders={analyticsOrders}
+            analyticsFilter={analyticsFilter}
+            onFilterChange={setAnalyticsFilter}
+            chartData={getAnalyticsChartData()}
+            chartOptions={analyticsChartOptions}
+          />
         )}
 
         {activeTab === 'pagamenti' && (
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">Pagamenti Rider</h2>
-              <button
-                onClick={exportPaymentsCSV}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2"
-              >
-                <Download className="w-5 h-5" />
-                Export CSV
-              </button>
-            </div>
-
-            <div className="flex gap-2 mb-6 items-center flex-wrap">
-              {(['month', 'week', 'custom'] as const).map(type => (
-                <button
-                  key={type}
-                  onClick={() => setPaymentPeriodType(type)}
-                  className={`px-4 py-2 rounded-lg transition text-sm font-medium ${
-                    paymentPeriodType === type ? 'bg-green-600 text-white' : 'border hover:bg-gray-50'
-                  }`}
-                >
-                  {type === 'month' ? 'Mese Corrente' : type === 'week' ? 'Settimana Corrente' : 'Periodo Custom'}
-                </button>
-              ))}
-
-              {paymentPeriodType === 'custom' && (
-                <div className="flex gap-2 items-center">
-                  <input
-                    type="date"
-                    value={customStartDate}
-                    onChange={(e) => setCustomStartDate(e.target.value)}
-                    className="px-3 py-2 border rounded-lg text-sm"
-                  />
-                  <span className="text-gray-500">-</span>
-                  <input
-                    type="date"
-                    value={customEndDate}
-                    onChange={(e) => setCustomEndDate(e.target.value)}
-                    className="px-3 py-2 border rounded-lg text-sm"
-                  />
-                  <button
-                    onClick={loadPayments}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm"
-                  >
-                    Applica
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {payments.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                <Wallet className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p>Nessun pagamento trovato per questo periodo</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {payments.map((payment, idx) => (
-                  <div key={idx} className="border rounded-lg p-4 hover:shadow-md transition">
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <h3 className="font-bold text-lg text-gray-800">{payment.riderName}</h3>
-                        <p className="text-xs text-gray-500 mt-1">
-                          <Clock className="w-3 h-3 inline mr-1" />
-                          {payment.period.label}
-                        </p>
-                      </div>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        payment.status === 'paid' 
-                          ? 'bg-green-100 text-green-700' 
-                          : 'bg-yellow-100 text-yellow-700'
-                      }`}>
-                        {payment.status === 'paid' ? 'Pagato' : 'Da Pagare'}
-                      </span>
-                    </div>
-
-                    <div className="bg-gray-50 rounded p-3 mb-3 space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Consegne:</span>
-                        <span className="font-semibold">{payment.totalDeliveries}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Distanza totale:</span>
-                        <span className="font-semibold">{payment.totalDistance.toFixed(1)} km</span>
-                      </div>
-                      <div className="flex justify-between border-t pt-2">
-                        <span className="text-gray-700 font-medium">Totale da pagare:</span>
-                        <span className="font-bold text-green-600 text-lg">€{payment.totalEarnings.toFixed(2)}</span>
-                      </div>
-                    </div>
-
-                    {payment.status === 'pending' && (
-                      <button
-                        onClick={() => {
-                          setSelectedPayment(payment);
-                          setShowPaymentModal(true);
-                        }}
-                        className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center justify-center gap-2"
-                      >
-                        <CheckCircle className="w-4 h-4" />
-                        Segna come Pagato
-                      </button>
-                    )}
-
-                    {payment.status === 'paid' && (
-                      <div className="text-center text-sm text-green-600 font-medium py-2">
-                        <CheckCircle className="w-4 h-4 inline mr-1" />
-                        Pagamento Completato
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <PaymentsTab
+            payments={payments}
+            paymentPeriodType={paymentPeriodType}
+            customStartDate={customStartDate}
+            customEndDate={customEndDate}
+            onPeriodTypeChange={setPaymentPeriodType}
+            onCustomStartDateChange={setCustomStartDate}
+            onCustomEndDateChange={setCustomEndDate}
+            onApplyCustomPeriod={loadPayments}
+            onMarkAsPaid={(payment) => {
+              setSelectedPayment(payment);
+              setShowPaymentModal(true);
+            }}
+            onExportCSV={exportPaymentsCSV}
+          />
         )}
       </div>
 
-      {showPaymentModal && selectedPayment && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-md w-full p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">Conferma Pagamento</h2>
-              <button onClick={() => setShowPaymentModal(false)} className="text-gray-500 hover:text-gray-700">
-                <X className="w-6 h-6" />
-              </button>
-            </div>
+      <CustomersModal
+        isOpen={showCustomersModal}
+        onClose={() => setShowCustomersModal(false)}
+        customers={customers}
+        onWhatsAppClick={openWhatsApp}
+        formatDate={formatDate}
+      />
 
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <h3 className="font-bold text-lg mb-2">{selectedPayment.riderName}</h3>
-              <p className="text-sm text-gray-600 mb-3">{selectedPayment.period.label}</p>
-              
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Consegne completate:</span>
-                  <span className="font-semibold">{selectedPayment.totalDeliveries}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Distanza totale:</span>
-                  <span className="font-semibold">{selectedPayment.totalDistance.toFixed(1)} km</span>
-                </div>
-                <div className="flex justify-between pt-2 border-t">
-                  <span className="font-medium text-gray-700">Importo da pagare:</span>
-                  <span className="font-bold text-green-600 text-xl">€{selectedPayment.totalEarnings.toFixed(2)}</span>
-                </div>
-              </div>
-            </div>
+      <RiderModal
+        isOpen={showRiderModal}
+        onClose={() => setShowRiderModal(false)}
+        editingRider={editingRider}
+        formData={riderFormData}
+        onFormChange={setRiderFormData}
+        onSave={handleSaveRider}
+      />
 
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Note (opzionale)</label>
-              <textarea
-                value={paymentNotes}
-                onChange={(e) => setPaymentNotes(e.target.value)}
-                className="w-full p-3 border rounded-lg focus:outline-none focus:border-green-500"
-                rows={3}
-                placeholder="Es: Pagato con bonifico, riferimento #12345"
-              />
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={handleMarkAsPaid}
-                className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium"
-              >
-                Conferma Pagamento
-              </button>
-              <button
-                onClick={() => {
-                  setShowPaymentModal(false);
-                  setPaymentNotes('');
-                }}
-                className="px-4 py-3 border rounded-lg hover:bg-gray-50 transition"
-              >
-                Annulla
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showRiderModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-md w-full p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">
-                {editingRider ? 'Modifica Rider' : 'Nuovo Rider'}
-              </h2>
-              <button onClick={() => setShowRiderModal(false)} className="text-gray-500 hover:text-gray-700">
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nome</label>
-                <input
-                  type="text"
-                  value={riderFormData.name}
-                  onChange={(e) => setRiderFormData({ ...riderFormData, name: e.target.value })}
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:border-green-500"
-                  placeholder="Mario Rossi"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input
-                  type="email"
-                  value={riderFormData.email}
-                  onChange={(e) => setRiderFormData({ ...riderFormData, email: e.target.value })}
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:border-green-500"
-                  placeholder="mario@pastosano.it"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Telefono</label>
-                <input
-                  type="tel"
-                  value={riderFormData.phone}
-                  onChange={(e) => setRiderFormData({ ...riderFormData, phone: e.target.value })}
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:border-green-500"
-                  placeholder="333 1234567"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Password {editingRider && '(lascia vuoto per non cambiare)'}
-                </label>
-                <input
-                  type="password"
-                  value={riderFormData.password}
-                  onChange={(e) => setRiderFormData({ ...riderFormData, password: e.target.value })}
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:border-green-500"
-                  placeholder="••••••••"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={handleSaveRider}
-                className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-              >
-                {editingRider ? 'Aggiorna' : 'Crea Rider'}
-              </button>
-              <button
-                onClick={() => setShowRiderModal(false)}
-                className="px-4 py-3 border rounded-lg hover:bg-gray-50 transition"
-              >
-                Annulla
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showCustomersModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[80vh] overflow-y-auto p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">Elenco Clienti ({customers.length})</h2>
-              <button onClick={() => setShowCustomersModal(false)} className="text-gray-500 hover:text-gray-700">
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              {customers.map((customer, idx) => (
-                <div key={idx} className="border rounded-lg p-4 hover:shadow-md transition">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-800 text-lg">{customer.name}</h3>
-                      <div className="flex items-center gap-4 mt-2 text-sm">
-                        <span className="flex items-center gap-1">
-                          <Phone className="w-4 h-4 text-gray-500" />
-                          <a href={`tel:${customer.phone}`} className="text-blue-600 hover:underline">
-                            {customer.phone}
-                          </a>
-                        </span>
-                        <button
-                          onClick={() => openWhatsApp(customer.phone)}
-                          className="text-green-600 hover:text-green-700 flex items-center gap-1"
-                        >
-                          <MessageCircle className="w-4 h-4" />
-                          WhatsApp
-                        </button>
-                        {customer.email && (
-                          <span className="flex items-center gap-1">
-                            <Mail className="w-4 h-4 text-gray-500" />
-                            {customer.email}
-                          </span>
-                        )}
-                      </div>
-                      <div className="mt-3 flex gap-6 text-sm">
-                        <span className="text-gray-700">
-                          Ordini: <strong>{customer.totalOrders}</strong>
-                        </span>
-                        <span className="text-gray-700">
-                          Speso: <strong className="text-green-600">€{customer.totalSpent.toFixed(2)}</strong>
-                        </span>
-                        <span className="text-gray-700">
-                          Ultimo: <strong>{customer.lastOrder ? formatDate(customer.lastOrder) : 'N/A'}</strong>
-                        </span>
-                      </div>
-                    </div>
-                    <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      customer.totalOrders >= 5 ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'
-                    }`}>
-                      {customer.totalOrders >= 5 ? 'VIP' : 'Nuovo'}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-6 flex justify-end gap-3">
-              <button 
-                onClick={() => {
-                  const csvContent = [
-                    ['Nome', 'Telefono', 'Email', 'Ordini', 'Speso', 'Ultimo Ordine'],
-                    ...customers.map(c => [
-                      c.name,
-                      c.phone,
-                      c.email || '',
-                      c.totalOrders,
-                      c.totalSpent.toFixed(2),
-                      c.lastOrder ? formatDate(c.lastOrder) : ''
-                    ])
-                  ].map(row => row.join(',')).join('\n');
-
-                  const blob = new Blob([csvContent], { type: 'text/csv' });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = `clienti_${new Date().toISOString().split('T')[0]}.csv`;
-                  a.click();
-                }}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-              >
-                Esporta CSV
-              </button>
-              <button 
-                onClick={() => setShowCustomersModal(false)}
-                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition"
-              >
-                Chiudi
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <PaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => {
+          setShowPaymentModal(false);
+          setPaymentNotes('');
+        }}
+        payment={selectedPayment}
+        notes={paymentNotes}
+        onNotesChange={setPaymentNotes}
+        onConfirm={handleMarkAsPaid}
+      />
     </div>
   );
 }
