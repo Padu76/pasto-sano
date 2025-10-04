@@ -1,0 +1,16 @@
+{
+  "name": "Pasto Sano",
+  "short_name": "Pasto Sano",
+  "description": "Ordina pasti sani e genuini",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#f59e0b",
+  "icons": [
+    {
+      "src": "/images/logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
