@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { getOrders, type Order } from '@/lib/firebase';
 import { getPurchaseCost } from '@/lib/productCosts';
-import { FileText, Download, Calculator, Package, Euro } from 'lucide-react';
+import { FileText, Download, Calculator, Package, } from 'lucide-react';
 
 export default function ProductionPage() {
   const [orders, setOrders] = useState<Order[]>([]);
