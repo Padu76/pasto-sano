@@ -349,12 +349,9 @@ export default function LandingPage() {
               <button onClick={() => scrollToSection('contatti')} className="text-gray-700 hover:text-amber-600 transition-all duration-300 hover:scale-105 font-medium">
                 Contatti
               </button>
-              <Link 
-                href="/ordina"
-                className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-6 py-3 rounded-full font-semibold hover:shadow-xl transform hover:scale-105 transition-all duration-300 animate-pulse"
-              >
-                Ordina Ora
-              </Link>
+              <span className="bg-gray-400 text-white px-6 py-3 rounded-full font-semibold cursor-not-allowed opacity-75">
+                Ordini in Pausa
+              </span>
             </div>
 
             {/* Mobile Menu Button */}
@@ -375,12 +372,9 @@ export default function LandingPage() {
                 <button onClick={() => scrollToSection('menu')} className="text-left py-3 text-gray-700 text-lg border-b hover:text-amber-600 transition-colors">Menu</button>
                 <button onClick={() => scrollToSection('chi-sono')} className="text-left py-3 text-gray-700 text-lg border-b hover:text-amber-600 transition-colors">Chi Sono</button>
                 <button onClick={() => scrollToSection('contatti')} className="text-left py-3 text-gray-700 text-lg border-b hover:text-amber-600 transition-colors">Contatti</button>
-                <Link 
-                  href="/ordina"
-                  className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-6 py-4 rounded-full font-semibold text-center text-lg mt-4"
-                >
-                  Ordina Ora
-                </Link>
+                <span className="bg-gray-400 text-white px-6 py-4 rounded-full font-semibold text-center text-lg mt-4 block cursor-not-allowed opacity-75">
+                  Ordini in Pausa
+                </span>
               </div>
             </div>
           )}
@@ -411,13 +405,10 @@ export default function LandingPage() {
         
         <div className="container mx-auto px-4 lg:px-8 relative z-10">
           <div className="text-center text-white space-y-8 max-w-4xl mx-auto">
-            {/* Countdown Badge */}
-            <div className="inline-flex items-center gap-3 bg-red-500/90 backdrop-blur-sm text-white px-6 py-3 rounded-full text-sm font-bold animate-pulse border border-red-400/30">
-              <AlertCircle className="w-5 h-5" />
-              <span>Ordina entro le 18:00 per ritiro dopodomani!</span>
-              <div className="bg-white/20 px-3 py-1 rounded-full">
-                ⏰ {timeLeft}
-              </div>
+            {/* Pause Notice Badge */}
+            <div className="inline-flex items-center gap-3 bg-amber-500/90 backdrop-blur-sm text-white px-6 py-3 rounded-full text-sm font-bold border border-amber-400/30">
+              <Clock className="w-5 h-5" />
+              <span>Servizio ordini temporaneamente in pausa - Torneremo presto!</span>
             </div>
             
             <h1 className="text-5xl lg:text-7xl font-bold leading-tight">
@@ -433,14 +424,10 @@ export default function LandingPage() {
             
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center fade-in-delay-3">
-              <Link 
-                href="/ordina"
-                className="group bg-gradient-to-r from-yellow-400 to-orange-400 text-gray-900 px-8 py-4 rounded-full font-bold text-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center gap-3"
-              >
-                <ShoppingCart className="w-6 h-6 group-hover:animate-bounce" />
-                Ordina Subito
-                <Sparkles className="w-5 h-5 group-hover:animate-spin" />
-              </Link>
+              <div className="bg-gray-500/80 backdrop-blur-sm text-white px-8 py-4 rounded-full font-bold text-lg flex items-center gap-3 cursor-not-allowed">
+                <Clock className="w-6 h-6" />
+                Ordini Temporaneamente Sospesi
+              </div>
               <button 
                 onClick={() => scrollToSection('vantaggi')}
                 className="bg-white/20 backdrop-blur-sm border-2 border-white/30 text-white px-8 py-4 rounded-full font-bold hover:bg-white hover:text-amber-900 transition-all duration-300 flex items-center gap-2"
@@ -450,11 +437,16 @@ export default function LandingPage() {
               </button>
             </div>
             
-            {/* Spots Available */}
-            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-yellow-300 px-4 py-2 rounded-full text-sm font-semibold animate-pulse">
-              <AlertCircle className="w-4 h-4" />
-              Solo {availableSpots} posti disponibili per domani!
-            </div>
+            {/* WhatsApp contact during pause */}
+            <a
+              href="https://wa.me/393478881515?text=Ciao%20Pasto%20Sano,%20vorrei%20essere%20avvisato%20quando%20riaprite"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-green-500/80 backdrop-blur-sm border border-green-400/30 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-green-500 transition-colors"
+            >
+              <MessageCircle className="w-4 h-4" />
+              Avvisami quando riaprite!
+            </a>
           </div>
         </div>
 
@@ -647,14 +639,10 @@ export default function LandingPage() {
           
           {/* CTA */}
           <div className="text-center">
-            <Link 
-              href="/ordina"
-              className="group inline-flex items-center gap-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-12 py-6 rounded-full font-bold text-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 mb-6"
-            >
-              <ShoppingCart className="w-8 h-8 group-hover:animate-bounce" />
-              Scopri Tutto il Menu
-              <span className="text-xl">🔗</span>
-            </Link>
+            <div className="inline-flex items-center gap-4 bg-gray-400 text-white px-12 py-6 rounded-full font-bold text-xl cursor-not-allowed opacity-75 mb-6">
+              <Clock className="w-8 h-8" />
+              Menu in Aggiornamento
+            </div>
           </div>
         </div>
       </section>
@@ -829,14 +817,10 @@ export default function LandingPage() {
           
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-            <Link 
-              href="/ordina"
-              className="group bg-white text-amber-900 px-12 py-6 rounded-full font-bold text-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center gap-4"
-            >
-              <ShoppingCart className="w-8 h-8 group-hover:animate-bounce" />
-              Ordina Ora con lo Sconto
-              <Sparkles className="w-6 h-6 group-hover:animate-spin" />
-            </Link>
+            <div className="bg-white/50 text-gray-500 px-12 py-6 rounded-full font-bold text-xl flex items-center gap-4 cursor-not-allowed">
+              <Clock className="w-8 h-8" />
+              Ordini Temporaneamente Sospesi
+            </div>
             <a 
               href="https://wa.me/393478881515?text=Ciao%20voglio%20ordinare%20con%20SCONTO5"
               target="_blank"
@@ -1032,9 +1016,9 @@ export default function LandingPage() {
             <div>
               <h3 className="text-yellow-400 font-bold text-lg mb-6">Menu</h3>
               <div className="space-y-3">
-                <Link href="/ordina" className="text-white/80 hover:text-amber-400 transition-colors text-left block">
-                  Ordina Online
-                </Link>
+                <span className="text-white/40 text-left block cursor-not-allowed">
+                  Ordina Online (in pausa)
+                </span>
                 <button onClick={() => scrollToSection('menu')} className="text-white/80 hover:text-amber-400 transition-colors text-left block">
                   I Nostri Piatti
                 </button>
