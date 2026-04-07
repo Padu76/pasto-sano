@@ -221,9 +221,9 @@ export default function ProductionPage() {
     
     // Ordina per quantità
     const sorted = Object.entries(productionSummary)
-      .sort(([,a], [,b]) => b.quantity - a.quantity);
-    
-    sorted.forEach(([product, data]) => {
+      .sort(([,a]: [string, any], [,b]: [string, any]) => b.quantity - a.quantity);
+
+    sorted.forEach(([product, data]: [string, any]) => {
       const totaleProdotto = data.quantity * data.unitCost;
       const qty = data.quantity.toString().padEnd(10);
       const price = `€${data.unitCost.toFixed(2)}`.padEnd(13);
@@ -404,8 +404,8 @@ export default function ProductionPage() {
               </thead>
               <tbody>
                 {Object.entries(productionSummary)
-                  .sort(([,a], [,b]) => b.quantity - a.quantity)
-                  .map(([product, data]) => (
+                  .sort(([,a]: [string, any], [,b]: [string, any]) => b.quantity - a.quantity)
+                  .map(([product, data]: [string, any]) => (
                     <tr key={product} className="border-b hover:bg-gray-50">
                       <td className="py-2">{product}</td>
                       <td className="text-center py-2 font-semibold">{data.quantity}</td>

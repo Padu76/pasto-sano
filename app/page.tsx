@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
-import { 
-  ShoppingCart, 
-  Clock, 
+import {
+  ShoppingCart,
+  Clock,
   Star,
   Menu,
   X,
@@ -18,7 +17,6 @@ import {
   XCircle,
   Timer,
   Users,
-  AlertCircle,
   Sparkles,
   ChefHat,
   Zap,
@@ -29,8 +27,6 @@ import {
 export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [timeLeft, setTimeLeft] = useState('');
-  const [availableSpots, setAvailableSpots] = useState(8);
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
 
   const testimonials = [
@@ -65,43 +61,14 @@ export default function LandingPage() {
   ];
 
   useEffect(() => {
-    // Handle scroll for header
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
     };
-    
+
     window.addEventListener('scroll', handleScroll);
-    
-    // Countdown timer
-    const updateCountdown = () => {
-      const now = new Date();
-      const deadline = new Date();
-      deadline.setHours(18, 0, 0, 0);
-      
-      if (now > deadline) {
-        deadline.setDate(deadline.getDate() + 1);
-      }
-      
-      const diff = deadline.getTime() - now.getTime();
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-      
-      setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
-    };
-    
-    updateCountdown();
-    const countdownInterval = setInterval(updateCountdown, 1000);
-    
-    // Simulate available spots countdown
-    const spotsInterval = setInterval(() => {
-      setAvailableSpots(prev => prev > 3 ? prev - 1 : prev);
-    }, 45000);
-    
+
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      clearInterval(countdownInterval);
-      clearInterval(spotsInterval);
     };
   }, []);
 
