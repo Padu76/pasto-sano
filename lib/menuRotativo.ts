@@ -99,7 +99,7 @@ export const PRONTI: MenuItem[] = [
     peso: '30g',
   },
   {
-    nome: 'Piselli cotti',
+    nome: 'Piselli cotti BIO',
     prezzo: 8.0,
     categoria: 'pronto',
     disponibile: 'sempre',
@@ -109,7 +109,7 @@ export const PRONTI: MenuItem[] = [
     bio: true,
   },
   {
-    nome: 'Carote a rondelle',
+    nome: 'Carote a rondelle BIO',
     prezzo: 8.0,
     categoria: 'pronto',
     disponibile: 'sempre',
@@ -119,7 +119,7 @@ export const PRONTI: MenuItem[] = [
     bio: true,
   },
   {
-    nome: 'Catalogna',
+    nome: 'Catalogna BIO',
     prezzo: 8.0,
     categoria: 'pronto',
     disponibile: 'sempre',
@@ -129,7 +129,7 @@ export const PRONTI: MenuItem[] = [
     bio: true,
   },
   {
-    nome: 'Fagiolini verdi',
+    nome: 'Fagiolini verdi BIO',
     prezzo: 8.0,
     categoria: 'pronto',
     disponibile: 'sempre',
@@ -139,7 +139,7 @@ export const PRONTI: MenuItem[] = [
     bio: true,
   },
   {
-    nome: 'Zucchine a rondelle',
+    nome: 'Zucchine a rondelle BIO',
     prezzo: 8.0,
     categoria: 'pronto',
     disponibile: 'sempre',

@@ -445,16 +445,9 @@ function OrderProductCard({
         )}
       </div>
       <div className="p-4 lg:p-5 flex flex-col flex-1">
-        <div className="flex items-start gap-2 mb-2">
-          <h3 className="font-display font-bold text-base lg:text-lg leading-tight line-clamp-2 flex-1">
-            {item.nome}
-          </h3>
-          {item.bio && (
-            <span className="flex-shrink-0 bg-sage-100 text-sage-700 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md border border-sage-200">
-              BIO
-            </span>
-          )}
-        </div>
+        <h3 className="font-display font-bold text-base lg:text-lg leading-tight mb-2 line-clamp-2">
+          {item.nome}
+        </h3>
 
         {/* Porzione - prominente */}
         <div className="bg-primary-50 border border-primary-200 rounded-lg px-2.5 py-1.5 mb-3 inline-flex items-center gap-1.5 self-start flex-wrap">
