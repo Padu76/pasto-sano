@@ -169,7 +169,7 @@ export const DA_CUCINARE: MenuItem[] = [
     prezzo: 6.0,
     categoria: 'da-cuocere',
     disponibile: 'sempre',
-    immagine: '/images/prodotti/hamburger-bovino.jpg',
+    immagine: '/images/prodotti/hamburger-bovino.png',
     descrizione: 'Porzione 240g (2 hamburger da 120/180g). Da cuocere alla griglia o piastra.',
     peso: '240g',
     formato: '2 pezzi da 120/180g',
