@@ -39,7 +39,23 @@ export const PREZZI = {
   comboSecondoContorno: 10.20,
   comboPrimoSecondoContorno: 15.60,
   comboPrimoMacedonia: 10.00,
-  comboSecondoMacedonia: 11.20
+  comboSecondoMacedonia: 11.20,
+  // Prezzi nuovo fornitore (carni e verdure premium) - "Prezzo pubblico confezione"
+  polpetteProteiche: 7.00,
+  macinatoBovinoCotto: 10.00,
+  roastBeefFette: 9.00,
+  insalataPollo: 11.00,
+  tagliataPollo: 6.00,
+  tagliataBovinoCottaFette: 9.00,
+  tagliataBovinoCottaIntera: 8.00,
+  tagliataBovinoAffumicata: 5.00,
+  carneSecca: 5.00,
+  verdureCotteBio: 8.00,
+  // Carni crude da cuocere
+  macinatoBovinoCrudo: 11.00,
+  carneCrudaBovino: 6.00,
+  hamburgerBovino: 6.00,
+  tagliataBovinoAdulto: 15.00
 };
 
 // Data di riferimento: Lunedì 6 ottobre 2025 = inizio Settimana 3
@@ -537,6 +553,120 @@ export const MENU_FISSO: MenuItem[] = [
     categoria: 'extra',
     disponibile: 'sempre',
     immagine: '/images/extra/roast-beef.jpg'
+  },
+  // === NUOVO FORNITORE — CARNI PRONTE ===
+  {
+    nome: "Polpette proteiche",
+    prezzo: PREZZI.polpetteProteiche,
+    categoria: 'secondo',
+    disponibile: 'sempre',
+    immagine: '/images/carni/polpette-proteiche.jpg',
+    descrizione: '8 polpette da 22/24g (184g totali) — pronte da scaldare'
+  },
+  {
+    nome: "Macinato bovino cotto",
+    prezzo: PREZZI.macinatoBovinoCotto,
+    categoria: 'secondo',
+    disponibile: 'sempre',
+    immagine: '/images/carni/macinato-bovino-cotto.jpg',
+    descrizione: '300g — macinato di bovino cotto, pronto da scaldare'
+  },
+  {
+    nome: "Roast beef bovino a fette",
+    prezzo: PREZZI.roastBeefFette,
+    categoria: 'extra',
+    disponibile: 'sempre',
+    immagine: '/images/carni/roast-beef-fette.jpg',
+    descrizione: '180g — roast beef di bovino a fette, pronto da consumare'
+  },
+  {
+    nome: "Insalata di pollo",
+    prezzo: PREZZI.insalataPollo,
+    categoria: 'insalatona',
+    disponibile: 'sempre',
+    immagine: '/images/carni/insalata-pollo.jpg',
+    descrizione: '300g — insalata pronta con pollo, ricca di proteine'
+  },
+  {
+    nome: "Tagliata di pollo",
+    prezzo: PREZZI.tagliataPollo,
+    categoria: 'secondo',
+    disponibile: 'sempre',
+    immagine: '/images/carni/tagliata-pollo.jpg',
+    descrizione: '160g — tagliata di pollo già cotta'
+  },
+  {
+    nome: "Tagliata bovino cotta a fette",
+    prezzo: PREZZI.tagliataBovinoCottaFette,
+    categoria: 'secondo',
+    disponibile: 'sempre',
+    immagine: '/images/carni/tagliata-bovino-cotta-fette.jpg',
+    descrizione: '180g — tagliata di bovino cotta a fette'
+  },
+  {
+    nome: "Tagliata bovino cotta intera",
+    prezzo: PREZZI.tagliataBovinoCottaIntera,
+    categoria: 'secondo',
+    disponibile: 'sempre',
+    immagine: '/images/carni/tagliata-bovino-cotta-intera.jpg',
+    descrizione: '180g — tagliata di bovino cotta, monoporzione intera'
+  },
+  {
+    nome: "Tagliata bovino cotta affumicata",
+    prezzo: PREZZI.tagliataBovinoAffumicata,
+    categoria: 'extra',
+    disponibile: 'sempre',
+    immagine: '/images/carni/tagliata-bovino-affumicata.jpg',
+    descrizione: '100g — tagliata di bovino affumicata a fette'
+  },
+  {
+    nome: "Carne secca",
+    prezzo: PREZZI.carneSecca,
+    categoria: 'extra',
+    disponibile: 'sempre',
+    immagine: '/images/carni/carne-secca.jpg',
+    descrizione: '30g — snack proteico ad alta densità'
+  },
+  {
+    nome: "Verdure cotte bio",
+    prezzo: PREZZI.verdureCotteBio,
+    categoria: 'extra',
+    disponibile: 'sempre',
+    immagine: '/images/carni/verdure-cotte-bio.jpg',
+    descrizione: '300g — verdure di stagione cotte, biologiche'
+  },
+  // === NUOVO FORNITORE — CARNI CRUDE DA CUOCERE ===
+  {
+    nome: "Macinato bovino crudo",
+    prezzo: PREZZI.macinatoBovinoCrudo,
+    categoria: 'extra',
+    disponibile: 'sempre',
+    immagine: '/images/carni/macinato-bovino-crudo.jpg',
+    descrizione: '500g — macinato di bovino crudo, da cuocere'
+  },
+  {
+    nome: "Carne cruda bovino",
+    prezzo: PREZZI.carneCrudaBovino,
+    categoria: 'extra',
+    disponibile: 'sempre',
+    immagine: '/images/carni/carne-cruda-bovino.jpg',
+    descrizione: '150g — carne cruda di bovino, pronta da condire'
+  },
+  {
+    nome: "Hamburger bovino",
+    prezzo: PREZZI.hamburgerBovino,
+    categoria: 'extra',
+    disponibile: 'sempre',
+    immagine: '/images/carni/hamburger-bovino.jpg',
+    descrizione: '2 hamburger da 120/180g (240g totali) — da cuocere'
+  },
+  {
+    nome: "Tagliata bovino adulto",
+    prezzo: PREZZI.tagliataBovinoAdulto,
+    categoria: 'extra',
+    disponibile: 'sempre',
+    immagine: '/images/carni/tagliata-bovino-adulto.jpg',
+    descrizione: '2 pezzi da 200g (400g totali) — tagliata di bovino adulto, da cuocere'
   }
 ];
 

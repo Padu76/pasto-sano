@@ -1,1139 +1,1007 @@
+// E:\pasto-sano\app\page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { 
-  ShoppingCart, 
-  Clock, 
-  Star,
-  Menu,
+import {
+  ArrowRight,
+  ShoppingCart,
+  Clock,
+  Menu as MenuIcon,
   X,
-  Leaf,
-  Scale,
-  Flame,
-  Heart,
   MessageCircle,
   CheckCircle,
-  XCircle,
-  Timer,
-  Users,
-  AlertCircle,
-  Sparkles,
   ChefHat,
-  Zap,
+  Flame,
+  Leaf,
+  Beef,
+  Activity,
+  MapPin,
+  Star,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  PlayCircle,
+  Phone,
+  Mail,
+  Instagram,
 } from 'lucide-react';
 
 export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [timeLeft, setTimeLeft] = useState('');
-  const [availableSpots, setAvailableSpots] = useState(8);
-  const [openFAQ, setOpenFAQ] = useState<number | null>(null);
-
-  const testimonials = [
-    {
-      name: "Marco R.",
-      role: "Imprenditore",
-      text: "Finalmente posso mangiare sano anche con poco tempo. Pasto Sano mi ha cambiato la vita!",
-      rating: 5,
-      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&q=80"
-    },
-    {
-      name: "Laura B.",
-      role: "Manager",
-      text: "Ho perso 8kg in 3 mesi senza rinunciare al gusto. Consigliatissimo!",
-      rating: 5,
-      image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&q=80"
-    },
-    {
-      name: "Giuseppe T.",
-      role: "Sportivo",
-      text: "Perfetto per chi si allena. Pasti bilanciati e gustosi, recupero meglio dopo l'allenamento.",
-      rating: 5,
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80"
-    },
-    {
-      name: "Anna M.",
-      role: "Mamma lavoratrice",
-      text: "Non ho più lo stress di cucinare ogni giorno. Più tempo per la famiglia!",
-      rating: 5,
-      image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&q=80"
-    }
-  ];
+  const [openFAQ, setOpenFAQ] = useState<number | null>(0);
+  const [mealsPerWeek, setMealsPerWeek] = useState(7);
 
   useEffect(() => {
-    // Handle scroll for header
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-    
-    window.addEventListener('scroll', handleScroll);
-    
-    // Countdown timer
-    const updateCountdown = () => {
-      const now = new Date();
-      const deadline = new Date();
-      deadline.setHours(18, 0, 0, 0);
-      
-      if (now > deadline) {
-        deadline.setDate(deadline.getDate() + 1);
-      }
-      
-      const diff = deadline.getTime() - now.getTime();
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-      
-      setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
-    };
-    
-    updateCountdown();
-    const countdownInterval = setInterval(updateCountdown, 1000);
-    
-    // Simulate available spots countdown
-    const spotsInterval = setInterval(() => {
-      setAvailableSpots(prev => prev > 3 ? prev - 1 : prev);
-    }, 45000);
-    
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      clearInterval(countdownInterval);
-      clearInterval(spotsInterval);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 24);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
       setIsMenuOpen(false);
     }
   };
 
-  const toggleFAQ = (index: number) => {
-    setOpenFAQ(openFAQ === index ? null : index);
-  };
+  const toggleFAQ = (index: number) => setOpenFAQ(openFAQ === index ? null : index);
 
-  const problems = [
+  // Calcolatore costo settimanale
+  const pastoSanoCost = mealsPerWeek * 7.5;
+  const gastronomyCost = mealsPerWeek * 11;
+  const weeklySaving = gastronomyCost - pastoSanoCost;
+  const hoursSaved = mealsPerWeek * 0.5;
+
+  const audiences = [
     {
-      image: "https://images.unsplash.com/photo-1551218808-94e220e084d2?w=600&q=80",
-      text: "Torni a casa stanco e non sai cosa mangiare"
+      icon: Activity,
+      title: 'Per chi si allena',
+      desc: 'Porzioni calibrate, proteine selezionate, recupero ottimizzato. Pranzi e cene che hanno senso dopo l’allenamento.',
+      image: '/images/meals/pollo-patate-zucchine.jpg',
     },
     {
-      image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&q=80",
-      text: "Mangi sempre le stesse cose in gastronomia"
+      icon: Clock,
+      title: "Per chi non ha tempo",
+      desc: 'Pranzi e cene pronti in 2 minuti. Niente spesa, niente padelle, niente stress. Apri, scaldi, mangi.',
+      image: '/images/meals/orzo-ceci-feta-pomodorini.jpg',
     },
     {
-      image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&q=80",
-      text: "Spesa dell'ultimo minuto e sprechi"
+      icon: Leaf,
+      title: 'Per chi vuole tornare in forma',
+      desc: 'Porzioni misurate, cottura leggera, zero conservanti. Mangi pulito ogni giorno senza dover ragionarci.',
+      image: '/images/meals/patate-salmone-broccoli.jpg',
     },
-    {
-      image: "https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=600&q=80",
-      text: "Cibo pesante che ti rallenta"
-    }
   ];
 
-  const solutions = [
-    {
-      image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&q=80",
-      title: "Pasto Pronto in 2 Minuti",
-      description: "Torni a casa e il pranzo è già pronto"
-    },
-    {
-      image: "https://images.unsplash.com/photo-1541480601022-2308c0f02487?w=600&q=80",
-      title: "Zero Stress",
-      description: "Niente spesa, niente cucina, solo relax"
-    },
-    {
-      image: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=600&q=80",
-      title: "Leggero e Nutriente",
-      description: "Ti senti energico tutto il giorno"
-    },
-    {
-      image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&q=80",
-      title: "Tempo per Te",
-      description: "Recuperi 1 ora al giorno"
-    }
+  const comparison = [
+    { feature: 'Pasti freschi non sottovuoto', us: true, gastronomy: 'A volte', mealKit: false },
+    { feature: 'Pronto in 2 minuti', us: true, gastronomy: true, mealKit: false },
+    { feature: 'Senza conservanti aggiunti', us: true, gastronomy: 'Spesso no', mealKit: 'Variabile' },
+    { feature: 'Nessun abbonamento obbligatorio', us: true, gastronomy: true, mealKit: false },
+    { feature: 'Devi cucinare tu', us: false, gastronomy: false, mealKit: true },
+    { feature: 'Prezzo medio a pasto', us: '€6,50 – €8,50', gastronomy: '€10 – €13', mealKit: '€9 – €12' },
   ];
 
-  const features = [
+  const testimonials = [
     {
-      image: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=600&q=80",
-      title: "100% Naturale",
-      description: "Senza conservanti o additivi",
-      badge: "GARANTITO",
-      icon: <Leaf className="w-8 h-8" />
+      name: 'Marco R.',
+      role: 'Imprenditore, 42',
+      text: 'Tornavo a casa alle 21 e finivo a mangiare male. Da quando uso Pasto Sano ho recuperato un’ora al giorno e ho perso 6 kg in 4 mesi.',
     },
     {
-      image: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600&q=80",
-      title: "Qualità Premium",
-      description: "Solo ingredienti selezionati",
-      badge: "TOP QUALITY",
-      icon: <Star className="w-8 h-8" />
+      name: 'Laura B.',
+      role: 'Manager, 38',
+      text: 'Cercavo qualcosa che non sembrasse “cibo da palestra”. I piatti sono curati, le porzioni giuste, e la pasta a pranzo c’è ancora.',
     },
     {
-      image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&q=80",
-      title: "Bilanciato",
-      description: "Proteine, carboidrati, vitamine",
-      badge: "EQUILIBRATO",
-      icon: <Scale className="w-8 h-8" />
+      name: 'Giuseppe T.',
+      role: 'Atleta amatoriale, 35',
+      text: 'Andrea conosce il mestiere. Mi alleno 5 volte a settimana e finalmente non devo più pensare a cosa preparare per pranzo.',
     },
-    {
-      image: "https://images.unsplash.com/photo-1558818498-28c1e002b655?w=600&q=80",
-      title: "Cottura Perfetta",
-      description: "Vapore per preservare i nutrienti",
-      badge: "CHEF",
-      icon: <Flame className="w-8 h-8" />
-    },
-    {
-      image: "https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?w=600&q=80",
-      title: "Pronto Subito",
-      description: "2 minuti al microonde",
-      badge: "VELOCE",
-      icon: <Clock className="w-8 h-8" />
-    },
-    {
-      image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&q=80",
-      title: "Vario e Gustoso",
-      description: "Menu sempre diverso",
-      badge: "NOVITÀ",
-      icon: <Heart className="w-8 h-8" />
-    }
-  ];
-
-  const menuHighlights = [
-    {
-      name: "Fusilli e Manzo",
-      image: "/images/meals/fusilli-manzo-zucchine-melanzane.jpg",
-      price: "8.50",
-      oldPrice: "10.00",
-      badge: "BESTSELLER",
-      badgeColor: "bg-red-500"
-    },
-    {
-      name: "Roastbeef",
-      image: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400&q=80",
-      price: "8.50",
-      badge: "PREFERITO",
-      badgeColor: "bg-blue-500"
-    },
-    {
-      name: "Pollo Grigliato",
-      image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&q=80",
-      price: "8.50",
-      badge: "LEGGERO",
-      badgeColor: "bg-green-500"
-    },
-    {
-      name: "Salmone",
-      image: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400&q=80",
-      price: "8.50",
-      badge: "OMEGA 3",
-      badgeColor: "bg-purple-500"
-    }
-  ];
-
-  const steps = [
-    { 
-      icon: <ShoppingCart className="w-12 h-12" />, 
-      title: "Scegli", 
-      desc: "Dal menu online",
-      image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=80"
-    },
-    { 
-      icon: <Timer className="w-12 h-12" />, 
-      title: "Ordina", 
-      desc: "Paghi online o al ritiro",
-      image: "https://images.unsplash.com/photo-1556742393-d75f468bfcb0?w=400&q=80"
-    },
-    { 
-      icon: <Clock className="w-12 h-12" />, 
-      title: "Aspetta", 
-      desc: "2 giorni lavorativi",
-      image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=80"
-    },
-    { 
-      icon: <CheckCircle className="w-12 h-12" />, 
-      title: "Ritira", 
-      desc: "Via Albere 27/B, Verona",
-      image: "https://images.unsplash.com/photo-1556742111-a301076d9d18?w=400&q=80"
-    }
   ];
 
   const faqData = [
     {
-      question: "Dove avviene il ritiro?",
-      answer: "Al momento puoi ritirare presso Tribu Personal Training Studio - Via Albere 27B, 37138 Verona."
+      question: 'Dove ritiro i pasti?',
+      answer:
+        'Presso Tribu Personal Training Studio in Via Albere 27/B, 37138 Verona. Lo stesso posto dove Andrea allena. Da lun-ven, orari da concordare.',
     },
     {
-      question: "Posso congelare il prodotto?",
-      answer: "Sì! Gli ingredienti sono tutti freschi, quindi puoi congelare le vaschette senza problemi per conservarle più a lungo."
+      question: 'Posso usarli in definizione o in massa?',
+      answer:
+        'Sì. Le porzioni sono calibrate per chi si allena (proteine selezionate sui secondi, primi sostanziosi). Andrea consiglia personalmente l’abbinamento a chi gli scrive su WhatsApp.',
     },
     {
-      question: "È prevista la consegna a domicilio?",
-      answer: "Al momento è previsto solo il ritiro, ma presto stiamo implementando il servizio con consegna a domicilio! Resta aggiornato per le novità."
+      question: 'Quanto durano in frigo? Posso congelarli?',
+      answer:
+        'In frigo 3 giorni dal ritiro. Tutti gli ingredienti sono freschi, quindi puoi congelare le vaschette senza problemi per conservarle più a lungo.',
     },
     {
-      question: "Quanto li posso conservare in frigorifero?",
-      answer: "Consigliamo il consumo entro 3 giorni dal ritiro. In alternativa, puoi sempre congelare per una conservazione più lunga."
+      question: 'Come riscaldo i piatti?',
+      answer:
+        'Versa il contenuto in un piatto e scalda 2 minuti al microonde. In alternativa, padella, forno o friggitrice ad aria. La vaschetta da sola non va nel microonde.',
     },
     {
-      question: "La vaschetta posso metterla direttamente in microonde?",
-      answer: "No, la vaschetta non va nel microonde. Può essere messa in forno o friggitrice ad aria."
+      question: 'Quando devo ordinare?',
+      answer:
+        'Entro le 18:00 del giorno prima per il ritiro del giorno dopo. Per ordini grandi (5+ pasti) consigliamo 2 giorni di anticipo.',
     },
     {
-      question: "Come scaldo il prodotto?",
-      answer: "Metti il prodotto in un piatto e scaldi per 2 minuti e mezzo nel microonde. Oppure puoi scaldarlo in padella o direttamente in forno/friggitrice ad aria."
+      question: 'È prevista la consegna a domicilio?',
+      answer:
+        'Stiamo lanciando il servizio rider in zona Verona città. Per ora il ritiro è in Via Albere. Scrivici su WhatsApp per essere avvisato quando parte.',
     },
     {
-      question: "Prevedete l'inserimento di altri prodotti?",
-      answer: "Certamente! Abbiamo già una lista di nuovi piatti da inserire. Il menu si arricchirà sempre di più con nuove deliziose opzioni!"
+      question: 'Avete opzioni vegetariane o senza glutine?',
+      answer:
+        'Sì, ogni settimana sul menu ci sono almeno 3 piatti veggie. Per intolleranze e diete specifiche, scrivici prima dell’ordine e ti diciamo cosa puoi prendere.',
     },
     {
-      question: "Posso restituire il prodotto dopo averlo ordinato?",
-      answer: "Non è previsto il reso del prodotto. Tuttavia, se hai domande o dubbi, contattaci prima dell'ordine - saremo felici di aiutarti!"
-    }
+      question: 'Posso pagare al ritiro?',
+      answer:
+        'Puoi pagare online (PayPal, carta) durante l’ordine, oppure in contanti al ritiro. A te la scelta.',
+    },
   ];
 
+  const whatsappUrl =
+    'https://wa.me/393478881515?text=Ciao%20Pasto%20Sano%2C%20vorrei%20info%20sul%20menu';
+
   return (
-    <div className="min-h-screen bg-white overflow-x-hidden">
-      {/* Floating WhatsApp Button */}
-      <a 
-        href="https://wa.me/393478881515?text=Ciao%20Pasto%20Sano,%20vorrei%20ordinare"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-2xl hover:bg-green-600 transform hover:scale-110 transition-all duration-300 z-50 animate-pulse"
+    <div className="min-h-screen bg-white text-ink-950 font-sans">
+      {/* Sticky CTA mobile */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-ink-950 border-t border-ink-800 px-4 py-3 shadow-2xl">
+        <div className="flex items-center gap-2">
+          <Link
+            href="/ordina"
+            className="flex-1 bg-primary-500 hover:bg-primary-600 text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95"
+          >
+            <ShoppingCart className="w-5 h-5" />
+            Vai al menu
+          </Link>
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="WhatsApp"
+            className="bg-[#25D366] hover:bg-[#1da851] text-white p-3 rounded-xl transition-all active:scale-95"
+          >
+            <MessageCircle className="w-5 h-5" />
+          </a>
+        </div>
+      </div>
+
+      {/* Header */}
+      <header
+        className={`fixed top-0 inset-x-0 z-40 transition-all duration-300 ${
+          isScrolled
+            ? 'bg-ink-950/95 backdrop-blur-md border-b border-ink-800 py-3'
+            : 'bg-ink-950 py-4'
+        }`}
       >
-        <MessageCircle className="w-6 h-6" />
-      </a>
-
-      {/* Modern Header with Glassmorphism */}
-      <header className={`fixed top-0 w-full z-40 transition-all duration-300 ${
-        isScrolled 
-          ? 'bg-white/90 backdrop-blur-xl shadow-xl py-2' 
-          : 'bg-white/95 backdrop-blur-md py-3'
-      }`}>
         <nav className="container mx-auto px-4 lg:px-8">
-          <div className="flex justify-between items-center">
-            {/* Enhanced Logo */}
-            <div className="flex items-center gap-3">
-              <Image 
+          <div className="flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-3 group">
+              <Image
                 src="/images/logo.png"
-                alt="Pasto Sano Logo"
-                width={48}
-                height={48}
-                className="rounded-xl shadow-lg"
+                alt="Pasto Sano"
+                width={40}
+                height={40}
+                className="rounded-lg"
               />
-              <span className="text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
-                Pasto Sano
+              <span className="text-white font-display font-bold text-xl tracking-tightest">
+                PASTO<span className="text-primary-500">.</span>SANO
               </span>
-            </div>
+            </Link>
 
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center gap-8">
-              <button onClick={() => scrollToSection('home')} className="text-gray-700 hover:text-amber-600 transition-all duration-300 hover:scale-105 font-medium">
-                Home
-              </button>
-              <button onClick={() => scrollToSection('vantaggi')} className="text-gray-700 hover:text-amber-600 transition-all duration-300 hover:scale-105 font-medium">
-                Vantaggi
-              </button>
-              <button onClick={() => scrollToSection('menu')} className="text-gray-700 hover:text-amber-600 transition-all duration-300 hover:scale-105 font-medium">
-                Menu
-              </button>
-              <button onClick={() => scrollToSection('chi-sono')} className="text-gray-700 hover:text-amber-600 transition-all duration-300 hover:scale-105 font-medium">
-                Chi Sono
-              </button>
-              <button onClick={() => scrollToSection('contatti')} className="text-gray-700 hover:text-amber-600 transition-all duration-300 hover:scale-105 font-medium">
-                Contatti
-              </button>
-              <Link 
-                href="/ordina"
-                className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-6 py-3 rounded-full font-semibold hover:shadow-xl transform hover:scale-105 transition-all duration-300 animate-pulse"
+            {/* Desktop */}
+            <div className="hidden lg:flex items-center gap-1">
+              <Link
+                href="/menu"
+                className="text-white/80 hover:text-white px-4 py-2 text-sm font-medium transition-colors"
               >
-                Ordina Ora
+                Menu
+              </Link>
+              {[
+                { id: 'come-funziona', label: 'Come funziona' },
+                { id: 'chi-sono', label: 'Andrea' },
+                { id: 'recensioni', label: 'Recensioni' },
+                { id: 'faq', label: 'FAQ' },
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => scrollToSection(item.id)}
+                  className="text-white/80 hover:text-white px-4 py-2 text-sm font-medium transition-colors"
+                >
+                  {item.label}
+                </button>
+              ))}
+              <Link
+                href="/ordina"
+                className="ml-3 bg-primary-500 hover:bg-primary-600 text-white font-semibold px-5 py-2.5 rounded-full text-sm transition-all hover:shadow-glow-primary"
+              >
+                Ordina ora
               </Link>
             </div>
 
-            {/* Mobile Menu Button */}
-            <button 
+            <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="lg:hidden p-2 text-white"
+              aria-label="Menu"
             >
-              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {isMenuOpen ? <X className="w-6 h-6" /> : <MenuIcon className="w-6 h-6" />}
             </button>
           </div>
 
-          {/* Mobile Navigation */}
           {isMenuOpen && (
-            <div className="lg:hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-xl border-t shadow-xl">
-              <div className="flex flex-col p-6 space-y-4">
-                <button onClick={() => scrollToSection('home')} className="text-left py-3 text-gray-700 text-lg border-b hover:text-amber-600 transition-colors">Home</button>
-                <button onClick={() => scrollToSection('vantaggi')} className="text-left py-3 text-gray-700 text-lg border-b hover:text-amber-600 transition-colors">Vantaggi</button>
-                <button onClick={() => scrollToSection('menu')} className="text-left py-3 text-gray-700 text-lg border-b hover:text-amber-600 transition-colors">Menu</button>
-                <button onClick={() => scrollToSection('chi-sono')} className="text-left py-3 text-gray-700 text-lg border-b hover:text-amber-600 transition-colors">Chi Sono</button>
-                <button onClick={() => scrollToSection('contatti')} className="text-left py-3 text-gray-700 text-lg border-b hover:text-amber-600 transition-colors">Contatti</button>
-                <Link 
-                  href="/ordina"
-                  className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-6 py-4 rounded-full font-semibold text-center text-lg mt-4"
+            <div className="lg:hidden mt-4 pb-2 border-t border-ink-800 pt-4 space-y-1">
+              <Link
+                href="/menu"
+                onClick={() => setIsMenuOpen(false)}
+                className="block text-white/80 hover:text-white px-2 py-3 text-base font-medium border-b border-ink-800"
+              >
+                Menu
+              </Link>
+              {[
+                { id: 'come-funziona', label: 'Come funziona' },
+                { id: 'chi-sono', label: 'Andrea' },
+                { id: 'recensioni', label: 'Recensioni' },
+                { id: 'faq', label: 'FAQ' },
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => scrollToSection(item.id)}
+                  className="w-full text-left text-white/80 hover:text-white px-2 py-3 text-base font-medium border-b border-ink-800"
                 >
-                  Ordina Ora
-                </Link>
-              </div>
+                  {item.label}
+                </button>
+              ))}
+              <Link
+                href="/ordina"
+                className="block w-full bg-primary-500 text-white font-semibold py-3 rounded-xl text-center mt-3"
+              >
+                Ordina ora
+              </Link>
             </div>
           )}
         </nav>
       </header>
 
-      {/* Modern Hero Section - RIDOTTA IN ALTEZZA */}
-      <section id="home" className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
-        {/* Background Image - COMPLETAMENTE NITIDA */}
-        <div className="absolute inset-0">
-          <Image 
-            src="/images/landing/hero-meal.jpg"
-            alt="Healthy Food Background"
-            fill
-            className="object-cover"
-            priority
-          />
-          <div className="absolute inset-0 bg-black/20"></div>
-        </div>
+      {/* HERO */}
+      <section id="home" className="relative bg-ink-950 text-white pt-28 lg:pt-32 pb-16 lg:pb-24 overflow-hidden">
+        <div className="absolute top-1/2 -left-32 w-96 h-96 bg-primary-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-[40rem] h-[40rem] bg-primary-700/10 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Floating Particles */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-20 left-20 w-32 h-32 bg-yellow-400/20 rounded-full animate-pulse"></div>
-          <div className="absolute bottom-20 right-20 w-24 h-24 bg-orange-400/20 rounded-full animate-pulse animation-delay-1000"></div>
-          <div className="absolute top-40 right-40 w-16 h-16 bg-yellow-300/20 rounded-full animate-pulse animation-delay-2000"></div>
-          <div className="absolute bottom-40 left-40 w-20 h-20 bg-red-400/20 rounded-full animate-pulse animation-delay-1500"></div>
-        </div>
-        
         <div className="container mx-auto px-4 lg:px-8 relative z-10">
-          <div className="text-center text-white space-y-8 max-w-4xl mx-auto">
-            {/* Countdown Badge */}
-            <div className="inline-flex items-center gap-3 bg-red-500/90 backdrop-blur-sm text-white px-6 py-3 rounded-full text-sm font-bold animate-pulse border border-red-400/30">
-              <AlertCircle className="w-5 h-5" />
-              <span>Ordina entro le 18:00 per ritiro dopodomani!</span>
-              <div className="bg-white/20 px-3 py-1 rounded-full">
-                ⏰ {timeLeft}
+          <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-center">
+            <div className="lg:col-span-7 space-y-7">
+              <div className="inline-flex items-center gap-2 bg-primary-500/10 border border-primary-500/30 text-primary-400 px-4 py-1.5 rounded-full text-sm font-medium">
+                <ChefHat className="w-4 h-4" />
+                Pasti freschi · Ritiro a Verona
               </div>
-            </div>
-            
-            <h1 className="text-5xl lg:text-7xl font-bold leading-tight">
-              <span className="block fade-in">Mangia Sano,</span>
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 fade-in-delay">
-                Vivi Meglio
-              </span>
-            </h1>
-            
-            <p className="text-xl lg:text-2xl text-white/90 fade-in-delay-2">
-              Pasti pronti in <span className="font-bold text-yellow-400">2 minuti</span>. Torni a casa e mangi subito!
-            </p>
-            
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center fade-in-delay-3">
-              <Link 
-                href="/ordina"
-                className="group bg-gradient-to-r from-yellow-400 to-orange-400 text-gray-900 px-8 py-4 rounded-full font-bold text-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center gap-3"
-              >
-                <ShoppingCart className="w-6 h-6 group-hover:animate-bounce" />
-                Ordina Subito
-                <Sparkles className="w-5 h-5 group-hover:animate-spin" />
-              </Link>
-              <button 
-                onClick={() => scrollToSection('vantaggi')}
-                className="bg-white/20 backdrop-blur-sm border-2 border-white/30 text-white px-8 py-4 rounded-full font-bold hover:bg-white hover:text-amber-900 transition-all duration-300 flex items-center gap-2"
-              >
-                Scopri i Vantaggi
-                <span className="text-sm">▶️</span>
-              </button>
-            </div>
-            
-            {/* Spots Available */}
-            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-yellow-300 px-4 py-2 rounded-full text-sm font-semibold animate-pulse">
-              <AlertCircle className="w-4 h-4" />
-              Solo {availableSpots} posti disponibili per domani!
-            </div>
-          </div>
-        </div>
 
-        {/* Scroll Indicator */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-          <span className="w-8 h-8 text-white text-2xl">⬇️</span>
-        </div>
-      </section>
+              <h1 className="font-display font-black tracking-tightest text-5xl sm:text-6xl lg:text-7xl xl:text-8xl leading-[0.95] uppercase">
+                Mangia come
+                <br />
+                un <span className="text-primary-500">PT</span>.
+                <br />
+                <span className="text-white/60">Senza cucinare.</span>
+              </h1>
 
-      {/* Problems & Solutions Section - IMMAGINI PIÙ GRANDI E CENTRATE */}
-      <section id="vantaggi" className="py-20 bg-white relative overflow-hidden">
-        <div className="container mx-auto px-4 lg:px-8 relative z-10">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              Basta con questi <span className="text-red-500">problemi</span>!
-            </h2>
-            <p className="text-xl text-gray-600">Hai mai vissuto queste situazioni?</p>
-          </div>
-          
-          {/* Problems with Images - IMMAGINI PIÙ GRANDI E NITIDE */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-            {problems.map((problem, index) => (
-              <div 
-                key={index}
-                className="group relative overflow-hidden rounded-2xl transform hover:scale-105 transition-all duration-500"
-              >
-                <div className="relative h-80">
-                  <Image 
-                    src={problem.image}
-                    alt={problem.text}
-                    fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-700"
-                  />
-                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-all duration-300"></div>
-                  
-                  {/* Content Overlay - FRASE SOTTO */}
-                  <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
-                    <div className="text-white text-center">
-                      <XCircle className="w-12 h-12 mb-4 text-red-400 mx-auto" />
-                      <p className="font-bold text-xl leading-tight">{problem.text}</p>
-                    </div>
+              <p className="text-lg lg:text-xl text-white/80 max-w-xl leading-relaxed">
+                Andrea Padoan seleziona i pasti che d&agrave; ai suoi clienti da 12 anni. Adesso puoi
+                averli anche tu — pronti in 2 minuti, ritiro in Via Albere.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <Link
+                  href="/ordina"
+                  className="group bg-primary-500 hover:bg-primary-600 text-white font-semibold px-7 py-4 rounded-full text-base inline-flex items-center justify-center gap-2 transition-all hover:shadow-glow-primary"
+                >
+                  Vedi il menu di Andrea
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Link>
+                <button
+                  onClick={() => scrollToSection('come-funziona')}
+                  className="group bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white font-semibold px-7 py-4 rounded-full text-base inline-flex items-center justify-center gap-2 transition-all"
+                >
+                  <PlayCircle className="w-5 h-5" />
+                  Come funziona
+                </button>
+              </div>
+
+              {/* Trust row */}
+              <div className="flex flex-wrap gap-6 pt-6 border-t border-white/10">
+                <div className="flex items-center gap-2">
+                  <div className="flex">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 fill-lemon-400 text-lemon-400" />
+                    ))}
                   </div>
+                  <span className="text-sm text-white/80">
+                    <span className="font-semibold">4.9</span> Google
+                  </span>
+                </div>
+                <div className="text-sm text-white/80">
+                  <span className="font-semibold text-white">15.000+</span> pasti consegnati
+                </div>
+                <div className="text-sm text-white/80">
+                  <span className="font-semibold text-white">500+</span> clienti
                 </div>
               </div>
-            ))}
-          </div>
-          
-          {/* Animated Arrow */}
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full animate-bounce shadow-xl">
-              <span className="text-2xl">⬇️</span>
             </div>
-          </div>
-          
-          {/* Solutions - IMMAGINI NITIDE */}
-          <div className="text-center mb-12">
-            <h3 className="text-4xl lg:text-5xl font-bold mb-4">
-              <span className="text-green-600">Ecco la Soluzione!</span> ✨
-            </h3>
-            <p className="text-xl text-gray-600">Con Pasto Sano tutto cambia</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {solutions.map((solution, index) => (
-              <div 
-                key={index}
-                className="group relative overflow-hidden rounded-2xl bg-white shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-500"
-              >
-                <div className="relative h-48">
-                  <Image 
-                    src={solution.image}
-                    alt={solution.title}
-                    fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-700"
-                  />
-                  <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-all duration-300"></div>
-                </div>
-                
-                <div className="p-6">
-                  <CheckCircle className="w-8 h-8 text-green-500 mb-3" />
-                  <h4 className="font-bold text-xl text-gray-900 mb-2">{solution.title}</h4>
-                  <p className="text-gray-600">{solution.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      {/* Features Section */}
-      <section className="py-20 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
-        <div className="container mx-auto px-4 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              Perché Scegliere <span className="text-amber-600">Pasto Sano</span>?
-            </h2>
-            <p className="text-xl text-gray-600">Guarda con i tuoi occhi la qualità dei nostri piatti</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <div 
-                key={index}
-                className="group relative bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transform hover:-translate-y-4 transition-all duration-700"
-              >
-                {/* Badge */}
-                <div className="absolute top-4 right-4 bg-amber-500/90 backdrop-blur-sm text-white text-xs px-3 py-2 rounded-full font-bold z-10 border border-amber-400/30">
-                  {feature.badge}
-                </div>
-                
-                {/* Image */}
-                <div className="relative h-64 overflow-hidden">
-                  <Image 
-                    src={feature.image}
-                    alt={feature.title}
-                    fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-700"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent group-hover:from-black/30 transition-all duration-300"></div>
-                </div>
-                
-                {/* Content */}
-                <div className="p-8">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
-                      {feature.icon}
-                    </div>
-                    <h3 className="font-bold text-xl text-gray-900">{feature.title}</h3>
-                  </div>
-                  <p className="text-gray-600">{feature.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Menu Highlights */}
-      <section id="menu" className="py-20 bg-gradient-to-b from-amber-50 to-orange-50 relative overflow-hidden">
-        <div className="container mx-auto px-4 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              I Nostri <span className="text-amber-600">Bestseller</span> 🔥
-            </h2>
-            <p className="text-xl text-gray-600">I piatti più amati dai nostri clienti</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-            {menuHighlights.map((item, index) => (
-              <div 
-                key={index}
-                className="group relative bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-500"
-              >
-                {/* Badge */}
-                <div className={`absolute top-4 left-4 ${item.badgeColor} text-white text-xs px-4 py-2 rounded-full font-bold z-10 animate-pulse shadow-lg`}>
-                  {item.badge}
-                </div>
-                
-                {/* Image */}
-                <div className="relative h-56 overflow-hidden">
-                  <Image 
-                    src={item.image}
-                    alt={item.name}
-                    fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-700"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent group-hover:from-black/40 transition-all duration-300"></div>
-                  
-                  {/* Overlay */}
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4">
-                      <h3 className="font-bold text-lg text-gray-900 mb-2">{item.name}</h3>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="text-2xl font-bold text-amber-600">€{item.price}</span>
-                          {item.oldPrice && (
-                            <span className="text-sm text-gray-400 line-through">€{item.oldPrice}</span>
-                          )}
-                        </div>
-                        <button className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-full font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-300">
-                          Ordina
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          
-          {/* CTA */}
-          <div className="text-center">
-            <Link 
-              href="/ordina"
-              className="group inline-flex items-center gap-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-12 py-6 rounded-full font-bold text-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 mb-6"
-            >
-              <ShoppingCart className="w-8 h-8 group-hover:animate-bounce" />
-              Scopri Tutto il Menu
-              <span className="text-xl">🔗</span>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Chi Sono Section - IMMAGINE LOCALE */}
-      <section id="chi-sono" className="py-20 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
-        <div className="container mx-auto px-4 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            {/* Image */}
-            <div className="relative">
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl transform hover:scale-105 transition-all duration-700">
-                <Image 
+            {/* Andrea image */}
+            <div className="lg:col-span-5 relative">
+              <div className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl ring-1 ring-white/10">
+                <Image
                   src="/images/landing/andrea.jpg"
                   alt="Andrea Padoan"
-                  width={800}
-                  height={600}
-                  className="w-full h-auto"
+                  fill
+                  className="object-cover"
+                  priority
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-amber-900/30 to-transparent"></div>
-              </div>
-              
-              {/* Floating Stats */}
-              <div className="absolute -bottom-8 -right-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-2xl p-8 shadow-2xl transform hover:scale-105 transition-all duration-300">
-                <div className="text-3xl font-bold">12+ anni</div>
-                <div className="text-sm opacity-90">di esperienza</div>
-              </div>
-            </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/30 to-transparent" />
 
-            {/* Text Content */}
-            <div className="space-y-6">
-              <div className="text-amber-600 font-bold text-lg">FONDATORE & PERSONAL TRAINER</div>
-              <h2 className="text-4xl lg:text-5xl font-bold text-gray-900">
-                Ciao, sono <span className="text-amber-600">Andrea Padoan</span>
-              </h2>
-              
-              <p className="text-gray-700 text-lg leading-relaxed">
-                <strong className="text-amber-600">La mia storia inizia come la tua.</strong> Dopo 12 anni passati dietro una scrivania, 
-                mi ritrovavo ogni sera a mangiare male: gastronomia, bar, mense aziendali. 
-                A 30 anni ero completamente fuori forma, con problemi digestivi e zero energia.
-              </p>
-              
-              <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-amber-500 p-6 rounded-r-2xl shadow-lg">
-                <p className="text-gray-700 text-lg">
-                  <strong className="text-amber-600">La svolta:</strong> Ho deciso di cambiare vita, sono diventato Personal Trainer 
-                  e ho capito che il 70% dei risultati dipende dall'alimentazione. Ma c'era un problema: 
-                  chi ha tempo di cucinare sano ogni giorno?
-                </p>
-              </div>
-              
-              <p className="text-gray-700 text-lg leading-relaxed">
-                <strong className="text-amber-600">Nasce Pasto Sano:</strong> Ho passato 4 anni a testare laboratori e fornitori, 
-                cercando chi potesse preparare pasti come li avrei cucinati io: naturali, bilanciati, gustosi. 
-                Ho coinvolto decine di amici nei test, finché non ho trovato la formula perfetta.
-              </p>
-              
-              <div className="bg-green-50 border-l-4 border-green-500 p-6 rounded-r-2xl shadow-lg">
-                <div className="flex items-start gap-3">
-                  <ChefHat className="w-8 h-8 text-green-600 mt-1" />
-                  <p className="text-gray-700 text-lg">
-                    <strong className="text-green-600">La missione:</strong> Oggi aiuto centinaia di persone a mangiare sano senza stress. 
-                    Perché so cosa significa tornare a casa stanchi e non avere voglia di cucinare. 
-                    Con Pasto Sano, il problema è risolto: 2 minuti e mangi!
-                  </p>
+                <div className="absolute bottom-6 left-6 right-6">
+                  <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <ChefHat className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-white">Andrea Padoan</div>
+                        <div className="text-xs text-white/70">Personal Trainer dal 2013</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-              
-              {/* Stats */}
-              <div className="grid grid-cols-3 gap-6 pt-8">
-                <div className="text-center bg-white rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300">
-                  <div className="text-3xl font-bold text-amber-600">500+</div>
-                  <div className="text-sm text-gray-600">Clienti Felici</div>
-                </div>
-                <div className="text-center bg-white rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300">
-                  <div className="text-3xl font-bold text-amber-600">15k+</div>
-                  <div className="text-sm text-gray-600">Pasti Consegnati</div>
-                </div>
-                <div className="text-center bg-white rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300">
-                  <div className="text-3xl font-bold text-amber-600">4.9⭐</div>
-                  <div className="text-sm text-gray-600">Valutazione</div>
-                </div>
+
+              <div className="hidden md:flex absolute -right-4 bottom-24 bg-lemon-400 text-ink-950 rounded-2xl shadow-card-hover p-4 items-center gap-2">
+                <Flame className="w-5 h-5" />
+                <span className="font-semibold text-sm">Cucinato oggi</span>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Come Funziona - RIQUADRI INGRANDITI */}
-      <section className="py-20 bg-white relative overflow-hidden">
+      {/* Marquee benefits */}
+      <section className="bg-primary-500 text-white py-4 overflow-hidden">
+        <div className="flex gap-12 animate-marquee whitespace-nowrap font-display font-semibold uppercase text-sm tracking-wider">
+          {[...Array(2)].map((_, repeat) => (
+            <div key={repeat} className="flex gap-12">
+              <span className="flex items-center gap-2">
+                <Leaf className="w-4 h-4" /> Senza conservanti
+              </span>
+              <span>•</span>
+              <span className="flex items-center gap-2">
+                <Beef className="w-4 h-4" /> Proteine selezionate
+              </span>
+              <span>•</span>
+              <span className="flex items-center gap-2">
+                <Clock className="w-4 h-4" /> Pronti in 2 minuti
+              </span>
+              <span>•</span>
+              <span className="flex items-center gap-2">
+                <MapPin className="w-4 h-4" /> Ritiro in Via Albere
+              </span>
+              <span>•</span>
+              <span className="flex items-center gap-2">
+                <Activity className="w-4 h-4" /> Niente da cucinare
+              </span>
+              <span>•</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Per chi è */}
+      <section id="vantaggi" className="py-20 lg:py-28 bg-white">
         <div className="container mx-auto px-4 lg:px-8">
-          <h2 className="text-4xl lg:text-5xl font-bold text-center text-gray-900 mb-4">
-            Facilissimo! <span className="text-amber-600">4 Step</span>
-          </h2>
-          <p className="text-xl text-gray-600 text-center mb-16">
-            Dal click al piatto in pochi minuti
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {steps.map((step, i) => (
-              <div key={i} className="group text-center">
-                {/* Step with Image - INGRANDITI */}
-                <div className="relative mb-8">
-                  <div className="w-48 h-48 mx-auto rounded-3xl overflow-hidden shadow-2xl group-hover:shadow-3xl transition-all duration-500">
-                    <Image 
-                      src={step.image}
-                      alt={step.title}
+          <div className="max-w-3xl mb-14">
+            <div className="text-primary-600 font-semibold text-sm uppercase tracking-wider mb-3">
+              Per chi è Pasto Sano
+            </div>
+            <h2 className="font-display font-black text-4xl lg:text-6xl leading-[0.95] tracking-tightest uppercase">
+              Tre persone.
+              <br />
+              <span className="text-ink-400">Lo stesso problema.</span>
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
+            {audiences.map((aud, i) => {
+              const Icon = aud.icon;
+              return (
+                <div
+                  key={i}
+                  className="group bg-ink-950 text-white rounded-3xl overflow-hidden hover:shadow-card-hover transition-all duration-500"
+                >
+                  <div className="relative aspect-[4/3] overflow-hidden">
+                    <Image
+                      src={aud.image}
+                      alt={aud.title}
                       fill
-                      className="object-cover group-hover:scale-110 transition-transform duration-700"
+                      className="object-cover group-hover:scale-105 transition-transform duration-700"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-amber-900/50 to-transparent"></div>
-                  </div>
-                  
-                  {/* Step Number */}
-                  <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center font-bold text-xl shadow-xl">
-                    {i + 1}
-                  </div>
-                  
-                  {/* Icon Overlay */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-20 h-20 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-amber-600 group-hover:scale-110 transition-all duration-300 shadow-lg">
-                      {step.icon}
+                    <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-transparent to-transparent" />
+                    <div className="absolute top-4 left-4 w-12 h-12 bg-primary-500 rounded-2xl flex items-center justify-center shadow-lg">
+                      <Icon className="w-6 h-6 text-white" />
                     </div>
                   </div>
+                  <div className="p-7">
+                    <h3 className="font-display font-bold text-2xl mb-3">{aud.title}</h3>
+                    <p className="text-white/70 leading-relaxed">{aud.desc}</p>
+                  </div>
                 </div>
-                
-                <h3 className="font-bold text-2xl text-gray-900 mb-3">{step.title}</h3>
-                <p className="text-gray-600 text-lg">{step.desc}</p>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Calcolatore */}
+      <section className="py-20 lg:py-28 bg-ink-950 text-white relative overflow-hidden">
+        <div className="absolute -top-20 right-0 w-96 h-96 bg-primary-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="container mx-auto px-4 lg:px-8 relative z-10">
+          <div className="grid lg:grid-cols-12 gap-12 items-center">
+            <div className="lg:col-span-5">
+              <div className="text-primary-400 font-semibold text-sm uppercase tracking-wider mb-3">
+                Quanto risparmi
+              </div>
+              <h2 className="font-display font-black text-4xl lg:text-5xl leading-[1] tracking-tightest uppercase mb-5">
+                Mangiare sano costa meno
+                <span className="text-primary-500"> di quello che pensi.</span>
+              </h2>
+              <p className="text-white/70 text-lg">
+                Sposta lo slider per vedere quanto risparmi (e quante ore recuperi) sostituendo la
+                gastronomia con Pasto Sano.
+              </p>
+            </div>
+
+            <div className="lg:col-span-7 bg-ink-900 rounded-3xl p-6 lg:p-10 ring-1 ring-white/10">
+              <div className="mb-8">
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-sm font-semibold text-white/80 uppercase tracking-wider">
+                    Pasti a settimana
+                  </label>
+                  <span className="font-display font-black text-3xl text-primary-500">
+                    {mealsPerWeek}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={3}
+                  max={15}
+                  value={mealsPerWeek}
+                  onChange={(e) => setMealsPerWeek(Number(e.target.value))}
+                  className="w-full h-2 bg-ink-700 rounded-full appearance-none cursor-pointer accent-primary-500"
+                />
+                <div className="flex justify-between text-xs text-white/50 mt-2">
+                  <span>3</span>
+                  <span>9</span>
+                  <span>15</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="bg-ink-950 rounded-2xl p-5">
+                  <div className="text-xs text-white/60 uppercase tracking-wider mb-1">
+                    Pasto Sano
+                  </div>
+                  <div className="font-display font-black text-3xl text-white">
+                    €{pastoSanoCost.toFixed(2)}
+                  </div>
+                  <div className="text-xs text-white/60 mt-1">a settimana</div>
+                </div>
+                <div className="bg-ink-950 rounded-2xl p-5">
+                  <div className="text-xs text-white/60 uppercase tracking-wider mb-1">
+                    Gastronomia media
+                  </div>
+                  <div className="font-display font-black text-3xl text-white/40 line-through">
+                    €{gastronomyCost.toFixed(2)}
+                  </div>
+                  <div className="text-xs text-white/60 mt-1">a settimana</div>
+                </div>
+              </div>
+
+              <div className="bg-primary-500 rounded-2xl p-5 flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-white/90 uppercase tracking-wider mb-1">
+                    Risparmi
+                  </div>
+                  <div className="font-display font-black text-3xl text-white">
+                    €{weeklySaving.toFixed(2)}
+                  </div>
+                  <div className="text-xs text-white/90 mt-1">+ {hoursSaved.toFixed(1)}h libere</div>
+                </div>
+                <Link
+                  href="/ordina"
+                  className="bg-white text-primary-700 font-bold px-5 py-3 rounded-full text-sm hover:bg-lemon-400 transition-colors"
+                >
+                  Ordina →
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Comparativa */}
+      <section className="py-20 lg:py-28 bg-white">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="max-w-3xl mb-12">
+            <div className="text-primary-600 font-semibold text-sm uppercase tracking-wider mb-3">
+              Confronto onesto
+            </div>
+            <h2 className="font-display font-black text-4xl lg:text-6xl leading-[0.95] tracking-tightest uppercase">
+              Perché Pasto Sano
+              <br />
+              <span className="text-ink-400">e non un&apos;altra cosa?</span>
+            </h2>
+          </div>
+
+          <div className="overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0">
+            <table className="w-full min-w-[640px]">
+              <thead>
+                <tr className="border-b-2 border-ink-950">
+                  <th className="text-left py-4 px-4 font-display font-bold text-sm uppercase tracking-wider">
+                    Caratteristica
+                  </th>
+                  <th className="text-center py-4 px-4 font-display font-bold text-sm uppercase tracking-wider bg-primary-500 text-white rounded-t-2xl">
+                    Pasto Sano
+                  </th>
+                  <th className="text-center py-4 px-4 font-display font-bold text-sm uppercase tracking-wider text-ink-500">
+                    Gastronomia
+                  </th>
+                  <th className="text-center py-4 px-4 font-display font-bold text-sm uppercase tracking-wider text-ink-500">
+                    Meal kit
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {comparison.map((row, i) => (
+                  <tr key={i} className="border-b border-ink-100">
+                    <td className="py-4 px-4 font-medium">{row.feature}</td>
+                    <td className="text-center py-4 px-4 bg-primary-50">
+                      <CompareCell value={row.us} highlight />
+                    </td>
+                    <td className="text-center py-4 px-4 text-ink-600">
+                      <CompareCell value={row.gastronomy} />
+                    </td>
+                    <td className="text-center py-4 px-4 text-ink-600">
+                      <CompareCell value={row.mealKit} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      {/* Come funziona */}
+      <section id="come-funziona" className="py-20 lg:py-28 bg-ink-50">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="max-w-3xl mb-14">
+            <div className="text-primary-600 font-semibold text-sm uppercase tracking-wider mb-3">
+              Come funziona
+            </div>
+            <h2 className="font-display font-black text-4xl lg:text-6xl leading-[0.95] tracking-tightest uppercase">
+              Tre step.
+              <br />
+              <span className="text-ink-400">Mai più pranzo dimenticato.</span>
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
+            {[
+              {
+                num: '01',
+                title: 'Ordini online o su WhatsApp',
+                desc: 'Scegli dal menu della settimana entro le 18:00. PayPal, carta o contanti al ritiro.',
+              },
+              {
+                num: '02',
+                title: 'Prepariamo l’ordine',
+                desc: 'Riceviamo il tuo ordine e prepariamo le porzioni con cura. Solo prodotti freschi, niente sottovuoto industriale.',
+              },
+              {
+                num: '03',
+                title: 'Ritiri in Via Albere',
+                desc: 'Tribù Studio, Via Albere 27/B. Apri la vaschetta, 2 minuti al microonde, mangi.',
+              },
+            ].map((step, i) => (
+              <div key={i} className="bg-white rounded-3xl p-8 shadow-card hover:shadow-card-hover transition-all duration-300">
+                <div className="font-display font-black text-6xl text-primary-500 mb-4">
+                  {step.num}
+                </div>
+                <h3 className="font-display font-bold text-2xl mb-3">{step.title}</h3>
+                <p className="text-ink-600 leading-relaxed">{step.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="py-20 bg-gradient-to-br from-amber-900 via-orange-800 to-red-900 relative overflow-hidden">
-        {/* Animated Background */}
-        <div className="absolute inset-0">
-          <div className="absolute top-20 left-20 w-64 h-64 bg-yellow-400/10 rounded-full animate-pulse"></div>
-          <div className="absolute bottom-20 right-20 w-48 h-48 bg-orange-400/10 rounded-full animate-pulse animation-delay-1000"></div>
-          <div className="absolute top-40 right-40 w-32 h-32 bg-red-400/10 rounded-full animate-pulse animation-delay-2000"></div>
-        </div>
-        
-        <div className="container mx-auto px-4 lg:px-8 text-center relative z-10">
-          <div>
-            <Zap className="w-16 h-16 text-yellow-400 mx-auto mb-6 animate-pulse" />
-            <h2 className="text-4xl lg:text-6xl font-bold text-white mb-6">
-              Non <span className="text-yellow-400">Aspettare</span>!
-            </h2>
-            <p className="text-white/90 text-xl lg:text-2xl mb-12 max-w-3xl mx-auto">
-              Ogni giorno che passa è un giorno perso per la tua salute. 
-              <strong className="text-yellow-400"> Inizia oggi stesso!</strong>
-            </p>
-          </div>
-          
-          {/* Offer Box */}
-          <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-8 max-w-2xl mx-auto mb-12 border border-white/20 shadow-2xl">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <Sparkles className="w-8 h-8 text-yellow-400" />
-              <p className="text-yellow-300 font-bold text-2xl">
-                🎁 OFFERTA LIMITATA
-              </p>
-              <Sparkles className="w-8 h-8 text-yellow-400" />
+      {/* Andrea storia */}
+      <section id="chi-sono" className="py-20 lg:py-28 bg-ink-950 text-white relative overflow-hidden">
+        <div className="absolute top-1/3 -right-32 w-96 h-96 bg-primary-500/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="container mx-auto px-4 lg:px-8 relative z-10">
+          <div className="grid lg:grid-cols-12 gap-12 items-center">
+            <div className="lg:col-span-5">
+              <div className="relative aspect-[4/5] rounded-3xl overflow-hidden ring-1 ring-white/10">
+                <Image
+                  src="/images/landing/andrea.jpg"
+                  alt="Andrea Padoan in cucina"
+                  fill
+                  className="object-cover"
+                />
+              </div>
             </div>
-            <p className="text-white text-xl mb-4">
-              Ordina ora e ricevi il <span className="font-bold text-yellow-400 text-2xl">5% di sconto</span> sul primo ordine!
-            </p>
-            <div className="bg-yellow-400/20 backdrop-blur-sm rounded-full px-6 py-2 inline-block border border-yellow-400/30">
-              <p className="text-yellow-200 font-bold">
-                Codice: <span className="text-yellow-400">SCONTO5</span>
-              </p>
+
+            <div className="lg:col-span-7 space-y-6">
+              <div className="text-primary-400 font-semibold text-sm uppercase tracking-wider">
+                Chi cucina i tuoi pasti
+              </div>
+              <h2 className="font-display font-black text-4xl lg:text-6xl leading-[0.95] tracking-tightest uppercase">
+                Sono Andrea.
+                <br />
+                <span className="text-primary-500">12 anni di PT.</span>
+                <br />
+                <span className="text-white/60">Una sola idea.</span>
+              </h2>
+
+              <div className="space-y-4 text-lg text-white/80 leading-relaxed max-w-2xl">
+                <p>
+                  Per 12 anni ho seguito persone in palestra. Il 70% non vedeva risultati per un
+                  motivo solo: <strong className="text-white">mangiare male</strong>. Non per pigrizia.
+                  Per tempo.
+                </p>
+                <p>
+                  Tornare a casa stanchi, aprire il frigo, chiudere il frigo. Poi pizza, gastronomia,
+                  bar sotto l&apos;ufficio. Lo so perch&eacute; lo facevo anch&apos;io.
+                </p>
+                <p>
+                  Pasto Sano nasce per questo. Pasti veri, pensati come li farei io a casa, con
+                  porzioni calibrate per chi si allena (e anche per chi non lo fa).
+                </p>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4 pt-6">
+                <Stat number="12+" label="Anni come PT" />
+                <Stat number="500+" label="Clienti seguiti" />
+                <Stat number="15k+" label="Pasti consegnati" />
+              </div>
             </div>
-          </div>
-          
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-            <Link 
-              href="/ordina"
-              className="group bg-white text-amber-900 px-12 py-6 rounded-full font-bold text-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center gap-4"
-            >
-              <ShoppingCart className="w-8 h-8 group-hover:animate-bounce" />
-              Ordina Ora con lo Sconto
-              <Sparkles className="w-6 h-6 group-hover:animate-spin" />
-            </Link>
-            <a 
-              href="https://wa.me/393478881515?text=Ciao%20voglio%20ordinare%20con%20SCONTO5"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group bg-green-500 text-white px-12 py-6 rounded-full font-bold text-xl hover:bg-green-600 hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center gap-4"
-            >
-              <MessageCircle className="w-8 h-8 group-hover:animate-bounce" />
-              Chiedi Info
-            </a>
           </div>
         </div>
       </section>
 
-      {/* FAQ Section - ACCORDION */}
-      <section className="py-20 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
+      {/* Ritiro / Tribù Studio */}
+      <section className="py-20 lg:py-28 bg-white">
         <div className="container mx-auto px-4 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              Domande <span className="text-amber-600">Frequenti</span>
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <div className="text-primary-600 font-semibold text-sm uppercase tracking-wider mb-3">
+                Dove ritiri
+              </div>
+              <h2 className="font-display font-black text-4xl lg:text-5xl leading-[0.95] tracking-tightest uppercase mb-6">
+                Tribù Studio.
+                <br />
+                <span className="text-ink-400">Lo stesso posto dove alleno.</span>
+              </h2>
+              <div className="space-y-4 text-ink-700">
+                <div className="flex items-start gap-3">
+                  <MapPin className="w-5 h-5 text-primary-500 mt-1 flex-shrink-0" />
+                  <div>
+                    <div className="font-semibold">Via Albere 27/B, 37138 Verona</div>
+                    <div className="text-sm text-ink-500">Dentro Tribù Personal Training Studio</div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Clock className="w-5 h-5 text-primary-500 mt-1 flex-shrink-0" />
+                  <div>
+                    <div className="font-semibold">Lun-Ven, orari da concordare</div>
+                    <div className="text-sm text-ink-500">Ordina entro le 18:00 del giorno prima</div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Phone className="w-5 h-5 text-primary-500 mt-1 flex-shrink-0" />
+                  <div>
+                    <div className="font-semibold">347 888 1515</div>
+                    <div className="text-sm text-ink-500">WhatsApp o telefono</div>
+                  </div>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-3 mt-8">
+                <a
+                  href="https://maps.google.com/?q=Tribu+Personal+Training+Studio,+Via+Albere+27B,+37138+Verona"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 bg-ink-950 hover:bg-primary-500 text-white font-semibold px-5 py-3 rounded-full text-sm transition-colors"
+                >
+                  <MapPin className="w-4 h-4" />
+                  Apri in Maps
+                </a>
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 bg-[#25D366] hover:bg-[#1da851] text-white font-semibold px-5 py-3 rounded-full text-sm transition-colors"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  Scrivici
+                </a>
+              </div>
+            </div>
+
+            <div className="relative aspect-[4/3] rounded-3xl overflow-hidden shadow-card-hover">
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2796.534!2d10.9817!3d45.4384!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sVia%20Albere%2027%2FB%2C%2037138%20Verona%20VR!5e0!3m2!1sit!2sit!4v1700000000000!5m2!1sit!2sit"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Tribù Studio Verona"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section id="recensioni" className="py-20 lg:py-28 bg-ink-50">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="max-w-3xl mb-14">
+            <div className="text-primary-600 font-semibold text-sm uppercase tracking-wider mb-3">
+              Cosa dicono i clienti
+            </div>
+            <h2 className="font-display font-black text-4xl lg:text-6xl leading-[0.95] tracking-tightest uppercase">
+              Storie vere.
+              <br />
+              <span className="text-ink-400">Niente filtri.</span>
             </h2>
-            <p className="text-xl text-gray-600">Tutto quello che devi sapere su Pasto Sano</p>
           </div>
 
-          <div className="max-w-4xl mx-auto">
-            <div className="space-y-4">
-              {faqData.map((faq, index) => (
-                <div key={index} className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+          <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
+            {testimonials.map((t, i) => (
+              <div key={i} className="bg-white rounded-3xl p-7 shadow-card">
+                <div className="flex mb-4">
+                  {[...Array(5)].map((_, s) => (
+                    <Star key={s} className="w-4 h-4 fill-lemon-400 text-lemon-400" />
+                  ))}
+                </div>
+                <p className="text-ink-700 leading-relaxed mb-6 text-base lg:text-lg">
+                  &ldquo;{t.text}&rdquo;
+                </p>
+                <div className="pt-4 border-t border-ink-100">
+                  <div className="font-display font-bold text-ink-950">{t.name}</div>
+                  <div className="text-sm text-ink-500">{t.role}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="py-20 lg:py-28 bg-white">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-12">
+              <div className="text-primary-600 font-semibold text-sm uppercase tracking-wider mb-3">
+                Domande frequenti
+              </div>
+              <h2 className="font-display font-black text-4xl lg:text-6xl leading-[0.95] tracking-tightest uppercase">
+                Le risposte
+                <br />
+                <span className="text-ink-400">che cerchi.</span>
+              </h2>
+            </div>
+
+            <div className="space-y-3">
+              {faqData.map((faq, i) => (
+                <div key={i} className="bg-ink-50 rounded-2xl overflow-hidden">
                   <button
-                    onClick={() => toggleFAQ(index)}
-                    className="w-full p-6 text-left flex items-center justify-between hover:bg-gray-50 transition-colors duration-200"
+                    onClick={() => toggleFAQ(i)}
+                    className="w-full px-6 py-5 text-left flex items-center justify-between gap-4 hover:bg-ink-100 transition-colors"
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
-                        Q
-                      </div>
-                      <h3 className="text-lg font-bold text-gray-900">
-                        {faq.question}
-                      </h3>
-                    </div>
-                    {openFAQ === index ? (
-                      <ChevronUp className="w-6 h-6 text-amber-600 flex-shrink-0" />
+                    <h3 className="font-display font-bold text-base lg:text-lg pr-4">
+                      {faq.question}
+                    </h3>
+                    {openFAQ === i ? (
+                      <ChevronUp className="w-5 h-5 text-primary-500 flex-shrink-0" />
                     ) : (
-                      <ChevronDown className="w-6 h-6 text-amber-600 flex-shrink-0" />
+                      <ChevronDown className="w-5 h-5 text-ink-400 flex-shrink-0" />
                     )}
                   </button>
-                  
-                  {openFAQ === index && (
-                    <div className="px-6 pb-6 pt-0">
-                      <div className="pl-12 border-l-2 border-amber-200 ml-4">
-                        {index === 0 ? (
-                          <p className="text-gray-700 leading-relaxed">
-                            Al momento puoi ritirare presso{' '}
-                            <a 
-                              href="https://maps.google.com/?q=Tribu+Personal+Training+Studio,+Via+Albere+27B,+37138+Verona"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-amber-600 font-semibold hover:text-amber-700 underline"
-                            >
-                              Tribu Personal Training Studio - Via Albere 27B, 37138 Verona
-                            </a>
-                            .
-                          </p>
-                        ) : (
-                          <p className="text-gray-700 leading-relaxed">
-                            {faq.answer}
-                          </p>
-                        )}
-                      </div>
+                  {openFAQ === i && (
+                    <div className="px-6 pb-6 -mt-1">
+                      <p className="text-ink-700 leading-relaxed">{faq.answer}</p>
                     </div>
                   )}
                 </div>
               ))}
             </div>
 
-            {/* CTA in FAQ */}
-            <div className="text-center mt-16">
-              <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-8 border border-amber-200">
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                  Hai altre domande?
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  Non esitare a contattarci! Siamo qui per aiutarti
-                </p>
-                <a 
-                  href="https://wa.me/393478881515?text=Ciao%20ho%20una%20domanda%20su%20Pasto%20Sano"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-3 bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-4 rounded-full font-bold hover:shadow-xl transform hover:scale-105 transition-all duration-300"
-                >
-                  <MessageCircle className="w-6 h-6" />
-                  Contattaci su WhatsApp
-                </a>
-              </div>
+            <div className="text-center mt-10">
+              <p className="text-ink-600 mb-4">Non hai trovato la tua risposta?</p>
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 bg-[#25D366] hover:bg-[#1da851] text-white font-semibold px-6 py-3 rounded-full transition-colors"
+              >
+                <MessageCircle className="w-5 h-5" />
+                Scrivici su WhatsApp
+              </a>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Testimonials - AFFIANCATE (SPOSTATO ALLA FINE) */}
-      <section className="py-20 bg-white relative overflow-hidden">
-        <div className="container mx-auto px-4 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              Cosa Dicono i Nostri <span className="text-amber-600">Clienti</span>
+      {/* CTA finale immersiva */}
+      <section className="relative py-24 lg:py-32 overflow-hidden">
+        <div className="absolute inset-0">
+          <Image src="/images/landing/hero-meal.jpg" alt="" fill className="object-cover" />
+          <div className="absolute inset-0 bg-ink-950/80" />
+        </div>
+        <div className="container mx-auto px-4 lg:px-8 relative z-10">
+          <div className="max-w-3xl mx-auto text-center text-white">
+            <h2 className="font-display font-black text-5xl lg:text-7xl leading-[0.95] tracking-tightest uppercase mb-6">
+              Basta pensare
+              <br />
+              <span className="text-primary-500">ai pasti.</span>
             </h2>
-            <div className="flex justify-center items-center gap-3 text-amber-500">
-              <Users className="w-6 h-6" />
-              <span className="font-bold text-lg">Oltre 500 clienti soddisfatti</span>
-              <div className="flex gap-1">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 text-amber-500 fill-current" />
-                ))}
-              </div>
-            </div>
-          </div>
-          
-          {/* Testimonials Grid - AFFIANCATE */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <div 
-                key={index}
-                className="bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden"
+            <p className="text-lg lg:text-xl text-white/80 mb-10 max-w-xl mx-auto">
+              Cuciniamo, tu ritiri. Niente abbonamenti, niente vincoli. Cominci quando vuoi e smetti
+              quando vuoi.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link
+                href="/ordina"
+                className="group bg-primary-500 hover:bg-primary-600 text-white font-semibold px-8 py-4 rounded-full text-lg inline-flex items-center justify-center gap-2 transition-all hover:shadow-glow-primary"
               >
-                {/* Quote Icon */}
-                <div className="absolute -top-2 -right-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold shadow-lg">
-                  "
-                </div>
-                
-                {/* Stars */}
-                <div className="flex justify-center mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 text-amber-500 fill-current" />
-                  ))}
-                </div>
-                
-                {/* Text */}
-                <p className="text-gray-700 text-sm mb-6 italic leading-relaxed text-center">
-                  "{testimonial.text}"
-                </p>
-                
-                {/* User Info */}
-                <div className="flex items-center justify-center gap-3">
-                  <Image 
-                    src={testimonial.image}
-                    alt={testimonial.name}
-                    width={48}
-                    height={48}
-                    className="rounded-full object-cover border-2 border-white shadow-md"
-                  />
-                  <div className="text-center">
-                    <div className="font-bold text-gray-900">
-                      {testimonial.name}
-                    </div>
-                    <div className="text-amber-600 text-sm font-semibold">
-                      {testimonial.role}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
+                Ordina ora
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Link>
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white font-semibold px-8 py-4 rounded-full text-lg inline-flex items-center justify-center gap-2 transition-all"
+              >
+                <MessageCircle className="w-5 h-5" />
+                Chiedi info
+              </a>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer id="contatti" className="bg-amber-950 text-white py-16 relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-5">
-          <div className="w-full h-full bg-gradient-to-br from-amber-600 to-orange-600"></div>
-        </div>
-        
-        <div className="container mx-auto px-4 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-            {/* Brand */}
+      <footer id="contatti" className="bg-ink-950 text-white pt-16 pb-24 lg:pb-12">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
             <div>
-              <div className="flex items-center gap-3 mb-6">
-                <Image 
-                  src="/images/logo.png"
-                  alt="Pasto Sano Logo"
-                  width={48}
-                  height={48}
-                  className="rounded-xl"
-                />
-                <span className="text-2xl font-bold">Pasto Sano</span>
+              <div className="flex items-center gap-3 mb-5">
+                <Image src="/images/logo.png" alt="Pasto Sano" width={40} height={40} className="rounded-lg" />
+                <span className="font-display font-bold text-xl tracking-tightest">
+                  PASTO<span className="text-primary-500">.</span>SANO
+                </span>
               </div>
-              <p className="text-white/80 leading-relaxed">
-                La soluzione per mangiare sano senza stress. 
-                Pasti genuini, pronti in 2 minuti.
+              <p className="text-white/60 text-sm leading-relaxed">
+                Pasti freschi a Verona. Ritiro in Via Albere. Pronti in 2 minuti.
               </p>
             </div>
 
-            {/* Quick Links */}
             <div>
-              <h3 className="text-yellow-400 font-bold text-lg mb-6">Menu</h3>
-              <div className="space-y-3">
-                <Link href="/ordina" className="text-white/80 hover:text-amber-400 transition-colors text-left block">
-                  Ordina Online
+              <h3 className="font-display font-bold text-sm uppercase tracking-wider mb-4 text-primary-400">
+                Menu
+              </h3>
+              <div className="space-y-2 text-sm">
+                <Link href="/menu" className="block text-white/70 hover:text-white">
+                  Menu della settimana
                 </Link>
-                <button onClick={() => scrollToSection('menu')} className="text-white/80 hover:text-amber-400 transition-colors text-left block">
-                  I Nostri Piatti
+                <Link href="/ordina" className="block text-white/70 hover:text-white">
+                  Ordina online
+                </Link>
+                <button onClick={() => scrollToSection('come-funziona')} className="block text-white/70 hover:text-white text-left">
+                  Come funziona
                 </button>
-                <button onClick={() => scrollToSection('vantaggi')} className="text-white/80 hover:text-amber-400 transition-colors text-left block">
-                  Vantaggi
+                <button onClick={() => scrollToSection('faq')} className="block text-white/70 hover:text-white text-left">
+                  FAQ
                 </button>
               </div>
             </div>
 
-            {/* Contatti */}
             <div>
-              <h3 className="text-yellow-400 font-bold text-lg mb-6">Contatti</h3>
-              <div className="space-y-3">
-                <a href="tel:+393478881515" className="text-white/80 hover:text-amber-400 transition-colors flex items-center gap-2">
-                  📞 347 888 1515
+              <h3 className="font-display font-bold text-sm uppercase tracking-wider mb-4 text-primary-400">
+                Contatti
+              </h3>
+              <div className="space-y-3 text-sm">
+                <a href="tel:+393478881515" className="flex items-center gap-2 text-white/70 hover:text-white">
+                  <Phone className="w-4 h-4" /> 347 888 1515
                 </a>
-                <a href="mailto:info@pastosano.it" className="text-white/80 hover:text-amber-400 transition-colors flex items-center gap-2">
-                  ✉️ info@pastosano.it
+                <a href="mailto:info@pastosano.it" className="flex items-center gap-2 text-white/70 hover:text-white">
+                  <Mail className="w-4 h-4" /> info@pastosano.it
                 </a>
-                <a 
-                  href="https://wa.me/393478881515?text=Ciao%20voglio%20info%20su%20Pasto%20Sano"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-white/80 hover:text-green-400 transition-colors flex items-center gap-2"
-                >
-                  💬 WhatsApp
+                <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-white/70 hover:text-white">
+                  <MessageCircle className="w-4 h-4" /> WhatsApp
+                </a>
+                <a href="https://instagram.com/pastosano" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-white/70 hover:text-white">
+                  <Instagram className="w-4 h-4" /> @pastosano
                 </a>
               </div>
             </div>
 
-            {/* Ritiro */}
             <div>
-              <h3 className="text-yellow-400 font-bold text-lg mb-6">Ritiro</h3>
-              <div className="space-y-3">
-                <a 
+              <h3 className="font-display font-bold text-sm uppercase tracking-wider mb-4 text-primary-400">
+                Ritiro
+              </h3>
+              <div className="space-y-2 text-sm text-white/70">
+                <a
                   href="https://maps.google.com/?q=Tribu+Personal+Training+Studio,+Via+Albere+27B,+37138+Verona"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-white/80 hover:text-amber-400 transition-colors flex items-center gap-2"
+                  className="flex items-start gap-2 hover:text-white"
                 >
-                  📍 Via Albere 27/B, Verona
+                  <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  <span>Via Albere 27/B<br />37138 Verona</span>
                 </a>
-                <p className="text-white/80">
-                  Lun-Ven (concordare orario)
-                </p>
-                <p className="text-amber-400 font-bold">
-                  ⚠️ Ordina 2 giorni prima!
-                </p>
+                <div className="flex items-start gap-2">
+                  <Clock className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  <span>Lun-Ven, orari su appuntamento</span>
+                </div>
+                <div className="text-primary-400 font-semibold pt-2">
+                  ⚡ Ordina entro le 18:00
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="border-t border-white/10 pt-8 text-center text-white/60">
-            <p>© 2024 Pasto Sano - Tutti i diritti riservati | Made with ❤️ by Andrea Padoan</p>
+          <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-white/40">
+            <p>© {new Date().getFullYear()} Pasto Sano — Tutti i diritti riservati</p>
+            <p>Made in Verona by Andrea Padoan</p>
           </div>
         </div>
       </footer>
+    </div>
+  );
+}
 
-      {/* Simple CSS Animations */}
-      <style jsx>{`
-        .fade-in {
-          animation: fadeIn 0.8s ease-out;
-        }
-        
-        .fade-in-delay {
-          animation: fadeIn 0.8s ease-out 0.3s both;
-        }
-        
-        .fade-in-delay-2 {
-          animation: fadeIn 0.8s ease-out 0.6s both;
-        }
-        
-        .fade-in-delay-3 {
-          animation: fadeIn 0.8s ease-out 0.9s both;
-        }
-        
-        .animation-delay-1000 {
-          animation-delay: 1s;
-        }
-        
-        .animation-delay-1500 {
-          animation-delay: 1.5s;
-        }
-        
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-        
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
+function CompareCell({ value, highlight = false }: { value: boolean | string; highlight?: boolean }) {
+  if (value === true) {
+    return (
+      <CheckCircle
+        className={`w-5 h-5 mx-auto ${highlight ? 'text-primary-600' : 'text-sage-600'}`}
+      />
+    );
+  }
+  if (value === false) {
+    return <X className="w-5 h-5 mx-auto text-ink-300" />;
+  }
+  return (
+    <span className={`text-sm font-medium ${highlight ? 'text-primary-700 font-semibold' : 'text-ink-600'}`}>
+      {value}
+    </span>
+  );
+}
+
+function Stat({ number, label }: { number: string; label: string }) {
+  return (
+    <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4">
+      <div className="font-display font-black text-3xl lg:text-4xl text-primary-500 leading-none">
+        {number}
+      </div>
+      <div className="text-xs text-white/60 mt-2 uppercase tracking-wider">{label}</div>
     </div>
   );
 }

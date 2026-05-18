@@ -10,7 +10,7 @@ export default function ProductionPage() {
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [dateFilter, setDateFilter] = useState('oggi');
-  const [productionSummary, setProductionSummary] = useState<any>({});
+  const [productionSummary, setProductionSummary] = useState<Record<string, { quantity: number; unitCost: number; category?: string }>>({});
   const [totalCost, setTotalCost] = useState(0);
 
   useEffect(() => {
