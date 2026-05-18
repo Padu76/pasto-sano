@@ -98,7 +98,7 @@ export default function LandingPage() {
     {
       question: 'Quanto durano in frigo? Posso congelarli?',
       answer:
-        'In frigo 3 giorni dal ritiro. Tutti gli ingredienti sono freschi, quindi puoi congelare le vaschette senza problemi per conservarle più a lungo.',
+        'Tutti i prodotti sono confezionati sottovuoto e si conservano da 10 a 15 giorni in frigorifero. Puoi anche congelarli per una durata ancora maggiore.',
     },
     {
       question: 'Come riscaldo i piatti?',

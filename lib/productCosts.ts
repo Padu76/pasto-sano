@@ -33,7 +33,14 @@ export const SUPPLIER_PREMIUM_COSTS: Record<string, number> = {
   'tagliata bovino cotta intera': 5.20,
   'tagliata bovino cotta affumicata': 3.25,
   'carne secca': 3.25,
-  'verdure cotte bio': 5.20,
+  // Verdure cotte sottovuoto
+  'piselli': 5.20,
+  'carote a rondelle': 5.20,
+  'catalogna': 5.20,
+  'fagiolini verdi': 5.20,
+  'zucchine a rondelle': 5.20,
+  // Tartare
+  'tartare di bovino': 3.90,
   // crudi
   'macinato bovino crudo': 7.15,
   'carne cruda bovino': 3.90,
