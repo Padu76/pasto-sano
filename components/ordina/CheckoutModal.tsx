@@ -656,7 +656,7 @@ export default function CheckoutModal({
             <div className="p-6">
               {!paymentMethod ? (
                 <>
-                  <div className="mb-6 bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-200 rounded-xl p-5">
+                  <div className="mb-6 bg-gradient-to-r from-primary-50 to-lemon-50 border-2 border-primary-200 rounded-xl p-5">
                     <h3 className="text-lg font-semibold mb-4 text-gray-800">Modalità di ritiro</h3>
                     <div className="grid grid-cols-2 gap-3">
                       <button
@@ -668,12 +668,12 @@ export default function CheckoutModal({
                         }}
                         className={`p-4 border-2 rounded-lg transition-all ${
                           deliveryType === 'pickup'
-                            ? 'border-orange-500 bg-orange-50 shadow-md'
-                            : 'border-gray-300 bg-white hover:border-orange-300'
+                            ? 'border-primary-500 bg-primary-50 shadow-md'
+                            : 'border-gray-300 bg-white hover:border-primary-300'
                         }`}
                       >
                         <Store className={`w-6 h-6 mx-auto mb-2 ${
-                          deliveryType === 'pickup' ? 'text-orange-600' : 'text-gray-500'
+                          deliveryType === 'pickup' ? 'text-primary-600' : 'text-gray-500'
                         }`} />
                         <div className="font-semibold">Ritiro in sede</div>
                         <div className="text-xs text-gray-500 mt-1">Via Bionde, 8</div>
@@ -848,7 +848,7 @@ export default function CheckoutModal({
                           type="text"
                           value={customerName}
                           onChange={(e) => setCustomerName(e.target.value)}
-                          className="w-full p-3 border rounded-lg focus:outline-none focus:border-orange-500"
+                          className="w-full p-3 border rounded-lg focus:outline-none focus:border-primary-500"
                           placeholder="Mario Rossi"
                           required
                         />
@@ -862,7 +862,7 @@ export default function CheckoutModal({
                           type="tel"
                           value={customerPhone}
                           onChange={(e) => setCustomerPhone(e.target.value)}
-                          className="w-full p-3 border rounded-lg focus:outline-none focus:border-orange-500"
+                          className="w-full p-3 border rounded-lg focus:outline-none focus:border-primary-500"
                           placeholder="333 1234567"
                           required
                         />
@@ -878,7 +878,7 @@ export default function CheckoutModal({
                         type="email"
                         value={customerEmail}
                         onChange={(e) => setCustomerEmail(e.target.value)}
-                        className="w-full p-3 border rounded-lg focus:outline-none focus:border-orange-500"
+                        className="w-full p-3 border rounded-lg focus:outline-none focus:border-primary-500"
                         placeholder="mario.rossi@email.com"
                         required
                       />
@@ -1081,7 +1081,7 @@ export default function CheckoutModal({
                       <textarea
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
-                        className="w-full p-3 border rounded-lg focus:outline-none focus:border-orange-500"
+                        className="w-full p-3 border rounded-lg focus:outline-none focus:border-primary-500"
                         rows={3}
                         placeholder="Allergie, intolleranze, orario preferito..."
                       />
@@ -1116,7 +1116,7 @@ export default function CheckoutModal({
                       )}
                       <div className="flex justify-between font-bold text-lg border-t pt-2">
                         <span>Totale</span>
-                        <span className="text-orange-600">€{getTotalPrice().toFixed(2)}</span>
+                        <span className="text-primary-600">€{getTotalPrice().toFixed(2)}</span>
                       </div>
                     </div>
                   </div>

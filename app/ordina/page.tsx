@@ -1,477 +1,362 @@
+// E:\pasto-sano\app\ordina\page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { 
+import {
   ShoppingCart,
-  ArrowLeft,
-  ShoppingBag,
-  Mail,
+  Plus,
+  Minus,
+  Menu as MenuIcon,
+  X,
   MessageCircle,
-  Globe,
-  Clock,
-  Star,
-  MapPin,
-  Calendar
+  Flame,
+  ChefHat,
+  Package,
 } from 'lucide-react';
 
-// Import componenti
-import ProductCard from '@/components/ordina/ProductCard';
-import MenuGrid from '@/components/ordina/MenuGrid';
 import CartModal from '@/components/ordina/CartModal';
 import CheckoutModal from '@/components/ordina/CheckoutModal';
-import DateSelector from '@/components/ordina/DateSelector';
-import MenuCategories from '@/components/ordina/MenuCategories';
-import ComboSelector from '@/components/ordina/ComboSelector';
+import { PRONTI, DA_CUCINARE, type MenuItem } from '@/lib/menuRotativo';
 
-// Import funzioni menu
-import { 
-  getMenuGiornoSpecifico, 
-  MENU_FISSO, 
-  MENU_COMBO,
-  MenuItem 
-} from '@/lib/menuRotativo';
-
-// Estende MenuItem per il carrello
 interface CartItem extends MenuItem {
   id: string;
   quantity: number;
-  pickupDate: string; // Data di ritiro in formato YYYY-MM-DD
-  isCombo?: boolean;
-  comboItems?: {
-    primo?: string;
-    secondo?: string;
-    contorno?: string;
-    macedonia?: boolean;
-  };
 }
 
 const MINIMUM_ITEMS = 3;
-const MIN_DAYS_ADVANCE = 2;
-
-// Helper per convertire Date in stringa YYYY-MM-DD locale
-function dateToLocalString(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-// Helper per convertire stringa YYYY-MM-DD in Date locale
-function localStringToDate(dateString: string): Date {
-  const [year, month, day] = dateString.split('-').map(Number);
-  return new Date(year, month - 1, day);
-}
 
 export default function OrdinaPage() {
-  // Stati principali
-  const [selectedDate, setSelectedDate] = useState<Date>(() => {
-    // Inizializza con data minima (oggi + 2 giorni)
-    const minDate = new Date();
-    minDate.setDate(minDate.getDate() + MIN_DAYS_ADVANCE);
-    return minDate;
-  });
-  
-  const [menuDelGiorno, setMenuDelGiorno] = useState<any>(null);
-  const [selectedCategory, setSelectedCategory] = useState('menu-giorno');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [activeTab, setActiveTab] = useState<'tutti' | 'pronti' | 'da-cuocere'>('tutti');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  
-  // Stati combo
-  const [isComboSelectorOpen, setIsComboSelectorOpen] = useState(false);
-  const [selectedCombo, setSelectedCombo] = useState<MenuItem | null>(null);
 
-  // Carica menu della data selezionata per il ritiro
   useEffect(() => {
-    const menu = getMenuGiornoSpecifico(selectedDate);
-    setMenuDelGiorno(menu);
-  }, [selectedDate]);
+    const handleScroll = () => setIsScrolled(window.scrollY > 24);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Carica carrello salvato
   useEffect(() => {
-    const savedCart = localStorage.getItem('pastosano_cart');
-    if (savedCart) {
-      setCart(JSON.parse(savedCart));
+    const saved = localStorage.getItem('pastosano_cart');
+    if (saved) {
+      try {
+        setCart(JSON.parse(saved));
+      } catch {
+        // Carrello corrotto, ignoro
+      }
     }
   }, []);
 
   // Salva carrello
   useEffect(() => {
-    if (cart.length > 0) {
-      localStorage.setItem('pastosano_cart', JSON.stringify(cart));
-    } else {
-      localStorage.removeItem('pastosano_cart');
-    }
+    localStorage.setItem('pastosano_cart', JSON.stringify(cart));
   }, [cart]);
 
-  // Formatta data per visualizzazione
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('it-IT', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
+  const totalItems = useMemo(
+    () => cart.reduce((acc, item) => acc + item.quantity, 0),
+    [cart]
+  );
+
+  const totalPrice = useMemo(
+    () => cart.reduce((acc, item) => acc + item.prezzo * item.quantity, 0),
+    [cart]
+  );
+
+  const addToCart = (product: MenuItem) => {
+    setCart((prev) => {
+      const existingIdx = prev.findIndex((c) => c.nome === product.nome);
+      if (existingIdx >= 0) {
+        const updated = [...prev];
+        updated[existingIdx] = { ...updated[existingIdx], quantity: updated[existingIdx].quantity + 1 };
+        return updated;
+      }
+      return [
+        ...prev,
+        {
+          ...product,
+          id: `${product.nome}-${Date.now()}`,
+          quantity: 1,
+        },
+      ];
     });
   };
 
-  // Gestione aggiunta al carrello
-  const handleAddToCart = (item: MenuItem) => {
-    // Se è un combo, apri il selettore
-    if (item.categoria === 'combo') {
-      setSelectedCombo(item);
-      setIsComboSelectorOpen(true);
-      return;
-    }
-
-    // Altrimenti aggiungi direttamente con data di ritiro
-    const cartItem: CartItem = {
-      ...item,
-      id: `${item.categoria}-${item.nome}-${Date.now()}`,
-      quantity: 1,
-      pickupDate: dateToLocalString(selectedDate) // FIX: salva come YYYY-MM-DD
-    };
-
-    addItemToCart(cartItem);
-  };
-
-  // Aggiunge item al carrello
-  const addItemToCart = (item: CartItem) => {
-    setCart([...cart, item]);
-    
-    // Mostra notifica
-    const pickupDateObj = localStringToDate(item.pickupDate); // FIX: riconverti correttamente
-    showNotification(`${item.nome} aggiunto per il ${formatDate(pickupDateObj)}`);
-  };
-
-  // Gestione conferma combo
-  const handleComboConfirm = (comboItems: any) => {
-    if (!selectedCombo) return;
-
-    const cartItem: CartItem = {
-      ...selectedCombo,
-      id: `combo-${Date.now()}`,
-      quantity: 1,
-      isCombo: true,
-      comboItems,
-      pickupDate: dateToLocalString(selectedDate) // FIX: salva come YYYY-MM-DD
-    };
-
-    addItemToCart(cartItem);
-    setSelectedCombo(null);
-  };
-
-  // Aggiorna quantità
   const updateQuantity = (id: string, delta: number) => {
-    setCart(cart.map(item => {
-      if (item.id === id) {
-        const newQuantity = Math.max(0, item.quantity + delta);
-        return newQuantity > 0 ? { ...item, quantity: newQuantity } : null;
-      }
-      return item;
-    }).filter(Boolean) as CartItem[]);
+    setCart((prev) =>
+      prev
+        .map((item) => (item.id === id ? { ...item, quantity: item.quantity + delta } : item))
+        .filter((item) => item.quantity > 0)
+    );
   };
 
-  // Rimuovi item
   const removeItem = (id: string) => {
-    setCart(cart.filter(item => item.id !== id));
+    setCart((prev) => prev.filter((item) => item.id !== id));
   };
 
-  // Procedi al checkout
-  const handleCheckout = () => {
-    if (getTotalItems() >= MINIMUM_ITEMS) {
-      setIsCartOpen(false);
-      setIsCheckoutOpen(true);
-    }
+  const getQuantityInCart = (productName: string) => {
+    return cart.find((c) => c.nome === productName)?.quantity || 0;
   };
 
-  // Ordine completato
   const handleOrderComplete = () => {
     setCart([]);
-    localStorage.removeItem('pastosano_cart');
     setIsCheckoutOpen(false);
+    setIsCartOpen(false);
+    localStorage.removeItem('pastosano_cart');
   };
 
-  // Calcola totale items
-  const getTotalItems = () => {
-    return cart.reduce((total, item) => total + item.quantity, 0);
+  const openCheckout = () => {
+    setIsCartOpen(false);
+    setIsCheckoutOpen(true);
   };
 
-  // Notifica semplice
-  const showNotification = (message: string) => {
-    const notification = document.createElement('div');
-    notification.className = 'fixed bottom-20 right-6 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-slide-up max-w-xs text-sm';
-    notification.textContent = message;
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-      notification.remove();
-    }, 4000);
-  };
-
-  // Filtra items per categoria
-  const getItemsForCategory = () => {
-    switch(selectedCategory) {
-      case 'menu-giorno':
-        if (!menuDelGiorno) return [];
-        return [
-          ...menuDelGiorno.menuGiornaliero.primi,
-          ...menuDelGiorno.menuGiornaliero.secondi,
-          ...menuDelGiorno.menuGiornaliero.contorni
-        ];
-      
-      case 'combo':
-        return MENU_COMBO;
-      
-      case 'focacce':
-        return MENU_FISSO.filter(item => item.categoria === 'focaccia');
-      
-      case 'piadine':
-        return MENU_FISSO.filter(item => item.categoria === 'piadina');
-      
-      case 'insalatone':
-        return MENU_FISSO.filter(item => item.categoria === 'insalatona');
-      
-      case 'extra':
-        return MENU_FISSO.filter(item => item.categoria === 'extra');
-      
-      default:
-        return [];
-    }
-  };
+  const whatsappUrl =
+    'https://wa.me/393478881515?text=Ciao%20Pasto%20Sano%2C%20vorrei%20info%20sul%20menu';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-amber-50 to-orange-50 shadow-lg sticky top-0 z-30 border-b-2 border-orange-200">
-        <div className="container mx-auto px-3 py-3 md:px-4 md:py-4">
-          <div className="flex justify-between items-center">
-            <Link 
-              href="/"
-              className="flex items-center gap-2 text-amber-700 hover:text-amber-900 transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              <span className="hidden sm:inline">Torna alla Homepage</span>
-            </Link>
-            
-            <div className="flex items-center space-x-2 md:space-x-3">
-              <Image 
-                src="/images/logo.png" 
-                alt="Pasto Sano" 
-                width={50} 
-                height={50}
-                className="object-contain md:w-[60px] md:h-[60px]"
-              />
-              <div>
-                <h1 className="text-xl md:text-2xl font-bold text-amber-900">
-                  Pasto Sano
-                </h1>
-                <p className="text-[10px] md:text-xs text-amber-700 hidden sm:block">Ordina il tuo menu</p>
-              </div>
-            </div>
-            
-            <div className="w-16"></div>
-          </div>
-        </div>
-      </header>
-
-      {/* Bottone carrello flottante */}
-      <button 
-        onClick={() => setIsCartOpen(true)}
-        className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-orange-500 to-amber-500 text-white p-4 rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-110 animate-pulse"
-      >
-        <ShoppingCart className="w-6 h-6 md:w-7 md:h-7" />
-        {getTotalItems() > 0 && (
-          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 md:w-7 md:h-7 flex items-center justify-center animate-bounce border-2 border-white">
-            {getTotalItems()}
-          </span>
-        )}
-      </button>
-
-      {/* Alert ordine minimo */}
-      {cart.length > 0 && getTotalItems() < MINIMUM_ITEMS && (
-        <div className="fixed bottom-24 right-6 z-30 bg-gradient-to-r from-red-500 to-red-600 text-white p-3 rounded-lg shadow-xl max-w-xs">
-          <div className="flex items-start gap-2">
-            <ShoppingBag className="w-5 h-5 mt-0.5 flex-shrink-0" />
-            <div className="text-sm">
-              <p className="font-semibold">Ordine minimo: {MINIMUM_ITEMS} pezzi</p>
-              <p className="opacity-90">Hai {getTotalItems()} pezzo/i. Aggiungi ancora {MINIMUM_ITEMS - getTotalItems()}.</p>
-            </div>
-          </div>
+    <div className="min-h-screen bg-white text-ink-950 font-sans pb-24 lg:pb-0">
+      {/* Sticky cart bar mobile */}
+      {totalItems > 0 && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-ink-950 border-t border-ink-800 px-4 py-3 shadow-2xl">
+          <button
+            onClick={() => setIsCartOpen(true)}
+            className="w-full bg-primary-500 hover:bg-primary-600 text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-between gap-2 transition-all active:scale-95"
+          >
+            <span className="flex items-center gap-2">
+              <ShoppingCart className="w-5 h-5" />
+              {totalItems} {totalItems === 1 ? 'articolo' : 'articoli'}
+            </span>
+            <span className="font-display font-black text-lg">€{totalPrice.toFixed(2)}</span>
+          </button>
         </div>
       )}
 
-      {/* Hero Section */}
-      <div className="bg-gradient-to-br from-amber-700 via-orange-600 to-amber-800 text-white py-8 md:py-12">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3">
-            Ordina il tuo Menu
-          </h2>
-          <p className="text-base sm:text-lg opacity-95 mb-6">
-            Scegli quando ritirare e cosa ordinare
-          </p>
-          
-          {/* Info data ritiro selezionata */}
-          <div className="bg-white/20 backdrop-blur-sm px-4 py-3 rounded-lg mb-6 max-w-2xl mx-auto">
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <div className="flex items-center gap-2 text-yellow-300">
-                <Calendar className="w-5 h-5" />
-                <span className="font-semibold">Stai ordinando per:</span>
-              </div>
-              <span className="text-lg font-bold capitalize">
-                {formatDate(selectedDate)}
+      {/* Header */}
+      <header
+        className={`fixed top-0 inset-x-0 z-40 transition-all duration-300 ${
+          isScrolled
+            ? 'bg-ink-950/95 backdrop-blur-md border-b border-ink-800 py-3'
+            : 'bg-ink-950 py-4'
+        }`}
+      >
+        <nav className="container mx-auto px-4 lg:px-8">
+          <div className="flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-3">
+              <Image src="/images/logo.png" alt="Pasto Sano" width={40} height={40} className="rounded-lg" />
+              <span className="text-white font-display font-bold text-xl tracking-tightest">
+                PASTO<span className="text-primary-500">.</span>SANO
               </span>
+            </Link>
+
+            <div className="hidden lg:flex items-center gap-1">
+              <Link href="/" className="text-white/80 hover:text-white px-4 py-2 text-sm font-medium">
+                Home
+              </Link>
+              <Link href="/menu" className="text-white/80 hover:text-white px-4 py-2 text-sm font-medium">
+                Menu
+              </Link>
+              <button
+                onClick={() => setIsCartOpen(true)}
+                className="ml-3 relative bg-primary-500 hover:bg-primary-600 text-white font-semibold px-5 py-2.5 rounded-full text-sm transition-all hover:shadow-glow-primary flex items-center gap-2"
+              >
+                <ShoppingCart className="w-4 h-4" />
+                Carrello
+                {totalItems > 0 && (
+                  <span className="bg-white text-primary-700 text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">
+                    {totalItems}
+                  </span>
+                )}
+              </button>
+            </div>
+
+            <div className="lg:hidden flex items-center gap-2">
+              {totalItems > 0 && (
+                <button
+                  onClick={() => setIsCartOpen(true)}
+                  className="relative bg-primary-500 text-white p-2 rounded-full"
+                  aria-label="Carrello"
+                >
+                  <ShoppingCart className="w-5 h-5" />
+                  <span className="absolute -top-1 -right-1 bg-lemon-400 text-ink-950 text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                    {totalItems}
+                  </span>
+                </button>
+              )}
+              <button
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="p-2 text-white"
+                aria-label="Menu"
+              >
+                {isMenuOpen ? <X className="w-6 h-6" /> : <MenuIcon className="w-6 h-6" />}
+              </button>
             </div>
           </div>
-          
-          <div className="bg-white/20 backdrop-blur-sm px-4 py-3 rounded-lg mb-6 max-w-md mx-auto">
-            <div className="flex items-center justify-center gap-2 text-yellow-300">
-              <ShoppingBag className="w-5 h-5" />
-              <span className="font-semibold">Ordine minimo: {MINIMUM_ITEMS} pezzi</span>
+
+          {isMenuOpen && (
+            <div className="lg:hidden mt-4 pb-2 border-t border-ink-800 pt-4 space-y-1">
+              <Link href="/" onClick={() => setIsMenuOpen(false)} className="block text-white/80 hover:text-white px-2 py-3 text-base font-medium border-b border-ink-800">
+                Home
+              </Link>
+              <Link href="/menu" onClick={() => setIsMenuOpen(false)} className="block text-white/80 hover:text-white px-2 py-3 text-base font-medium border-b border-ink-800">
+                Menu
+              </Link>
             </div>
+          )}
+        </nav>
+      </header>
+
+      {/* Hero */}
+      <section className="relative bg-ink-950 text-white pt-28 lg:pt-36 pb-10 lg:pb-12 overflow-hidden">
+        <div className="absolute top-0 -left-32 w-96 h-96 bg-primary-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="container mx-auto px-4 lg:px-8 relative z-10">
+          <div className="max-w-4xl">
+            <div className="inline-flex items-center gap-2 bg-primary-500/10 border border-primary-500/30 text-primary-400 px-4 py-1.5 rounded-full text-sm font-medium mb-4">
+              <Package className="w-4 h-4" />
+              Ordina online
+            </div>
+            <h1 className="font-display font-black tracking-tightest text-4xl sm:text-5xl lg:text-6xl leading-[0.95] uppercase mb-4">
+              Crea il tuo ordine
+            </h1>
+            <p className="text-base lg:text-lg text-white/80">
+              Aggiungi i prodotti al carrello. Ordine minimo {MINIMUM_ITEMS} articoli. Ritiro in Via Albere entro 2 giorni.
+            </p>
           </div>
-          
-          <div className="flex flex-col sm:flex-row justify-center items-center space-y-3 sm:space-y-0 sm:space-x-4">
-            <div className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm px-3 py-2 rounded-full text-sm">
-              <MapPin className="w-4 h-4 flex-shrink-0" />
-              <span>Ritiro presso sede</span>
-            </div>
-            <div className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm px-3 py-2 rounded-full text-sm">
-              <Clock className="w-4 h-4 flex-shrink-0" />
-              <span>Ordina con 2 giorni di anticipo</span>
-            </div>
-            <div className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm px-3 py-2 rounded-full text-sm">
-              <Star className="w-4 h-4 flex-shrink-0" />
-              <span>Ingredienti Premium</span>
-            </div>
+        </div>
+      </section>
+
+      {/* Tabs */}
+      <div className="sticky top-[68px] lg:top-[76px] z-30 bg-white border-b border-ink-100">
+        <div className="container mx-auto px-4 lg:px-8 py-4">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+            {[
+              { key: 'tutti', label: 'Tutti', count: PRONTI.length + DA_CUCINARE.length },
+              { key: 'pronti', label: 'Pronti', count: PRONTI.length },
+              { key: 'da-cuocere', label: 'Da cucinare', count: DA_CUCINARE.length },
+            ].map((tab) => {
+              const active = activeTab === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key as any)}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all border ${
+                    active
+                      ? 'bg-ink-950 text-white border-ink-950'
+                      : 'bg-white text-ink-700 border-ink-200 hover:border-ink-400'
+                  }`}
+                >
+                  {tab.label}
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full ${
+                      active ? 'bg-primary-500 text-white' : 'bg-ink-100 text-ink-600'
+                    }`}
+                  >
+                    {tab.count}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
-        {/* Date Selector */}
-        <DateSelector 
-          onDateChange={setSelectedDate}
-          minDaysAdvance={MIN_DAYS_ADVANCE}
-        />
-
-        {/* Banner info menu */}
-        {menuDelGiorno && !menuDelGiorno.isWeekend && (
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-4 mb-6">
-            <div className="flex items-start gap-3">
-              <Calendar className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
-              <div>
-                <h3 className="font-bold text-blue-900 mb-1">
-                  Menu disponibile per il {formatDate(selectedDate)}
-                </h3>
-                <p className="text-sm text-blue-700">
-                  Settimana {menuDelGiorno.settimana.replace('settimana', '')} del mese - 
-                  Menu del {menuDelGiorno.giorno}
-                </p>
-              </div>
+      <main className="container mx-auto px-4 lg:px-8 py-10 lg:py-14">
+        {/* Pronti */}
+        {(activeTab === 'tutti' || activeTab === 'pronti') && (
+          <section className="mb-14">
+            <SectionHeader
+              eyebrow="Pasti pronti"
+              title="Pronti da scaldare"
+              desc="Apri, scaldi 2 minuti, mangi."
+              icon={<Flame className="w-5 h-5" />}
+            />
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6 mt-8">
+              {PRONTI.map((item, i) => (
+                <OrderProductCard
+                  key={`pronti-${i}`}
+                  item={item}
+                  quantity={getQuantityInCart(item.nome)}
+                  onAdd={() => addToCart(item)}
+                  onIncrease={() => {
+                    const existing = cart.find((c) => c.nome === item.nome);
+                    if (existing) updateQuantity(existing.id, 1);
+                  }}
+                  onDecrease={() => {
+                    const existing = cart.find((c) => c.nome === item.nome);
+                    if (existing) updateQuantity(existing.id, -1);
+                  }}
+                />
+              ))}
             </div>
-          </div>
+          </section>
         )}
 
-        {/* Banner Weekend */}
-        {menuDelGiorno && menuDelGiorno.isWeekend && (
-          <div className="bg-gradient-to-r from-gray-100 to-gray-200 border-2 border-gray-300 rounded-xl p-8 mb-6 text-center">
-            <div className="flex flex-col items-center gap-4">
-              <Calendar className="w-16 h-16 text-gray-400" />
-              <div>
-                <h3 className="text-2xl font-bold text-gray-700 mb-2">
-                  Menu non disponibile nel weekend
-                </h3>
-                <p className="text-gray-600">
-                  Il menu giornaliero è disponibile solo da lunedì a venerdì.
-                </p>
-                <p className="text-gray-600 mt-2">
-                  Puoi comunque ordinare focacce, piadine, insalatone e altri prodotti sempre disponibili.
-                </p>
-              </div>
+        {/* Da cucinare */}
+        {(activeTab === 'tutti' || activeTab === 'da-cuocere') && (
+          <section>
+            <SectionHeader
+              eyebrow="Da cucinare"
+              title="Carne fresca da cuocere"
+              desc="Tagli freschi, da cuocere a casa."
+              icon={<ChefHat className="w-5 h-5" />}
+            />
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6 mt-8">
+              {DA_CUCINARE.map((item, i) => (
+                <OrderProductCard
+                  key={`crudi-${i}`}
+                  item={item}
+                  quantity={getQuantityInCart(item.nome)}
+                  onAdd={() => addToCart(item)}
+                  onIncrease={() => {
+                    const existing = cart.find((c) => c.nome === item.nome);
+                    if (existing) updateQuantity(existing.id, 1);
+                  }}
+                  onDecrease={() => {
+                    const existing = cart.find((c) => c.nome === item.nome);
+                    if (existing) updateQuantity(existing.id, -1);
+                  }}
+                />
+              ))}
             </div>
-          </div>
+          </section>
         )}
 
-        {/* Menu Categories */}
-        <MenuCategories
-          activeCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
-          dailyMenuAvailable={menuDelGiorno && !menuDelGiorno.isWeekend}
-        />
+        {/* Help */}
+        <div className="mt-16 bg-ink-50 rounded-3xl p-8 lg:p-12 text-center">
+          <h3 className="font-display font-bold text-2xl lg:text-3xl mb-3">
+            Hai bisogno di aiuto?
+          </h3>
+          <p className="text-ink-600 mb-6 max-w-xl mx-auto">
+            Scrivici su WhatsApp e Andrea ti consiglia personalmente quali prodotti scegliere.
+          </p>
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 bg-[#25D366] hover:bg-[#1da851] text-white font-semibold px-6 py-3 rounded-full transition-colors"
+          >
+            <MessageCircle className="w-5 h-5" />
+            Scrivici su WhatsApp
+          </a>
+        </div>
+      </main>
 
-        {/* Menu Items */}
-        {selectedCategory === 'menu-giorno' && menuDelGiorno && !menuDelGiorno.isWeekend ? (
-          <div className="space-y-8">
-            {menuDelGiorno.menuGiornaliero.primi.length > 0 && (
-              <MenuGrid
-                title="Primi Piatti"
-                emoji="🍝"
-                items={menuDelGiorno.menuGiornaliero.primi}
-                onAddToCart={handleAddToCart}
-                colorScheme="amber"
-              />
-            )}
-            
-            {menuDelGiorno.menuGiornaliero.secondi.length > 0 && (
-              <MenuGrid
-                title="Secondi Piatti"
-                emoji="🥘"
-                items={menuDelGiorno.menuGiornaliero.secondi}
-                onAddToCart={handleAddToCart}
-                colorScheme="blue"
-              />
-            )}
-            
-            {menuDelGiorno.menuGiornaliero.contorni.length > 0 && (
-              <MenuGrid
-                title="Contorni"
-                emoji="🥗"
-                items={menuDelGiorno.menuGiornaliero.contorni}
-                onAddToCart={handleAddToCart}
-                colorScheme="green"
-              />
-            )}
-          </div>
-        ) : selectedCategory === 'menu-giorno' && menuDelGiorno && menuDelGiorno.isWeekend ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">
-              Seleziona un giorno feriale per visualizzare il menu del giorno
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {getItemsForCategory().map((item, index) => (
-              <ProductCard
-                key={`${item.categoria}-${item.nome}-${index}`}
-                item={item}
-                onAddToCart={handleAddToCart}
-                colorScheme={
-                  selectedCategory === 'combo' ? 'purple' :
-                  selectedCategory === 'focacce' ? 'amber' :
-                  selectedCategory === 'piadine' ? 'green' :
-                  selectedCategory === 'insalatone' ? 'blue' :
-                  'amber'
-                }
-              />
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Modali */}
+      {/* Cart Modal */}
       <CartModal
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         items={cart}
         onUpdateQuantity={updateQuantity}
         onRemoveItem={removeItem}
-        onCheckout={handleCheckout}
+        onCheckout={openCheckout}
         minimumItems={MINIMUM_ITEMS}
       />
 
+      {/* Checkout Modal */}
       <CheckoutModal
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
@@ -479,111 +364,106 @@ export default function OrdinaPage() {
         onOrderComplete={handleOrderComplete}
         minimumItems={MINIMUM_ITEMS}
       />
+    </div>
+  );
+}
 
-      <ComboSelector
-        isOpen={isComboSelectorOpen}
-        onClose={() => {
-          setIsComboSelectorOpen(false);
-          setSelectedCombo(null);
-        }}
-        comboType={selectedCombo?.nome || ''}
-        comboPrice={selectedCombo?.prezzo || 0}
-        availableItems={{
-          primi: menuDelGiorno?.menuGiornaliero.primi || [],
-          secondi: menuDelGiorno?.menuGiornaliero.secondi || [],
-          contorni: menuDelGiorno?.menuGiornaliero.contorni || []
-        }}
-        onConfirm={handleComboConfirm}
-      />
+function SectionHeader({
+  eyebrow,
+  title,
+  desc,
+  icon,
+}: {
+  eyebrow: string;
+  title: string;
+  desc: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <div className="max-w-2xl">
+      <div className="flex items-center gap-2 text-primary-600 font-semibold text-sm uppercase tracking-wider mb-3">
+        {icon}
+        {eyebrow}
+      </div>
+      <h2 className="font-display font-black text-3xl lg:text-5xl leading-[0.95] tracking-tightest uppercase mb-3">
+        {title}
+      </h2>
+      <p className="text-ink-600 text-base lg:text-lg">{desc}</p>
+    </div>
+  );
+}
 
-      {/* Footer */}
-      <footer className="bg-gradient-to-r from-amber-900 to-amber-950 text-white mt-16">
-        <div className="container mx-auto px-4 py-8 md:py-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-            <div className="text-center">
-              <div className="flex items-center justify-center mb-3">
-                <Image 
-                  src="/images/logo.png" 
-                  alt="Pasto Sano" 
-                  width={70} 
-                  height={70}
-                  className="object-contain"
-                />
-              </div>
-              <h3 className="text-lg font-bold mb-2 text-yellow-400">Pasto Sano</h3>
-              <p className="text-xs opacity-90">
-                Menu freschi ogni giorno.<br />
-                Qualità e gusto garantiti.
-              </p>
-            </div>
-
-            <div className="text-center">
-              <h4 className="text-base font-semibold mb-3 text-yellow-400">Contatti</h4>
-              <div className="space-y-3">
-                <a 
-                  href="mailto:info@pastosano.it"
-                  className="flex items-center justify-center gap-2 hover:text-yellow-400 transition text-sm"
-                >
-                  <Mail className="w-4 h-4" />
-                  <span>info@pastosano.it</span>
-                </a>
-                <a 
-                  href="https://wa.me/393478881515?text=Ciao%20Pasto%20Sano,%20vorrei%20informazioni"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full transition transform hover:scale-105 text-sm"
-                >
-                  <MessageCircle className="w-5 h-5" />
-                  <span className="font-semibold">WhatsApp</span>
-                </a>
-                <a 
-                  href="https://www.pastosano.it"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 hover:text-yellow-400 transition text-sm"
-                >
-                  <Globe className="w-4 h-4" />
-                  <span>www.pastosano.it</span>
-                </a>
-              </div>
-            </div>
-
-            <div className="text-center">
-              <h4 className="text-base font-semibold mb-3 text-yellow-400">Ritiro Ordini</h4>
-              <div className="space-y-1 text-xs opacity-90">
-                <p>Lunedì - Venerdì</p>
-                <p className="font-semibold text-yellow-300">Orario da concordare</p>
-                <p className="mt-2">Via Albere 27/B, Verona</p>
-                <p className="mt-2 text-yellow-300 font-semibold">
-                  Ordine minimo: {MINIMUM_ITEMS} pezzi
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="border-t border-yellow-800/30 mt-6 pt-4 text-center text-xs opacity-75">
-            <p>© 2024 Pasto Sano - Tutti i diritti riservati</p>
-          </div>
+function OrderProductCard({
+  item,
+  quantity,
+  onAdd,
+  onIncrease,
+  onDecrease,
+}: {
+  item: MenuItem;
+  quantity: number;
+  onAdd: () => void;
+  onIncrease: () => void;
+  onDecrease: () => void;
+}) {
+  return (
+    <div className="group bg-white rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 flex flex-col">
+      <div className="relative aspect-square overflow-hidden bg-ink-100">
+        <Image
+          src={item.immagine}
+          alt={item.nome}
+          fill
+          className="object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+        <div className="absolute top-3 left-3 bg-ink-950/80 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
+          {item.peso}
         </div>
-      </footer>
+        {item.categoria === 'da-cuocere' && (
+          <div className="absolute top-3 right-3 bg-lemon-400 text-ink-950 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
+            Da cuocere
+          </div>
+        )}
+      </div>
+      <div className="p-4 lg:p-5 flex flex-col flex-1">
+        <h3 className="font-display font-bold text-base lg:text-lg leading-tight mb-1.5 line-clamp-2">
+          {item.nome}
+        </h3>
+        {item.formato && (
+          <p className="text-xs text-ink-500 mb-2">{item.formato}</p>
+        )}
+        <p className="text-sm text-ink-600 mb-4 line-clamp-2 flex-1">{item.descrizione}</p>
 
-      {/* Stili animazione */}
-      <style jsx>{`
-        @keyframes slide-up {
-          from {
-            transform: translateY(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateY(0);
-            opacity: 1;
-          }
-        }
-        
-        .animate-slide-up {
-          animation: slide-up 0.3s ease-out;
-        }
-      `}</style>
+        <div className="flex items-center justify-between pt-3 border-t border-ink-100">
+          <div className="font-display font-bold text-xl">€{item.prezzo.toFixed(2)}</div>
+          {quantity === 0 ? (
+            <button
+              onClick={onAdd}
+              className="bg-ink-950 hover:bg-primary-500 text-white font-semibold px-4 py-2 rounded-full text-sm transition-colors flex items-center gap-1"
+            >
+              <Plus className="w-4 h-4" />
+              Aggiungi
+            </button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={onDecrease}
+                className="w-8 h-8 bg-ink-100 hover:bg-ink-200 text-ink-950 rounded-full flex items-center justify-center transition-colors"
+                aria-label="Riduci"
+              >
+                <Minus className="w-4 h-4" />
+              </button>
+              <span className="font-bold text-base min-w-[20px] text-center">{quantity}</span>
+              <button
+                onClick={onIncrease}
+                className="w-8 h-8 bg-primary-500 hover:bg-primary-600 text-white rounded-full flex items-center justify-center transition-colors"
+                aria-label="Aumenta"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
