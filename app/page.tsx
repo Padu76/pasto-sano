@@ -290,7 +290,7 @@ export default function LandingPage() {
 
             {/* Mosaico prodotti */}
             <div className="lg:col-span-5 relative">
-              <div className="relative aspect-square rounded-3xl overflow-hidden shadow-2xl ring-1 ring-white/10 grid grid-cols-2 grid-rows-2 gap-1.5 bg-ink-900">
+              <div className="relative w-full h-[360px] sm:h-[460px] lg:h-[500px] xl:h-[560px] rounded-3xl overflow-hidden shadow-2xl ring-1 ring-white/10 grid grid-cols-2 grid-rows-2 gap-1.5 bg-ink-900">
                 <div className="relative overflow-hidden group">
                   <Image
                     src="/images/prodotti/tartare-bovino.jpg"
