@@ -124,13 +124,13 @@ export default function MenuPage() {
               Il nostro menu
             </div>
             <h1 className="font-display font-black tracking-tightest text-5xl sm:text-6xl lg:text-7xl leading-[0.95] uppercase mb-6">
-              Carne di qualità.
+              Prodotti selezionati.
               <br />
-              <span className="text-primary-500">Pronta o da cuocere.</span>
+              <span className="text-primary-500">Pronti o da cuocere.</span>
             </h1>
             <p className="text-lg lg:text-xl text-white/80 max-w-2xl">
-              Pasti pronti da scaldare in 2 minuti e tagli freschi da cuocere a casa.
-              Selezionati per i clienti di Tribù Studio.
+              Carni, verdure e specialità: pronte da scaldare in 2 minuti
+              oppure fresche da cuocere a casa. Selezionate per i clienti di Tribù Studio.
             </p>
           </div>
         </div>
