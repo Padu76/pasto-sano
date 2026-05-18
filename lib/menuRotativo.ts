@@ -1,889 +1,215 @@
-// lib/menuRotativo.ts
+// E:\pasto-sano\lib\menuRotativo.ts
+// Menu Pasto Sano - solo prodotti nuovo fornitore (no più menu rotativo)
 
 export interface MenuItem {
   nome: string;
   prezzo: number;
-  categoria: 'primo' | 'secondo' | 'contorno' | 'focaccia' | 'piadina' | 'insalatona' | 'extra' | 'combo';
-  disponibile: 'sempre' | 'giornaliero';
-  immagine?: string;
-  descrizione?: string;
+  categoria: 'pronto' | 'da-cuocere';
+  disponibile: 'sempre';
+  immagine: string;
+  descrizione: string;
+  peso: string;
+  formato?: string;
 }
 
-export interface MenuGiornaliero {
-  primi: string[];
-  secondi: string[];
-  contorni: string[];
-}
-
-export interface MenuSettimana {
-  lunedi: MenuGiornaliero;
-  martedi: MenuGiornaliero;
-  mercoledi: MenuGiornaliero;
-  giovedi: MenuGiornaliero;
-  venerdi: MenuGiornaliero;
-}
-
-// PREZZI FISSI
-export const PREZZI = {
-  primo: 6.50,
-  secondo: 7.50,
-  contorno: 3.90,
-  focaccia: 7.50,
-  piadina: 7.50,
-  insalatona: 8.50,
-  muffin: 2.50,
-  macedonia: 5.00,
-  carneSalada: 7.50,
-  // Prezzi Combo
-  comboPrimoContorno: 9.00,
-  comboSecondoContorno: 10.20,
-  comboPrimoSecondoContorno: 15.60,
-  comboPrimoMacedonia: 10.00,
-  comboSecondoMacedonia: 11.20,
-  // Prezzi nuovo fornitore (carni e verdure premium) - "Prezzo pubblico confezione"
-  polpetteProteiche: 7.00,
-  macinatoBovinoCotto: 10.00,
-  roastBeefFette: 9.00,
-  insalataPollo: 11.00,
-  tagliataPollo: 6.00,
-  tagliataBovinoCottaFette: 9.00,
-  tagliataBovinoCottaIntera: 8.00,
-  tagliataBovinoAffumicata: 5.00,
-  carneSecca: 5.00,
-  verdureCotteBio: 8.00,
-  // Carni crude da cuocere
-  macinatoBovinoCrudo: 11.00,
-  carneCrudaBovino: 6.00,
-  hamburgerBovino: 6.00,
-  tagliataBovinoAdulto: 15.00
-};
-
-// Data di riferimento: Lunedì 6 ottobre 2025 = inizio Settimana 3
-const REFERENCE_DATE = new Date('2025-10-06'); // Lunedì 6 ottobre 2025
-const REFERENCE_WEEK = 3; // Settimana 3
-
-// Funzione per calcolare la settimana in base alla data di riferimento
-function getSettimanaFromDate(data: Date): number {
-  // Normalizza entrambe le date a mezzanotte per confronto accurato
-  const dataCheck = new Date(data.getFullYear(), data.getMonth(), data.getDate());
-  const dataRiferimento = new Date(REFERENCE_DATE.getFullYear(), REFERENCE_DATE.getMonth(), REFERENCE_DATE.getDate());
-  
-  // Calcola differenza in millisecondi
-  const diffTime = dataCheck.getTime() - dataRiferimento.getTime();
-  
-  // Converti in giorni
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  
-  // Calcola settimane di differenza (può essere negativo se data precedente)
-  const diffWeeks = Math.floor(diffDays / 7);
-  
-  // Calcola quale settimana del ciclo (1-4)
-  let settimana = ((REFERENCE_WEEK - 1 + diffWeeks) % 4) + 1;
-  
-  // Gestisci settimane negative (prima della data di riferimento)
-  if (settimana <= 0) {
-    settimana += 4;
-  }
-  
-  return settimana;
-}
-
-function getGiornoSettimana(data: Date): string {
-  const giorni = ['domenica', 'lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato'];
-  // CRITICAL FIX: Usa la data locale invece di UTC per evitare sfasamenti di fuso orario
-  const year = data.getFullYear();
-  const month = data.getMonth();
-  const day = data.getDate();
-  const localDate = new Date(year, month, day);
-  return giorni[localDate.getDay()];
-}
-
-// Helper function per generare il path dell'immagine basato sul nome del piatto
-function generateImagePath(nome: string, categoria: string): string {
-  const nomeFile = nome.toLowerCase()
-    .replace(/[àá]/g, 'a')
-    .replace(/[èé]/g, 'e')
-    .replace(/[ìí]/g, 'i')
-    .replace(/[òó]/g, 'o')
-    .replace(/[ùú]/g, 'u')
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '')
-    .substring(0, 50);
-  
-  return `/images/${categoria}/${nomeFile}.jpg`;
-}
-
-// MENU ROTATIVO - 4 SETTIMANE (Solo lun-ven)
-export const MENU_ROTATIVO: { [key: string]: MenuSettimana } = {
-  settimana1: {
-    lunedi: {
-      primi: [
-        "Lasagna zucchine e salmone",
-        "Tortelli alla crema di parmigiano"
-      ],
-      secondi: [
-        "Scaloppine di pollo al limone",
-        "Paillard di tacchino alla griglia"
-      ],
-      contorni: [
-        "Patate arrosto",
-        "Verdure cotta di stagione"
-      ]
-    },
-    martedi: {
-      primi: [
-        "Crespelle ricotto, spinaci e cotto",
-        "Penne alla puttanesca Napoletana"
-      ],
-      secondi: [
-        "Filetto di branzino alla piastra con gremolada",
-        "Medaglione di maiale alla griglia"
-      ],
-      contorni: [
-        "Patate arrosto",
-        "Verdure cotta di stagione"
-      ]
-    },
-    mercoledi: {
-      primi: [
-        "Lasagna alla parmigiana",
-        "Calamarata alla carbonara di mare"
-      ],
-      secondi: [
-        "Petto di pollo alla diavola",
-        "Saltimbocca alla romana"
-      ],
-      contorni: [
-        "Patate arrosto",
-        "Verdure cotta di stagione"
-      ]
-    },
-    giovedi: {
-      primi: [
-        "Spaghettone ai 2 pomodori",
-        "Paella di pesce e carne"
-      ],
-      secondi: [
-        "Sovracoscia di pollo al forno",
-        "Filetto di orata alla griglia"
-      ],
-      contorni: [
-        "Patate arrosto",
-        "Verdure cotta di stagione"
-      ]
-    },
-    venerdi: {
-      primi: [
-        "Lasagna con verdure di stagione e brié",
-        "Mezzi paccheri all'amatriciana"
-      ],
-      secondi: [
-        "Hamburger in bella vista",
-        "Costine laccate in salsa BBQ"
-      ],
-      contorni: [
-        "Patate arrosto",
-        "Verdure cotta di stagione"
-      ]
-    }
-  },
-  settimana2: {
-    lunedi: {
-      primi: [
-        "Lasagna con crema di asparagi e bacon crocc",
-        "Mezze maniche cacio pepe"
-      ],
-      secondi: [
-        "Scaloppina di tacchino agli agrumi",
-        "Filetto di branzino alla griglia"
-      ],
-      contorni: [
-        "Patate arrosto",
-        "Verdure cotta di stagione"
-      ]
-    },
-    martedi: {
-      primi: [
-        "Crespelle gamberetti",
-        "Pasta all'arrabbiata"
-      ],
-      secondi: [
-        "Cotoletta di tacchino alla milanese",
-        "Bistecca di scamone alla griglia"
-      ],
-      contorni: [
-        "Patate arrosto",
-        "Verdure cotta di stagione"
-      ]
-    },
-    mercoledi: {
-      primi: [
-        "Pasta gratinata con caponata e scamorza",
-        "Maccheroncino al ragù alla bolognese"
-      ],
-      secondi: [
-        "Bocconcini di pollo gratinati",
-        "Filetto di orata alla griglia con gremolada"
-      ],
-      contorni: [
-        "Patate arrosto",
-        "Verdure cotta di stagione"
-      ]
-    },
-    giovedi: {
-      primi: [
-        "Mezzi paccheri con spada melanzane e ric.aff.",
-        "Risotto alla Milanese con zucchine"
-      ],
-      secondi: [
-        "Polpette di carne al sugo",
-        "Paillard di tacchino alla griglia"
-      ],
-      contorni: [
-        "Patate arrosto",
-        "Verdure cotta di stagione"
-      ]
-    },
-    venerdi: {
-      primi: [
-        "Spaghetti datt.giallo menta stracciatella",
-        "Calamarata cozze al prof.d arancia e pomodorini"
-      ],
-      secondi: [
-        "Coscetta di pollo laccata in salsa BBQ",
-        "Lonza marinata alla griglia"
-      ],
-      contorni: [
-        "Patate arrosto",
-        "Verdure cotta di stagione"
-      ]
-    }
-  },
-  settimana3: {
-    lunedi: {
-      primi: [
-        "Lasagna alla Ligure",
-        "Caserecce capperi e zucchine"
-      ],
-      secondi: [
-        "Spiedini di carne all'inglese",
-        "Frittata di vedure di stagione"
-      ],
-      contorni: [
-        "Patate arrosto",
-        "Verdure cotta di stagione"
-      ]
-    },
-    martedi: {
-      primi: [
-        "Crespelle carciofi e scamorza",
-        "Spaghetti datt. Rosso e stracciatella"
-      ],
-      secondi: [
-        "Braciola alla griglia e olio aromatico",
-        "Filetto di persico in crosta di erbe fine"
-      ],
-      contorni: [
-        "Patate arrosto",
-        "Verdure cotta di stagione"
-      ]
-    },
-    mercoledi: {
-      primi: [
-        "Lasagna al ragù bianco di pesce zucch. E lime",
-        "Bigoli al ragù alla Bolognese"
-      ],
-      secondi: [
-        "Hamburger di manzo in bella vista",
-        "Medaglione di maiale alla griglia"
-      ],
-      contorni: [
-        "Patate arrosto",
-        "Verdure cotta di stagione"
-      ]
-    },
-    giovedi: {
-      primi: [
-        "Gnocchi alla Sorrentina",
-        "Pasta alla puttanesca di mare"
-      ],
-      secondi: [
-        "Trancio di salm.alla griglia con zeste di arrancia",
-        "Bocco. Di pollo al limone e mandorle"
-      ],
-      contorni: [
-        "Patate arrosto",
-        "Verdure cotta di stagione"
-      ]
-    },
-    venerdi: {
-      primi: [
-        "Pasta pomodoro fetta e olive",
-        "Lasagna con verdure di stagione e brié"
-      ],
-      secondi: [
-        "Bistecca di scamone alla griglia",
-        "Coscetta di pollo al forno"
-      ],
-      contorni: [
-        "Patate arrosto",
-        "Verdure cotta di stagione"
-      ]
-    }
-  },
-  settimana4: {
-    lunedi: {
-      primi: [
-        "Lasagna al ragù alla Bolognese",
-        "Pasta con sals.datt.rosso,tropea e pecorino"
-      ],
-      secondi: [
-        "Paillard di tacchino alla griglia",
-        "Trancio di persico gratinato"
-      ],
-      contorni: [
-        "Patate arrosto",
-        "Verdure cotta di stagione"
-      ]
-    },
-    martedi: {
-      primi: [
-        "Crespelle prosciutto, funghi e mozzarella",
-        "Spaghettone cacio e pepe"
-      ],
-      secondi: [
-        "Lonza marinata con olio aromatico",
-        "Cotoletta di tacchino alla Milanese"
-      ],
-      contorni: [
-        "Patate arrosto",
-        "Verdure cotta di stagione"
-      ]
-    },
-    mercoledi: {
-      primi: [
-        "Macch. Al ragù bianco di vitello",
-        "Linguine mare e orto con pomod. E zucchine"
-      ],
-      secondi: [
-        "Filetto di orata piastrato",
-        "Bistecca di scamone alla griglia"
-      ],
-      contorni: [
-        "Patate arrosto",
-        "Verdure cotta di stagione"
-      ]
-    },
-    giovedi: {
-      primi: [
-        "Paella di carne e pesce",
-        "Tortellini di carne burro sfuso e salvia"
-      ],
-      secondi: [
-        "Bocc. Di pollo gratinati",
-        "Trancio di salmone alla griglia"
-      ],
-      contorni: [
-        "Patate arrosto",
-        "Verdure cotta di stagione"
-      ]
-    },
-    venerdi: {
-      primi: [
-        "Lasagna al ragù di pesce bianco e lime",
-        "Bigoli Al ragù alla Bolognese"
-      ],
-      secondi: [
-        "Costine in salsa BBQ",
-        "Spiedini di carne all'inglese"
-      ],
-      contorni: [
-        "Patate arrosto",
-        "Verdure cotta di stagione"
-      ]
-    }
-  }
-};
-
-// MENU FISSO - SEMPRE DISPONIBILE
-export const MENU_FISSO: MenuItem[] = [
-  // FOCACCE
+// PASTI PRONTI (11) — pronti da scaldare/consumare
+export const PRONTI: MenuItem[] = [
   {
-    nome: "Focaccia Praga (cotto, edamer, salsa tonnata)",
-    prezzo: PREZZI.focaccia,
-    categoria: 'focaccia',
-    disponibile: 'sempre',
-    immagine: '/images/focacce/focaccia-praga.jpg'
-  },
-  {
-    nome: "Focaccia Capri (pomodoro, mozzarella, basilico)",
-    prezzo: PREZZI.focaccia,
-    categoria: 'focaccia',
-    disponibile: 'sempre',
-    immagine: '/images/focacce/focaccia-capri.jpg'
-  },
-  {
-    nome: "Focaccia Milano (cotoletta, insalata, pomodoro, maionese)",
-    prezzo: PREZZI.focaccia,
-    categoria: 'focaccia',
-    disponibile: 'sempre',
-    immagine: '/images/focacce/focaccia-milano.jpg'
-  },
-  {
-    nome: "Focaccia Parma (crudo, mozzarella, basilico)",
-    prezzo: PREZZI.focaccia,
-    categoria: 'focaccia',
-    disponibile: 'sempre',
-    immagine: '/images/focacce/focaccia-parma.jpg'
-  },
-  {
-    nome: "Focaccia Valtellina (rucola, bresaola, Filadelfia)",
-    prezzo: PREZZI.focaccia,
-    categoria: 'focaccia',
-    disponibile: 'sempre',
-    immagine: '/images/focacce/focaccia-valtellina.jpg'
-  },
-  // PIADINE
-  {
-    nome: "Piadina cotto, squacquerone, rucola",
-    prezzo: PREZZI.piadina,
-    categoria: 'piadina',
-    disponibile: 'sempre',
-    immagine: '/images/piadine/piadina-cotto.jpg',
-    descrizione: 'Prosciutto cotto, squacquerone, rucola fresca'
-  },
-  {
-    nome: "Piadina crudo, squacquerone, rucola",
-    prezzo: PREZZI.piadina,
-    categoria: 'piadina',
-    disponibile: 'sempre',
-    immagine: '/images/piadine/piadina-crudo.jpg',
-    descrizione: 'Prosciutto crudo, squacquerone, rucola fresca'
-  },
-  // INSALATONE
-  {
-    nome: "Insalata Fumé",
-    prezzo: PREZZI.insalatona,
-    categoria: 'insalatona',
-    disponibile: 'sempre',
-    immagine: '/images/insalatone/insalatona-1.jpg',
-    descrizione: 'Valeriana, salmone affumicato, philadelphia, arancia, sesamo, crostini'
-  },
-  {
-    nome: "Insalata Prateria",
-    prezzo: PREZZI.insalatona,
-    categoria: 'insalatona',
-    disponibile: 'sempre',
-    immagine: '/images/insalatone/insalatona-2.jpg',
-    descrizione: 'Mista, rucola, pomodoro, carote, philadelphia, filacci di cavallo, capperi'
-  },
-  {
-    nome: "Insalata Trentina",
-    prezzo: PREZZI.insalatona,
-    categoria: 'insalatona',
-    disponibile: 'sempre',
-    immagine: '/images/insalatone/insalatona-3.jpg',
-    descrizione: 'Valeriana, patate, speck, scaglie di grana, aceto balsamico'
-  },
-  {
-    nome: "Insalata Ceasar",
-    prezzo: PREZZI.insalatona,
-    categoria: 'insalatona',
-    disponibile: 'sempre',
-    immagine: '/images/insalatone/insalatona-4.jpg',
-    descrizione: 'Rucola, pomodorini, uovo, pollo, crostini, salsa ceasar'
-  },
-  {
-    nome: "Insalata Re di Sapori",
-    prezzo: PREZZI.insalatona,
-    categoria: 'insalatona',
-    disponibile: 'sempre',
-    immagine: '/images/insalatone/insalatona-5.jpg',
-    descrizione: 'Valeriana, feta, olive taggiasche, pomodorini, peperoni, cetrioli'
-  },
-  {
-    nome: "Insalata Bufalina",
-    prezzo: PREZZI.insalatona,
-    categoria: 'insalatona',
-    disponibile: 'sempre',
-    immagine: '/images/insalatone/insalatona-6.jpg',
-    descrizione: 'Valeriana, pomodoro, mozzarella di bufala, basilico'
-  },
-  {
-    nome: "Insalata Tonnata",
-    prezzo: PREZZI.insalatona,
-    categoria: 'insalatona',
-    disponibile: 'sempre',
-    immagine: '/images/insalatone/insalatona-7.jpg',
-    descrizione: 'Valeriana, mozzarelline, uovo, tonno, pomodoro, carote'
-  },
-  {
-    nome: "Insalatona Valtellina",
-    prezzo: PREZZI.insalatona,
-    categoria: 'insalatona',
-    disponibile: 'sempre',
-    immagine: '/images/insalatone/insalatona-8.jpg',
-    descrizione: 'Mista, rucola, valeriana, bresaola, noci, scaglie di grana, crostini'
-  },
-  // EXTRA
-  {
-    nome: "Muffin albicocca",
-    prezzo: PREZZI.muffin,
-    categoria: 'extra',
-    disponibile: 'sempre',
-    immagine: '/images/extra/muffin-albicocca.jpg'
-  },
-  {
-    nome: "Macedonia di frutta",
-    prezzo: PREZZI.macedonia,
-    categoria: 'extra',
-    disponibile: 'sempre',
-    immagine: '/images/extra/macedonia.jpg'
-  },
-  {
-    nome: "Carne salada",
-    prezzo: PREZZI.carneSalada,
-    categoria: 'extra',
-    disponibile: 'sempre',
-    immagine: '/images/extra/carne-salada.jpg'
-  },
-  {
-    nome: "Roast beef",
-    prezzo: PREZZI.carneSalada,
-    categoria: 'extra',
-    disponibile: 'sempre',
-    immagine: '/images/extra/roast-beef.jpg'
-  },
-  // === NUOVO FORNITORE — CARNI PRONTE ===
-  {
-    nome: "Polpette proteiche",
-    prezzo: PREZZI.polpetteProteiche,
-    categoria: 'secondo',
+    nome: 'Polpette proteiche',
+    prezzo: 7.0,
+    categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/carni/polpette-proteiche.jpg',
-    descrizione: '8 polpette da 22/24g (184g totali) — pronte da scaldare'
+    descrizione: 'Polpette proteiche di carne. Pronte da scaldare in 2 minuti.',
+    peso: '184g',
+    formato: '8 pezzi da 22/24g',
   },
   {
-    nome: "Macinato bovino cotto",
-    prezzo: PREZZI.macinatoBovinoCotto,
-    categoria: 'secondo',
+    nome: 'Macinato bovino cotto',
+    prezzo: 10.0,
+    categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/carni/macinato-bovino-cotto.jpg',
-    descrizione: '300g — macinato di bovino cotto, pronto da scaldare'
+    descrizione: 'Macinato di bovino già cotto, pronto da scaldare.',
+    peso: '300g',
   },
   {
-    nome: "Roast beef bovino a fette",
-    prezzo: PREZZI.roastBeefFette,
-    categoria: 'extra',
+    nome: 'Roast beef bovino a fette',
+    prezzo: 9.0,
+    categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/carni/roast-beef-fette.jpg',
-    descrizione: '180g — roast beef di bovino a fette, pronto da consumare'
+    descrizione: 'Roast beef di bovino a fette, pronto da consumare.',
+    peso: '180g',
   },
   {
-    nome: "Insalata di pollo",
-    prezzo: PREZZI.insalataPollo,
-    categoria: 'insalatona',
+    nome: 'Insalata di pollo',
+    prezzo: 11.0,
+    categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/carni/insalata-pollo.jpg',
-    descrizione: '300g — insalata pronta con pollo, ricca di proteine'
+    descrizione: 'Insalata fredda di pollo, ricca di proteine. Pronta da consumare.',
+    peso: '300g',
   },
   {
-    nome: "Tagliata di pollo",
-    prezzo: PREZZI.tagliataPollo,
-    categoria: 'secondo',
+    nome: 'Tagliata di pollo',
+    prezzo: 6.0,
+    categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/carni/tagliata-pollo.jpg',
-    descrizione: '160g — tagliata di pollo già cotta'
+    descrizione: 'Tagliata di pollo già cotta, pronta da scaldare.',
+    peso: '160g',
   },
   {
-    nome: "Tagliata bovino cotta a fette",
-    prezzo: PREZZI.tagliataBovinoCottaFette,
-    categoria: 'secondo',
+    nome: 'Tagliata bovino cotta a fette',
+    prezzo: 9.0,
+    categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/carni/tagliata-bovino-cotta-fette.jpg',
-    descrizione: '180g — tagliata di bovino cotta a fette'
+    descrizione: 'Tagliata di bovino cotta a fette, pronta da consumare.',
+    peso: '180g',
   },
   {
-    nome: "Tagliata bovino cotta intera",
-    prezzo: PREZZI.tagliataBovinoCottaIntera,
-    categoria: 'secondo',
+    nome: 'Tagliata bovino cotta intera',
+    prezzo: 8.0,
+    categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/carni/tagliata-bovino-cotta-intera.jpg',
-    descrizione: '180g — tagliata di bovino cotta, monoporzione intera'
+    descrizione: 'Tagliata di bovino cotta, monoporzione intera. Pronta da scaldare.',
+    peso: '180g',
+    formato: 'monoporzione',
   },
   {
-    nome: "Tagliata bovino cotta affumicata",
-    prezzo: PREZZI.tagliataBovinoAffumicata,
-    categoria: 'extra',
+    nome: 'Tagliata bovino cotta affumicata',
+    prezzo: 5.0,
+    categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/carni/tagliata-bovino-affumicata.jpg',
-    descrizione: '100g — tagliata di bovino affumicata a fette'
+    descrizione: 'Tagliata di bovino affumicata a fette, pronta da consumare.',
+    peso: '100g',
   },
   {
-    nome: "Carne secca",
-    prezzo: PREZZI.carneSecca,
-    categoria: 'extra',
+    nome: 'Carne secca',
+    prezzo: 5.0,
+    categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/carni/carne-secca.jpg',
-    descrizione: '30g — snack proteico ad alta densità'
+    descrizione: 'Snack proteico ad alta densità. Pronto da consumare.',
+    peso: '30g',
   },
   {
-    nome: "Verdure cotte bio",
-    prezzo: PREZZI.verdureCotteBio,
-    categoria: 'extra',
+    nome: 'Verdure cotte bio',
+    prezzo: 8.0,
+    categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/carni/verdure-cotte-bio.jpg',
-    descrizione: '300g — verdure di stagione cotte, biologiche'
+    descrizione: 'Verdure di stagione cotte, biologiche. Pronte da scaldare.',
+    peso: '300g',
   },
-  // === NUOVO FORNITORE — CARNI CRUDE DA CUOCERE ===
   {
-    nome: "Macinato bovino crudo",
-    prezzo: PREZZI.macinatoBovinoCrudo,
-    categoria: 'extra',
+    nome: 'Tartare di bovino',
+    prezzo: 6.0,
+    categoria: 'pronto',
+    disponibile: 'sempre',
+    immagine: '/images/carni/tartare-bovino.jpg',
+    descrizione: 'Tartare di bovino fresca, pronta da condire e consumare.',
+    peso: '150g',
+  },
+];
+
+// DA CUCINARE (3) — carni crude per la tua preparazione
+export const DA_CUCINARE: MenuItem[] = [
+  {
+    nome: 'Macinato bovino crudo',
+    prezzo: 11.0,
+    categoria: 'da-cuocere',
     disponibile: 'sempre',
     immagine: '/images/carni/macinato-bovino-crudo.jpg',
-    descrizione: '500g — macinato di bovino crudo, da cuocere'
+    descrizione: 'Macinato di bovino crudo, da cuocere a casa.',
+    peso: '500g',
   },
   {
-    nome: "Carne cruda bovino",
-    prezzo: PREZZI.carneCrudaBovino,
-    categoria: 'extra',
-    disponibile: 'sempre',
-    immagine: '/images/carni/carne-cruda-bovino.jpg',
-    descrizione: '150g — carne cruda di bovino, pronta da condire'
-  },
-  {
-    nome: "Hamburger bovino",
-    prezzo: PREZZI.hamburgerBovino,
-    categoria: 'extra',
+    nome: 'Hamburger bovino',
+    prezzo: 6.0,
+    categoria: 'da-cuocere',
     disponibile: 'sempre',
     immagine: '/images/carni/hamburger-bovino.jpg',
-    descrizione: '2 hamburger da 120/180g (240g totali) — da cuocere'
+    descrizione: 'Hamburger di bovino, da cuocere alla griglia o piastra.',
+    peso: '240g',
+    formato: '2 pezzi da 120/180g',
   },
   {
-    nome: "Tagliata bovino adulto",
-    prezzo: PREZZI.tagliataBovinoAdulto,
-    categoria: 'extra',
+    nome: 'Tagliata bovino adulto',
+    prezzo: 15.0,
+    categoria: 'da-cuocere',
     disponibile: 'sempre',
     immagine: '/images/carni/tagliata-bovino-adulto.jpg',
-    descrizione: '2 pezzi da 200g (400g totali) — tagliata di bovino adulto, da cuocere'
-  }
+    descrizione: 'Tagliata di bovino adulto, da cuocere alla griglia.',
+    peso: '400g',
+    formato: '2 pezzi da 200g',
+  },
 ];
 
-// MENU COMBO - SEMPRE DISPONIBILE
-export const MENU_COMBO: MenuItem[] = [
-  {
-    nome: "Combo Primo + Contorno",
-    prezzo: PREZZI.comboPrimoContorno,
-    categoria: 'combo',
-    disponibile: 'sempre',
-    immagine: '/images/combo/combo-primo-contorno.jpg',
-    descrizione: 'Scegli un primo del giorno + un contorno. Risparmi €1,40!'
-  },
-  {
-    nome: "Combo Secondo + Contorno",
-    prezzo: PREZZI.comboSecondoContorno,
-    categoria: 'combo',
-    disponibile: 'sempre',
-    immagine: '/images/combo/combo-secondo-contorno.jpg',
-    descrizione: 'Scegli un secondo del giorno + un contorno. Risparmi €1,20!'
-  },
-  {
-    nome: "Combo Completo (Primo + Secondo + Contorno)",
-    prezzo: PREZZI.comboPrimoSecondoContorno,
-    categoria: 'combo',
-    disponibile: 'sempre',
-    immagine: '/images/combo/combo-completo.jpg',
-    descrizione: 'Il menu completo: primo, secondo e contorno del giorno. Risparmi €2,30!'
-  },
-  {
-    nome: "Combo Primo + Macedonia",
-    prezzo: PREZZI.comboPrimoMacedonia,
-    categoria: 'combo',
-    disponibile: 'sempre',
-    immagine: '/images/combo/combo-primo-macedonia.jpg',
-    descrizione: 'Scegli un primo del giorno + macedonia fresca. Risparmi €1,50!'
-  },
-  {
-    nome: "Combo Secondo + Macedonia",
-    prezzo: PREZZI.comboSecondoMacedonia,
-    categoria: 'combo',
-    disponibile: 'sempre',
-    immagine: '/images/combo/combo-secondo-macedonia.jpg',
-    descrizione: 'Scegli un secondo del giorno + macedonia fresca. Risparmi €1,30!'
-  }
-];
+// Tutti i prodotti, utile per ricerche e lookup
+export const TUTTI_PRODOTTI: MenuItem[] = [...PRONTI, ...DA_CUCINARE];
 
-// FUNZIONE PRINCIPALE PER OTTENERE IL MENU DI UN GIORNO SPECIFICO
-export function getMenuGiornoSpecifico(data: Date) {
-  const settimanaNum = getSettimanaFromDate(data);
-  const giorno = getGiornoSettimana(data);
-  
-  // Controlla se è weekend (sabato o domenica)
-  if (giorno === 'sabato' || giorno === 'domenica') {
-    return {
-      data: data.toLocaleDateString('it-IT', { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      }),
-      settimana: `settimana${settimanaNum}`,
-      giorno,
-      isWeekend: true,
-      menuGiornaliero: {
-        primi: [],
-        secondi: [],
-        contorni: []
-      }
-    };
-  }
-  
-  const settimana = `settimana${settimanaNum}`;
-  const menuSettimana = MENU_ROTATIVO[settimana];
-  const menuGiorno = menuSettimana[giorno as keyof MenuSettimana];
-  
+// ===== BACKWARD COMPATIBILITY =====
+// Mantenuti per non rompere import esistenti durante la migrazione.
+// MENU_FISSO ora include solo i nuovi prodotti.
+export const MENU_FISSO: MenuItem[] = TUTTI_PRODOTTI;
+
+// Menu combo eliminato (non più offerto)
+export const MENU_COMBO: MenuItem[] = [];
+
+// Prezzi legacy (alcune pagine admin possono leggere PREZZI)
+export const PREZZI = {
+  primo: 6.5,
+  secondo: 7.5,
+  contorno: 3.9,
+  focaccia: 7.5,
+  piadina: 7.5,
+  insalatona: 8.5,
+  muffin: 2.5,
+  macedonia: 5.0,
+  carneSalada: 7.5,
+  comboPrimoContorno: 9.0,
+  comboSecondoContorno: 10.2,
+  comboPrimoSecondoContorno: 15.6,
+  comboPrimoMacedonia: 10.0,
+  comboSecondoMacedonia: 11.2,
+};
+
+// Funzione legacy mantenuta per non rompere /ordina vecchio durante migrazione.
+// Ritorna struttura vuota (no più menu del giorno).
+export function getMenuGiornoSpecifico(_data: Date) {
   return {
-    data: data.toLocaleDateString('it-IT', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    }),
-    settimana,
-    giorno,
+    data: '',
+    settimana: '',
+    giorno: '',
     isWeekend: false,
     menuGiornaliero: {
-      primi: menuGiorno.primi.map(nome => ({
-        nome,
-        prezzo: PREZZI.primo,
-        categoria: 'primo' as const,
-        disponibile: 'giornaliero' as const,
-        immagine: generateImagePath(nome, 'primi')
-      })),
-      secondi: menuGiorno.secondi.map(nome => ({
-        nome,
-        prezzo: PREZZI.secondo,
-        categoria: 'secondo' as const,
-        disponibile: 'giornaliero' as const,
-        immagine: generateImagePath(nome, 'secondi')
-      })),
-      contorni: menuGiorno.contorni.map(nome => ({
-        nome,
-        prezzo: PREZZI.contorno,
-        categoria: 'contorno' as const,
-        disponibile: 'giornaliero' as const,
-        immagine: generateImagePath(nome, 'contorni')
-      }))
-    }
+      primi: [] as MenuItem[],
+      secondi: [] as MenuItem[],
+      contorni: [] as MenuItem[],
+    },
   };
 }
 
-// FUNZIONE PER OTTENERE IL MENU DEL GIORNO CORRENTE
 export function getMenuDelGiorno() {
   return getMenuGiornoSpecifico(new Date());
 }
 
-// FUNZIONE PER OTTENERE IL MENU DELLA SETTIMANA CORRENTE
 export function getMenuSettimanale() {
-  const oggi = new Date();
-  const settimanaNum = getSettimanaFromDate(oggi);
-  const settimana = `settimana${settimanaNum}`;
-  const menuSettimana = MENU_ROTATIVO[settimana];
-  
-  const result: any = {};
-  const giorni: (keyof MenuSettimana)[] = ['lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi'];
-  
-  giorni.forEach(giorno => {
-    result[giorno] = {
-      primi: menuSettimana[giorno].primi.map(nome => ({
-        nome,
-        prezzo: PREZZI.primo,
-        categoria: 'primo',
-        disponibile: 'giornaliero',
-        immagine: generateImagePath(nome, 'primi')
-      })),
-      secondi: menuSettimana[giorno].secondi.map(nome => ({
-        nome,
-        prezzo: PREZZI.secondo,
-        categoria: 'secondo',
-        disponibile: 'giornaliero',
-        immagine: generateImagePath(nome, 'secondi')
-      })),
-      contorni: menuSettimana[giorno].contorni.map(nome => ({
-        nome,
-        prezzo: PREZZI.contorno,
-        categoria: 'contorno',
-        disponibile: 'giornaliero',
-        immagine: generateImagePath(nome, 'contorni')
-      }))
-    };
-  });
-  
   return {
-    settimana,
-    menu: result,
+    settimana: '',
+    menu: {},
     menuFisso: MENU_FISSO,
-    menuCombo: MENU_COMBO
+    menuCombo: MENU_COMBO,
   };
 }
 
-// FUNZIONE PER CERCARE UN PIATTO
+// Ricerca prodotto per nome
 export function cercaPiatto(termine: string): MenuItem[] {
-  const risultati: MenuItem[] = [];
-  const termineRicerca = termine.toLowerCase();
-  
-  MENU_FISSO.forEach(item => {
-    if (item.nome.toLowerCase().includes(termineRicerca)) {
-      risultati.push(item);
-    }
-  });
-  
-  MENU_COMBO.forEach(item => {
-    if (item.nome.toLowerCase().includes(termineRicerca)) {
-      risultati.push(item);
-    }
-  });
-  
-  Object.values(MENU_ROTATIVO).forEach(settimana => {
-    Object.values(settimana).forEach(giorno => {
-      giorno.primi.forEach((primo: string) => {
-        if (primo.toLowerCase().includes(termineRicerca)) {
-          risultati.push({
-            nome: primo,
-            prezzo: PREZZI.primo,
-            categoria: 'primo',
-            disponibile: 'giornaliero',
-            immagine: generateImagePath(primo, 'primi')
-          });
-        }
-      });
-      giorno.secondi.forEach((secondo: string) => {
-        if (secondo.toLowerCase().includes(termineRicerca)) {
-          risultati.push({
-            nome: secondo,
-            prezzo: PREZZI.secondo,
-            categoria: 'secondo',
-            disponibile: 'giornaliero',
-            immagine: generateImagePath(secondo, 'secondi')
-          });
-        }
-      });
-      giorno.contorni.forEach((contorno: string) => {
-        if (contorno.toLowerCase().includes(termineRicerca)) {
-          risultati.push({
-            nome: contorno,
-            prezzo: PREZZI.contorno,
-            categoria: 'contorno',
-            disponibile: 'giornaliero',
-            immagine: generateImagePath(contorno, 'contorni')
-          });
-        }
-      });
-    });
-  });
-  
-  return risultati.filter((item, index, self) =>
-    index === self.findIndex((t) => t.nome === item.nome)
-  );
+  const t = termine.toLowerCase();
+  return TUTTI_PRODOTTI.filter((p) => p.nome.toLowerCase().includes(t));
 }

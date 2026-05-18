@@ -54,19 +54,8 @@ export default function CartModal({
     return getTotalItems() >= minimumItems;
   };
 
-  // Calcola risparmio totale dai combo
-  const getTotalSavings = () => {
-    return items.reduce((total, item) => {
-      if (item.categoria === 'combo' && item.descrizione) {
-        const match = item.descrizione.match(/Risparmi €([\d,]+)/);
-        if (match) {
-          const saving = parseFloat(match[1].replace(',', '.'));
-          return total + (saving * item.quantity);
-        }
-      }
-      return total;
-    }, 0);
-  };
+  // Combo eliminati: nessun savings calcolato
+  const getTotalSavings = () => 0;
 
   // Raggruppa items per categoria
   const groupedItems = items.reduce((acc, item) => {
@@ -80,14 +69,17 @@ export default function CartModal({
 
   const getCategoryLabel = (category: string) => {
     switch(category) {
-      case 'primo': return '🍝 Primi Piatti';
-      case 'secondo': return '🥘 Secondi Piatti';
-      case 'contorno': return '🥗 Contorni';
-      case 'combo': return '🍱 Menu Combo';
-      case 'focaccia': return '🥖 Focacce';
-      case 'piadina': return '🌯 Piadine';
-      case 'insalatona': return '🥗 Insalatone';
-      case 'extra': return '✨ Extra';
+      case 'pronto': return 'Pasti pronti';
+      case 'da-cuocere': return 'Da cucinare';
+      // Legacy support
+      case 'primo': return 'Primi Piatti';
+      case 'secondo': return 'Secondi Piatti';
+      case 'contorno': return 'Contorni';
+      case 'combo': return 'Menu Combo';
+      case 'focaccia': return 'Focacce';
+      case 'piadina': return 'Piadine';
+      case 'insalatona': return 'Insalatone';
+      case 'extra': return 'Extra';
       default: return category;
     }
   };
@@ -129,7 +121,7 @@ export default function CartModal({
               </p>
               <button
                 onClick={onClose}
-                className="mt-6 bg-gradient-to-r from-orange-500 to-amber-500 text-white px-6 py-2 rounded-lg hover:shadow-lg transition-all"
+                className="mt-6 bg-gradient-to-r from-primary-500 to-primary-600 text-white px-6 py-2 rounded-lg hover:shadow-lg transition-all"
               >
                 Continua lo Shopping
               </button>
@@ -199,7 +191,7 @@ export default function CartModal({
                           
                           {/* Prezzo */}
                           <div className="text-right">
-                            <span className="font-bold text-orange-600">
+                            <span className="font-bold text-primary-600">
                               €{(item.prezzo * item.quantity).toFixed(2)}
                             </span>
                             {item.quantity > 1 && (
@@ -254,7 +246,7 @@ export default function CartModal({
               
               <div className="flex justify-between items-center pt-2 border-t">
                 <span className="text-lg font-bold text-gray-800">Totale</span>
-                <span className="text-2xl font-bold text-orange-600">
+                <span className="text-2xl font-bold text-primary-600">
                   €{getOriginalPrice().toFixed(2)}
                 </span>
               </div>
@@ -266,7 +258,7 @@ export default function CartModal({
               disabled={!hasMinimumItems()}
               className={`w-full py-3 rounded-lg font-semibold text-lg transition-all duration-300 flex items-center justify-center gap-2 ${
                 hasMinimumItems()
-                  ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:shadow-lg hover:scale-105'
+                  ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:shadow-lg hover:scale-105'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             >

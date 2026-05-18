@@ -18,7 +18,6 @@ import {
   Beef,
   Activity,
   MapPin,
-  Star,
   ChevronDown,
   ChevronUp,
   PlayCircle,
@@ -83,24 +82,6 @@ export default function LandingPage() {
     { feature: 'Nessun abbonamento obbligatorio', us: true, gastronomy: true, mealKit: false },
     { feature: 'Devi cucinare tu', us: false, gastronomy: false, mealKit: true },
     { feature: 'Prezzo medio a pasto', us: '€6,50 – €8,50', gastronomy: '€10 – €13', mealKit: '€9 – €12' },
-  ];
-
-  const testimonials = [
-    {
-      name: 'Marco R.',
-      role: 'Imprenditore, 42',
-      text: 'Tornavo a casa alle 21 e finivo a mangiare male. Da quando uso Pasto Sano ho recuperato un’ora al giorno e ho perso 6 kg in 4 mesi.',
-    },
-    {
-      name: 'Laura B.',
-      role: 'Manager, 38',
-      text: 'Cercavo qualcosa che non sembrasse “cibo da palestra”. I piatti sono curati, le porzioni giuste, e la pasta a pranzo c’è ancora.',
-    },
-    {
-      name: 'Giuseppe T.',
-      role: 'Atleta amatoriale, 35',
-      text: 'Andrea conosce il mestiere. Mi alleno 5 volte a settimana e finalmente non devo più pensare a cosa preparare per pranzo.',
-    },
   ];
 
   const faqData = [
@@ -207,7 +188,6 @@ export default function LandingPage() {
               {[
                 { id: 'come-funziona', label: 'Come funziona' },
                 { id: 'chi-sono', label: 'Andrea' },
-                { id: 'recensioni', label: 'Recensioni' },
                 { id: 'faq', label: 'FAQ' },
               ].map((item) => (
                 <button
@@ -247,7 +227,6 @@ export default function LandingPage() {
               {[
                 { id: 'come-funziona', label: 'Come funziona' },
                 { id: 'chi-sono', label: 'Andrea' },
-                { id: 'recensioni', label: 'Recensioni' },
                 { id: 'faq', label: 'FAQ' },
               ].map((item) => (
                 <button
@@ -312,25 +291,6 @@ export default function LandingPage() {
                 </button>
               </div>
 
-              {/* Trust row */}
-              <div className="flex flex-wrap gap-6 pt-6 border-t border-white/10">
-                <div className="flex items-center gap-2">
-                  <div className="flex">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-lemon-400 text-lemon-400" />
-                    ))}
-                  </div>
-                  <span className="text-sm text-white/80">
-                    <span className="font-semibold">4.9</span> Google
-                  </span>
-                </div>
-                <div className="text-sm text-white/80">
-                  <span className="font-semibold text-white">15.000+</span> pasti consegnati
-                </div>
-                <div className="text-sm text-white/80">
-                  <span className="font-semibold text-white">500+</span> clienti
-                </div>
-              </div>
             </div>
 
             {/* Andrea image */}
@@ -752,41 +712,6 @@ export default function LandingPage() {
                 title="Tribù Studio Verona"
               />
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section id="recensioni" className="py-20 lg:py-28 bg-ink-50">
-        <div className="container mx-auto px-4 lg:px-8">
-          <div className="max-w-3xl mb-14">
-            <div className="text-primary-600 font-semibold text-sm uppercase tracking-wider mb-3">
-              Cosa dicono i clienti
-            </div>
-            <h2 className="font-display font-black text-4xl lg:text-6xl leading-[0.95] tracking-tightest uppercase">
-              Storie vere.
-              <br />
-              <span className="text-ink-400">Niente filtri.</span>
-            </h2>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
-            {testimonials.map((t, i) => (
-              <div key={i} className="bg-white rounded-3xl p-7 shadow-card">
-                <div className="flex mb-4">
-                  {[...Array(5)].map((_, s) => (
-                    <Star key={s} className="w-4 h-4 fill-lemon-400 text-lemon-400" />
-                  ))}
-                </div>
-                <p className="text-ink-700 leading-relaxed mb-6 text-base lg:text-lg">
-                  &ldquo;{t.text}&rdquo;
-                </p>
-                <div className="pt-4 border-t border-ink-100">
-                  <div className="font-display font-bold text-ink-950">{t.name}</div>
-                  <div className="text-sm text-ink-500">{t.role}</div>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </section>

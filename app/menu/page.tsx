@@ -1,402 +1,307 @@
+// E:\pasto-sano\app\menu\page.tsx
 'use client';
 
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { useState } from 'react';
-import { ShoppingCart, Plus, Heart, Star, Clock, Truck } from 'lucide-react';
-
-// Definizione prodotti con percorsi immagini locali
-const mainMeals = [
-  {
-    id: 1,
-    name: "Fusilli, Macinato Manzo, Zucchine, Melanzane",
-    description: "Piatto completo con fusilli integrali, verdure grigliate e manzo magro.",
-    image: "/images/meals/fusilli-manzo-zucchine-melanzane.jpg",
-    price: 8.50,
-    calories: 520,
-    protein: 28,
-    category: "pasta"
-  },
-  {
-    id: 2,
-    name: "Roastbeef, Patate al Forno, Fagiolini",
-    description: "Tagliata di roastbeef con contorno di patate e fagiolini freschi.",
-    image: "/images/meals/roastbeef-patate-fagiolini.jpg",
-    price: 8.50,
-    calories: 480,
-    protein: 35,
-    category: "carne"
-  },
-  {
-    id: 3,
-    name: "Riso, Hamburger Manzo, Carotine Baby",
-    description: "Hamburger di manzo cotto alla griglia con contorno e riso basmati.",
-    image: "/images/meals/riso-hamburger-carotine.jpg",
-    price: 8.50,
-    calories: 510,
-    protein: 32,
-    category: "carne"
-  },
-  {
-    id: 4,
-    name: "Riso Nero, Gamberi, Tonno, Piselli",
-    description: "Riso venere con pesce e verdure leggere.",
-    image: "/images/meals/riso-nero-gamberi-tonno-piselli.jpg",
-    price: 8.50,
-    calories: 450,
-    protein: 30,
-    category: "pesce"
-  },
-  {
-    id: 5,
-    name: "Patate, Salmone Grigliato, Broccoli",
-    description: "Salmone alla griglia con patate al forno e broccoli al vapore.",
-    image: "/images/meals/patate-salmone-broccoli.jpg",
-    price: 8.50,
-    calories: 490,
-    protein: 34,
-    category: "pesce"
-  },
-  {
-    id: 6,
-    name: "Pollo Grigliato, Patate al Forno, Zucchine",
-    description: "Filetto di pollo alla griglia con contorno classico.",
-    image: "/images/meals/pollo-patate-zucchine.jpg",
-    price: 8.50,
-    calories: 460,
-    protein: 36,
-    category: "carne"
-  },
-  {
-    id: 7,
-    name: "Orzo, Ceci, Feta, Pomodorini, Basilico",
-    description: "Insalata di orzo fredda, ricca di proteine e gusto mediterraneo.",
-    image: "/images/meals/orzo-ceci-feta-pomodorini.jpg",
-    price: 8.50,
-    calories: 420,
-    protein: 18,
-    category: "vegetariano"
-  },
-  {
-    id: 8,
-    name: "Tortillas, Tacchino Affumicato, Hummus Ceci, Insalata",
-    description: "Wrap light con proteine magre e crema di ceci.",
-    image: "/images/meals/tortillas-tacchino-hummus.jpg",
-    price: 8.50,
-    calories: 380,
-    protein: 26,
-    category: "wrap"
-  },
-  {
-    id: 9,
-    name: "Tortillas, Salmone Affumicato, Formaggio Spalmabile, Insalata",
-    description: "Wrap gustoso con salmone affumicato e insalata fresca.",
-    image: "/images/meals/tortillas-salmone-formaggio.jpg",
-    price: 8.50,
-    calories: 390,
-    protein: 24,
-    category: "wrap"
-  },
-  {
-    id: 10,
-    name: "Riso, Pollo al Curry, Zucchine",
-    description: "Piatto speziato con pollo al curry e verdure leggere.",
-    image: "/images/meals/riso-pollo-curry-zucchine.jpg",
-    price: 8.50,
-    calories: 470,
-    protein: 31,
-    category: "carne"
-  }
-];
-
-const breakfastMeals = [
-  {
-    id: 11,
-    name: "Uova Strapazzate, Bacon, Frutti di Bosco",
-    description: "Colazione salata e proteica con uova e frutti rossi freschi.",
-    image: "/images/meals/uova-bacon-frutti-bosco.jpg",
-    price: 6.00,
-    calories: 320,
-    protein: 22,
-    category: "colazione"
-  },
-  {
-    id: 12,
-    name: "Pancakes",
-    description: "Colazione dolce e bilanciata per iniziare al meglio la giornata.",
-    image: "/images/meals/pancakes.jpg",
-    price: 6.00,
-    calories: 350,
-    protein: 12,
-    category: "colazione"
-  }
-];
+import Link from 'next/link';
+import {
+  ArrowRight,
+  ShoppingCart,
+  MessageCircle,
+  Menu as MenuIcon,
+  X,
+  Flame,
+  ChefHat,
+  Package,
+} from 'lucide-react';
+import { PRONTI, DA_CUCINARE, type MenuItem } from '@/lib/menuRotativo';
 
 export default function MenuPage() {
-  const [selectedCategory, setSelectedCategory] = useState<'tutti' | 'main' | 'breakfast'>('tutti');
-  const [hoveredMeal, setHoveredMeal] = useState<number | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [activeTab, setActiveTab] = useState<'tutti' | 'pronti' | 'da-cuocere'>('tutti');
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 24);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const whatsappUrl =
+    'https://wa.me/393478881515?text=Ciao%20Pasto%20Sano%2C%20vorrei%20info%20sul%20menu';
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
+    <div className="min-h-screen bg-white text-ink-950 font-sans">
+      {/* Sticky CTA mobile */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-ink-950 border-t border-ink-800 px-4 py-3 shadow-2xl">
+        <div className="flex items-center gap-2">
+          <Link
+            href="/ordina"
+            className="flex-1 bg-primary-500 hover:bg-primary-600 text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95"
+          >
+            <ShoppingCart className="w-5 h-5" />
+            Ordina ora
+          </Link>
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="WhatsApp"
+            className="bg-[#25D366] hover:bg-[#1da851] text-white p-3 rounded-xl transition-all active:scale-95"
+          >
+            <MessageCircle className="w-5 h-5" />
+          </a>
+        </div>
+      </div>
+
       {/* Header */}
-      <div className="bg-gradient-to-r from-green-700 to-green-500 text-white">
-        <div className="max-w-7xl mx-auto px-4 py-16">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-center">
-            📋 Il Nostro Menu
-          </h1>
-          <p className="text-xl text-center mb-8 opacity-95">
-            Pasti sani e gustosi, preparati con ingredienti freschi ogni giorno
+      <header
+        className={`fixed top-0 inset-x-0 z-40 transition-all duration-300 ${
+          isScrolled
+            ? 'bg-ink-950/95 backdrop-blur-md border-b border-ink-800 py-3'
+            : 'bg-ink-950 py-4'
+        }`}
+      >
+        <nav className="container mx-auto px-4 lg:px-8">
+          <div className="flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-3">
+              <Image src="/images/logo.png" alt="Pasto Sano" width={40} height={40} className="rounded-lg" />
+              <span className="text-white font-display font-bold text-xl tracking-tightest">
+                PASTO<span className="text-primary-500">.</span>SANO
+              </span>
+            </Link>
+
+            <div className="hidden lg:flex items-center gap-1">
+              <Link href="/" className="text-white/80 hover:text-white px-4 py-2 text-sm font-medium">
+                Home
+              </Link>
+              <Link href="/menu" className="text-white px-4 py-2 text-sm font-medium border-b-2 border-primary-500">
+                Menu
+              </Link>
+              <Link
+                href="/ordina"
+                className="ml-3 bg-primary-500 hover:bg-primary-600 text-white font-semibold px-5 py-2.5 rounded-full text-sm transition-all hover:shadow-glow-primary"
+              >
+                Ordina ora
+              </Link>
+            </div>
+
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="lg:hidden p-2 text-white"
+              aria-label="Menu"
+            >
+              {isMenuOpen ? <X className="w-6 h-6" /> : <MenuIcon className="w-6 h-6" />}
+            </button>
+          </div>
+
+          {isMenuOpen && (
+            <div className="lg:hidden mt-4 pb-2 border-t border-ink-800 pt-4 space-y-1">
+              <Link href="/" className="block text-white/80 hover:text-white px-2 py-3 text-base font-medium border-b border-ink-800">
+                Home
+              </Link>
+              <Link href="/menu" className="block text-white px-2 py-3 text-base font-medium border-b border-ink-800">
+                Menu
+              </Link>
+              <Link
+                href="/ordina"
+                className="block w-full bg-primary-500 text-white font-semibold py-3 rounded-xl text-center mt-3"
+              >
+                Ordina ora
+              </Link>
+            </div>
+          )}
+        </nav>
+      </header>
+
+      {/* Hero */}
+      <section className="relative bg-ink-950 text-white pt-28 lg:pt-36 pb-12 lg:pb-16 overflow-hidden">
+        <div className="absolute top-0 -left-32 w-96 h-96 bg-primary-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="container mx-auto px-4 lg:px-8 relative z-10">
+          <div className="max-w-4xl">
+            <div className="inline-flex items-center gap-2 bg-primary-500/10 border border-primary-500/30 text-primary-400 px-4 py-1.5 rounded-full text-sm font-medium mb-6">
+              <Package className="w-4 h-4" />
+              Il nostro menu
+            </div>
+            <h1 className="font-display font-black tracking-tightest text-5xl sm:text-6xl lg:text-7xl leading-[0.95] uppercase mb-6">
+              Carne di qualità.
+              <br />
+              <span className="text-primary-500">Pronta o da cuocere.</span>
+            </h1>
+            <p className="text-lg lg:text-xl text-white/80 max-w-2xl">
+              Pasti pronti da scaldare in 2 minuti e tagli freschi da cuocere a casa.
+              Selezionati per i clienti di Tribù Studio.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Tabs filter */}
+      <div className="sticky top-[68px] lg:top-[76px] z-30 bg-white border-b border-ink-100">
+        <div className="container mx-auto px-4 lg:px-8 py-4">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+            {[
+              { key: 'tutti', label: 'Tutti', count: PRONTI.length + DA_CUCINARE.length },
+              { key: 'pronti', label: 'Pronti', count: PRONTI.length },
+              { key: 'da-cuocere', label: 'Da cucinare', count: DA_CUCINARE.length },
+            ].map((tab) => {
+              const active = activeTab === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key as any)}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all border ${
+                    active
+                      ? 'bg-ink-950 text-white border-ink-950'
+                      : 'bg-white text-ink-700 border-ink-200 hover:border-ink-400'
+                  }`}
+                >
+                  {tab.label}
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full ${
+                      active ? 'bg-primary-500 text-white' : 'bg-ink-100 text-ink-600'
+                    }`}
+                  >
+                    {tab.count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <main className="container mx-auto px-4 lg:px-8 py-12 lg:py-16">
+        {/* PASTI PRONTI */}
+        {(activeTab === 'tutti' || activeTab === 'pronti') && (
+          <section className="mb-16">
+            <SectionHeader
+              eyebrow="Pasti pronti"
+              title="Pronti da scaldare"
+              desc="Apri la confezione, 2 minuti al microonde o in padella, mangi."
+              icon={<Flame className="w-5 h-5" />}
+            />
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6 mt-8">
+              {PRONTI.map((item, i) => (
+                <ProductCard key={i} item={item} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* DA CUCINARE */}
+        {(activeTab === 'tutti' || activeTab === 'da-cuocere') && (
+          <section>
+            <SectionHeader
+              eyebrow="Da cucinare"
+              title="Carne fresca da cuocere"
+              desc="Tagli freschi selezionati. Cuoci a casa come preferisci."
+              icon={<ChefHat className="w-5 h-5" />}
+            />
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6 mt-8">
+              {DA_CUCINARE.map((item, i) => (
+                <ProductCard key={i} item={item} />
+              ))}
+            </div>
+          </section>
+        )}
+      </main>
+
+      {/* CTA finale */}
+      <section className="bg-ink-950 text-white py-16 lg:py-24">
+        <div className="container mx-auto px-4 lg:px-8 text-center max-w-2xl">
+          <h2 className="font-display font-black text-4xl lg:text-5xl tracking-tightest uppercase mb-4">
+            Pronto a ordinare?
+          </h2>
+          <p className="text-white/80 mb-8">
+            Ritiro in Via Albere, dentro Tribù Studio. Ordina entro le 18:00 per il ritiro del giorno dopo.
           </p>
-          
-          {/* Badges informativi */}
-          <div className="flex justify-center gap-4 flex-wrap">
-            <div className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 flex items-center gap-2">
-              <Truck className="w-5 h-5" />
-              <span>Consegna Gratuita</span>
-            </div>
-            <div className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 flex items-center gap-2">
-              <Clock className="w-5 h-5" />
-              <span>Preparazione Giornaliera</span>
-            </div>
-            <div className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 flex items-center gap-2">
-              <Star className="w-5 h-5" />
-              <span>Ingredienti Premium</span>
-            </div>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              href="/ordina"
+              className="bg-primary-500 hover:bg-primary-600 text-white font-semibold px-7 py-4 rounded-full inline-flex items-center justify-center gap-2 transition-all hover:shadow-glow-primary"
+            >
+              Vai al carrello
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white font-semibold px-7 py-4 rounded-full inline-flex items-center justify-center gap-2 transition-all"
+            >
+              <MessageCircle className="w-5 h-5" />
+              Chiedi info
+            </a>
           </div>
         </div>
-      </div>
+      </section>
+    </div>
+  );
+}
 
-      {/* Filtri Categoria */}
-      <div className="sticky top-0 bg-white shadow-md z-30">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex justify-center gap-4">
-            <button
-              onClick={() => setSelectedCategory('tutti')}
-              className={`px-6 py-2 rounded-full font-semibold transition-all ${
-                selectedCategory === 'tutti'
-                  ? 'bg-gradient-to-r from-green-600 to-green-500 text-white shadow-lg scale-105'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              🍽️ Tutti i Piatti
-            </button>
-            <button
-              onClick={() => setSelectedCategory('main')}
-              className={`px-6 py-2 rounded-full font-semibold transition-all ${
-                selectedCategory === 'main'
-                  ? 'bg-gradient-to-r from-green-600 to-green-500 text-white shadow-lg scale-105'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              🥘 Piatti Principali (€8.50)
-            </button>
-            <button
-              onClick={() => setSelectedCategory('breakfast')}
-              className={`px-6 py-2 rounded-full font-semibold transition-all ${
-                selectedCategory === 'breakfast'
-                  ? 'bg-gradient-to-r from-green-600 to-green-500 text-white shadow-lg scale-105'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              🍳 Colazioni (€6.00)
-            </button>
-          </div>
+function SectionHeader({
+  eyebrow,
+  title,
+  desc,
+  icon,
+}: {
+  eyebrow: string;
+  title: string;
+  desc: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <div className="max-w-2xl">
+      <div className="flex items-center gap-2 text-primary-600 font-semibold text-sm uppercase tracking-wider mb-3">
+        {icon}
+        {eyebrow}
+      </div>
+      <h2 className="font-display font-black text-3xl lg:text-5xl leading-[0.95] tracking-tightest uppercase mb-3">
+        {title}
+      </h2>
+      <p className="text-ink-600 text-base lg:text-lg">{desc}</p>
+    </div>
+  );
+}
+
+function ProductCard({ item }: { item: MenuItem }) {
+  return (
+    <div className="group bg-white rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 flex flex-col">
+      <div className="relative aspect-square overflow-hidden bg-ink-100">
+        <Image
+          src={item.immagine}
+          alt={item.nome}
+          fill
+          className="object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+        <div className="absolute top-3 left-3 bg-ink-950/80 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
+          {item.peso}
         </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        {/* Sezione Piatti Principali */}
-        {(selectedCategory === 'tutti' || selectedCategory === 'main') && (
-          <div className="mb-12">
-            {selectedCategory === 'tutti' && (
-              <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-gray-800 mb-2">
-                  🥘 Piatti Principali
-                </h2>
-                <p className="text-gray-600">Tutti i piatti completi a soli €8.50</p>
-              </div>
-            )}
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {mainMeals.map((meal) => (
-                <div
-                  key={meal.id}
-                  className="bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"
-                  onMouseEnter={() => setHoveredMeal(meal.id)}
-                  onMouseLeave={() => setHoveredMeal(null)}
-                >
-                  <div className="relative h-48 overflow-hidden">
-                    <Image
-                      src={meal.image}
-                      alt={meal.name}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                      priority={meal.id <= 4}
-                    />
-                    {/* Badge prezzo */}
-                    <div className="absolute top-3 right-3 bg-green-600 text-white px-3 py-1 rounded-full font-bold shadow-lg">
-                      €{meal.price.toFixed(2)}
-                    </div>
-                    {/* Overlay con info nutrizionali al hover */}
-                    {hoveredMeal === meal.id && (
-                      <div className="absolute inset-0 bg-black/70 flex items-center justify-center text-white p-4 backdrop-blur-sm">
-                        <div className="text-center">
-                          <div className="flex justify-center gap-4 mb-2">
-                            <div>
-                              <p className="text-xs opacity-80">Calorie</p>
-                              <p className="font-bold">{meal.calories}</p>
-                            </div>
-                            <div>
-                              <p className="text-xs opacity-80">Proteine</p>
-                              <p className="font-bold">{meal.protein}g</p>
-                            </div>
-                          </div>
-                          <button className="mt-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 mx-auto transition">
-                            <Plus className="w-4 h-4" />
-                            Aggiungi
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="p-4">
-                    <h3 className="font-bold text-lg text-gray-800 mb-2 line-clamp-2">
-                      {meal.name}
-                    </h3>
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                      {meal.description}
-                    </p>
-                    
-                    <div className="flex justify-between items-center">
-                      <div className="flex gap-1">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                        ))}
-                      </div>
-                      <button className="bg-gradient-to-r from-green-600 to-green-500 text-white p-2 rounded-lg hover:shadow-lg transition">
-                        <ShoppingCart className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Sezione Colazioni */}
-        {(selectedCategory === 'tutti' || selectedCategory === 'breakfast') && (
-          <div>
-            {selectedCategory === 'tutti' && (
-              <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-gray-800 mb-2">
-                  🍳 Colazioni
-                </h2>
-                <p className="text-gray-600">Inizia la giornata con energia a soli €6.00</p>
-              </div>
-            )}
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {breakfastMeals.map((meal) => (
-                <div
-                  key={meal.id}
-                  className="bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"
-                  onMouseEnter={() => setHoveredMeal(meal.id)}
-                  onMouseLeave={() => setHoveredMeal(null)}
-                >
-                  <div className="relative h-48 overflow-hidden">
-                    <Image
-                      src={meal.image}
-                      alt={meal.name}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                    />
-                    {/* Badge prezzo */}
-                    <div className="absolute top-3 right-3 bg-orange-500 text-white px-3 py-1 rounded-full font-bold shadow-lg">
-                      €{meal.price.toFixed(2)}
-                    </div>
-                    {/* Badge colazione */}
-                    <div className="absolute top-3 left-3 bg-yellow-400 text-gray-800 px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-                      🌅 Colazione
-                    </div>
-                    {/* Overlay con info nutrizionali al hover */}
-                    {hoveredMeal === meal.id && (
-                      <div className="absolute inset-0 bg-black/70 flex items-center justify-center text-white p-4 backdrop-blur-sm">
-                        <div className="text-center">
-                          <div className="flex justify-center gap-4 mb-2">
-                            <div>
-                              <p className="text-xs opacity-80">Calorie</p>
-                              <p className="font-bold">{meal.calories}</p>
-                            </div>
-                            <div>
-                              <p className="text-xs opacity-80">Proteine</p>
-                              <p className="font-bold">{meal.protein}g</p>
-                            </div>
-                          </div>
-                          <button className="mt-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 mx-auto transition">
-                            <Plus className="w-4 h-4" />
-                            Aggiungi
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="p-4">
-                    <h3 className="font-bold text-lg text-gray-800 mb-2 line-clamp-2">
-                      {meal.name}
-                    </h3>
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                      {meal.description}
-                    </p>
-                    
-                    <div className="flex justify-between items-center">
-                      <div className="flex gap-1">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                        ))}
-                      </div>
-                      <button className="bg-gradient-to-r from-orange-500 to-orange-400 text-white p-2 rounded-lg hover:shadow-lg transition">
-                        <ShoppingCart className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+        {item.categoria === 'da-cuocere' && (
+          <div className="absolute top-3 right-3 bg-lemon-400 text-ink-950 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
+            Da cuocere
           </div>
         )}
       </div>
+      <div className="p-4 lg:p-5 flex flex-col flex-1">
+        <h3 className="font-display font-bold text-base lg:text-lg leading-tight mb-1.5 line-clamp-2">
+          {item.nome}
+        </h3>
+        {item.formato && (
+          <p className="text-xs text-ink-500 mb-2">{item.formato}</p>
+        )}
+        <p className="text-sm text-ink-600 mb-4 line-clamp-2 flex-1">{item.descrizione}</p>
 
-      {/* Footer Info */}
-      <div className="bg-gray-100 mt-16">
-        <div className="max-w-7xl mx-auto px-4 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-            <div>
-              <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Heart className="w-8 h-8 text-green-600" />
-              </div>
-              <h3 className="font-bold text-lg mb-2">Ingredienti Freschi</h3>
-              <p className="text-gray-600">Selezioniamo solo ingredienti di prima qualità, freschi e di stagione</p>
-            </div>
-            <div>
-              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Clock className="w-8 h-8 text-blue-600" />
-              </div>
-              <h3 className="font-bold text-lg mb-2">Preparazione Giornaliera</h3>
-              <p className="text-gray-600">Tutti i piatti sono preparati freschi ogni giorno nella nostra cucina</p>
-            </div>
-            <div>
-              <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Truck className="w-8 h-8 text-orange-600" />
-              </div>
-              <h3 className="font-bold text-lg mb-2">Consegna Rapida</h3>
-              <p className="text-gray-600">Consegniamo i tuoi pasti direttamente a casa tua, ancora caldi e gustosi</p>
-            </div>
-          </div>
+        <div className="flex items-center justify-between pt-3 border-t border-ink-100">
+          <div className="font-display font-bold text-xl">€{item.prezzo.toFixed(2)}</div>
+          <Link
+            href="/ordina"
+            className="bg-ink-950 hover:bg-primary-500 text-white p-2 rounded-full transition-colors"
+            aria-label={`Ordina ${item.nome}`}
+          >
+            <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
       </div>
     </div>
