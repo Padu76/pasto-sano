@@ -103,7 +103,7 @@ export default function LandingPage() {
     {
       question: 'Come riscaldo i piatti?',
       answer:
-        'Versa il contenuto in un piatto e scalda 2 minuti al microonde. In alternativa, padella, forno o friggitrice ad aria. La vaschetta da sola non va nel microonde.',
+        'Apri la confezione sottovuoto, versa il contenuto in un piatto e scalda 2 minuti al microonde. In alternativa puoi usare padella, forno o friggitrice ad aria. Non mettere la confezione sottovuoto direttamente al microonde.',
     },
     {
       question: 'Quando devo ordinare?',
@@ -114,11 +114,6 @@ export default function LandingPage() {
       question: 'È prevista la consegna a domicilio?',
       answer:
         'Stiamo lanciando il servizio rider in zona Verona città. Per ora il ritiro è in Via Albere. Scrivici su WhatsApp per essere avvisato quando parte.',
-    },
-    {
-      question: 'Avete opzioni vegetariane o senza glutine?',
-      answer:
-        'Sì, ogni settimana sul menu ci sono almeno 3 piatti veggie. Per intolleranze e diete specifiche, scrivici prima dell’ordine e ti diciamo cosa puoi prendere.',
     },
     {
       question: 'Posso pagare al ritiro?',
@@ -270,8 +265,8 @@ export default function LandingPage() {
               </h1>
 
               <p className="text-lg lg:text-xl text-white/80 max-w-xl leading-relaxed">
-                Andrea Padoan seleziona i pasti che d&agrave; ai suoi clienti da 12 anni. Adesso puoi
-                averli anche tu — pronti in 2 minuti, ritiro in Via Albere.
+                Carne, tagli premium e verdure di stagione. Cucinati e pronti da scaldare,
+                oppure freschi da preparare. Ritiro a Tribù Studio.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
@@ -293,36 +288,71 @@ export default function LandingPage() {
 
             </div>
 
-            {/* Andrea image */}
+            {/* Mosaico prodotti */}
             <div className="lg:col-span-5 relative">
-              <div className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl ring-1 ring-white/10">
-                <Image
-                  src="/images/landing/andrea.jpg"
-                  alt="Andrea Padoan"
-                  fill
-                  className="object-cover"
-                  priority
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/30 to-transparent" />
+              <div className="relative aspect-square rounded-3xl overflow-hidden shadow-2xl ring-1 ring-white/10 grid grid-cols-2 grid-rows-2 gap-1.5 bg-ink-900">
+                <div className="relative overflow-hidden group">
+                  <Image
+                    src="/images/prodotti/tartare-bovino.jpg"
+                    alt="Tartare di bovino"
+                    fill
+                    priority
+                    sizes="(min-width: 1024px) 25vw, 50vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+                <div className="relative overflow-hidden group">
+                  <Image
+                    src="/images/prodotti/roast-beef-fette.jpg"
+                    alt="Roast beef bovino a fette"
+                    fill
+                    priority
+                    sizes="(min-width: 1024px) 25vw, 50vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+                <div className="relative overflow-hidden group">
+                  <Image
+                    src="/images/prodotti/insalata-pollo.jpg"
+                    alt="Insalata di pollo"
+                    fill
+                    priority
+                    sizes="(min-width: 1024px) 25vw, 50vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+                <div className="relative overflow-hidden group">
+                  <Image
+                    src="/images/prodotti/piselli.jpg"
+                    alt="Piselli cotti"
+                    fill
+                    priority
+                    sizes="(min-width: 1024px) 25vw, 50vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
 
-                <div className="absolute bottom-6 left-6 right-6">
-                  <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4">
+                {/* Overlay gradient + badge in basso */}
+                <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-ink-950 to-transparent pointer-events-none" />
+                <div className="absolute bottom-4 left-4 right-4 pointer-events-none">
+                  <div className="bg-ink-950/70 backdrop-blur-md border border-white/10 rounded-2xl p-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center flex-shrink-0">
-                        <ChefHat className="w-6 h-6 text-white" />
+                      <div className="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <ChefHat className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                        <div className="font-semibold text-white">Andrea Padoan</div>
-                        <div className="text-xs text-white/70">Personal Trainer dal 2013</div>
+                        <div className="font-semibold text-white text-sm">18 prodotti selezionati</div>
+                        <div className="text-xs text-white/70">Pronti da scaldare · Da cuocere</div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="hidden md:flex absolute -right-4 bottom-24 bg-lemon-400 text-ink-950 rounded-2xl shadow-card-hover p-4 items-center gap-2">
+              {/* Floating badge sottovuoto */}
+              <div className="hidden md:flex absolute -right-4 -top-4 bg-lemon-400 text-ink-950 rounded-2xl shadow-card-hover p-4 items-center gap-2 rotate-3">
                 <Flame className="w-5 h-5" />
-                <span className="font-semibold text-sm">Cucinato oggi</span>
+                <span className="font-semibold text-sm">Sottovuoto · 10-15 giorni</span>
               </div>
             </div>
           </div>
