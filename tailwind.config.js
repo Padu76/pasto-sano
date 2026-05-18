@@ -1,3 +1,4 @@
+// E:\pasto-sano\tailwind.config.js
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -9,6 +10,60 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Brand Pasto Sano — palette Coach/Fitness (Mockup C+B)
+        'ink': {
+          50: '#f6f6f6',
+          100: '#e7e7e7',
+          200: '#d1d1d1',
+          300: '#b0b0b0',
+          400: '#888888',
+          500: '#6d6d6d',
+          600: '#5d5d5d',
+          700: '#4f4f4f',
+          800: '#454545',
+          900: '#2b2b2b',
+          950: '#111111',
+        },
+        'flame': {
+          50: '#fff4ed',
+          100: '#ffe6d5',
+          200: '#ffc8aa',
+          300: '#ffa274',
+          400: '#ff723c',
+          500: '#ff5a1f',
+          600: '#f03d0c',
+          700: '#c72d0a',
+          800: '#9e2611',
+          900: '#7f2412',
+          950: '#450f07',
+        },
+        'lemon': {
+          50: '#fefee7',
+          100: '#fdfcc1',
+          200: '#fcf78a',
+          300: '#f8eb44',
+          400: '#f2e94e',
+          500: '#e3cd16',
+          600: '#c3a30f',
+          700: '#9c7610',
+          800: '#815d16',
+          900: '#6f4d19',
+          950: '#402a09',
+        },
+        'sage': {
+          50: '#f3f7f1',
+          100: '#e2ecdd',
+          200: '#c4d8bb',
+          300: '#9bbc8e',
+          400: '#719d63',
+          500: '#558048',
+          600: '#406537',
+          700: '#34512d',
+          800: '#2b4127',
+          900: '#243622',
+          950: '#111d10',
+        },
+        // legacy mantenuto per non rompere admin/altri
         'primary': {
           50: '#f0fdf4',
           100: '#dcfce7',
@@ -37,46 +92,56 @@ module.exports = {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['var(--font-inter)', 'Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        display: ['var(--font-archivo)', '"Archivo"', '"Space Grotesk"', 'Inter', 'sans-serif'],
+      },
+      letterSpacing: {
+        'tightest': '-0.04em',
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-out',
+        'fade-up': 'fadeUp 0.6s ease-out',
         'slide-in': 'slideIn 0.3s ease-out',
+        'slide-up': 'slideUp 0.4s ease-out',
         'bounce-slow': 'bounce 2s infinite',
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'spin-slow': 'spin 3s linear infinite',
+        'marquee': 'marquee 30s linear infinite',
       },
       keyframes: {
         fadeIn: {
-          '0%': { 
-            opacity: '0',
-            transform: 'translateY(10px)'
-          },
-          '100%': {
-            opacity: '1',
-            transform: 'translateY(0)'
-          },
+          '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        fadeUp: {
+          '0%': { opacity: '0', transform: 'translateY(24px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
         },
         slideIn: {
-          '0%': {
-            transform: 'translateX(100%)',
-            opacity: '0'
-          },
-          '100%': {
-            transform: 'translateX(0)',
-            opacity: '1'
-          },
+          '0%': { transform: 'translateX(100%)', opacity: '0' },
+          '100%': { transform: 'translateX(0)', opacity: '1' },
+        },
+        slideUp: {
+          '0%': { transform: 'translateY(100%)' },
+          '100%': { transform: 'translateY(0)' },
+        },
+        marquee: {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-50%)' },
         },
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
-        'gradient-primary': 'linear-gradient(to right, #22c55e, #3b82f6)',
+        'gradient-flame': 'linear-gradient(135deg, #ff723c 0%, #ff5a1f 50%, #f03d0c 100%)',
+        'gradient-ink': 'linear-gradient(180deg, #111111 0%, #2b2b2b 100%)',
       },
       boxShadow: {
-        'glow': '0 0 20px rgba(34, 197, 94, 0.3)',
-        'glow-blue': '0 0 20px rgba(59, 130, 246, 0.3)',
-        'inner-glow': 'inset 0 0 20px rgba(34, 197, 94, 0.1)',
+        'glow-flame': '0 0 32px rgba(255, 90, 31, 0.35)',
+        'glow-primary': '0 0 32px rgba(34, 197, 94, 0.35)',
+        'glow-lemon': '0 0 24px rgba(242, 233, 78, 0.35)',
+        'card': '0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.08)',
+        'card-hover': '0 4px 6px rgba(0,0,0,0.06), 0 24px 48px rgba(0,0,0,0.12)',
       },
       screens: {
         'xs': '475px',
