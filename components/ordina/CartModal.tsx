@@ -142,7 +142,15 @@ export default function CartModal({
                             <h4 className="font-semibold text-gray-800 text-sm">
                               {item.nome}
                             </h4>
-                            
+
+                            {/* Porzione */}
+                            {item.peso && (
+                              <p className="text-xs text-primary-700 font-semibold mt-0.5">
+                                Porzione: {item.peso}
+                                {item.formato && <span className="text-gray-500 font-normal"> · {item.formato}</span>}
+                              </p>
+                            )}
+
                             {/* Dettagli combo se presenti */}
                             {item.isCombo && item.comboItems && (
                               <div className="mt-1 text-xs text-gray-600">
