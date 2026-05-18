@@ -294,6 +294,7 @@ export default function OrdinaPage() {
                 <OrderProductCard
                   key={`pronti-${i}`}
                   item={item}
+                  priority={i < 4}
                   quantity={getQuantityInCart(item.nome)}
                   onAdd={() => addToCart(item)}
                   onIncrease={() => {
@@ -414,20 +415,24 @@ function OrderProductCard({
   onAdd,
   onIncrease,
   onDecrease,
+  priority = false,
 }: {
   item: MenuItem;
   quantity: number;
   onAdd: () => void;
   onIncrease: () => void;
   onDecrease: () => void;
+  priority?: boolean;
 }) {
   return (
     <div className="group bg-white rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 flex flex-col">
-      <div className="relative aspect-square overflow-hidden bg-ink-100">
+      <div className="relative w-full h-48 sm:h-56 lg:h-64 overflow-hidden bg-ink-100">
         <Image
           src={item.immagine}
           alt={item.nome}
           fill
+          sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, 50vw"
+          priority={priority}
           className="object-cover group-hover:scale-105 transition-transform duration-500"
         />
         <div className="absolute top-3 left-3 bg-ink-950/80 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
