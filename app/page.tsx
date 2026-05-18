@@ -76,10 +76,10 @@ export default function LandingPage() {
   ];
 
   const comparison = [
-    { feature: 'Pasti freschi non sottovuoto', us: true, gastronomy: 'A volte', mealKit: false },
+    { feature: 'Confezionati sottovuoto (10-15 giorni)', us: true, gastronomy: false, mealKit: false },
+    { feature: 'Qualità premium', us: 'Verdure BIO + carne al pascolo', gastronomy: false, mealKit: 'Variabile' },
     { feature: 'Pronto in 2 minuti', us: true, gastronomy: true, mealKit: false },
     { feature: 'Senza conservanti aggiunti', us: true, gastronomy: 'Spesso no', mealKit: 'Variabile' },
-    { feature: 'Nessun abbonamento obbligatorio', us: true, gastronomy: true, mealKit: false },
     { feature: 'Devi cucinare tu', us: false, gastronomy: false, mealKit: true },
     { feature: 'Prezzo medio a pasto', us: '€6,50 – €8,50', gastronomy: '€10 – €13', mealKit: '€9 – €12' },
   ];
