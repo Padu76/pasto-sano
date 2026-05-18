@@ -265,6 +265,21 @@ export default function OrdinaPage() {
       </div>
 
       <main className="container mx-auto px-4 lg:px-8 py-10 lg:py-14">
+        {/* Banner sottovuoto */}
+        <div className="bg-primary-50 border border-primary-200 rounded-2xl p-5 lg:p-6 mb-10 flex items-start gap-4">
+          <div className="w-10 h-10 bg-primary-500 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Package className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <p className="font-display font-bold text-base lg:text-lg text-ink-950 mb-1">
+              Tutti i prodotti sono confezionati sottovuoto
+            </p>
+            <p className="text-sm lg:text-base text-ink-700">
+              Si conservano da <strong>10 a 15 giorni in frigorifero</strong>. Puoi anche congelarli per una durata maggiore.
+            </p>
+          </div>
+        </div>
+
         {/* Pronti */}
         {(activeTab === 'tutti' || activeTab === 'pronti') && (
           <section className="mb-14">
