@@ -10,6 +10,7 @@ export interface MenuItem {
   descrizione: string;
   peso: string;
   formato?: string;
+  bio?: boolean;
 }
 
 // PASTI PRONTI (15) — pronti da scaldare/consumare
@@ -103,8 +104,9 @@ export const PRONTI: MenuItem[] = [
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/prodotti/piselli.jpg',
-    descrizione: 'Porzione 300g. Piselli cotti, pronti da scaldare.',
+    descrizione: 'Porzione 300g. Piselli cotti biologici, pronti da scaldare.',
     peso: '300g',
+    bio: true,
   },
   {
     nome: 'Carote a rondelle',
@@ -112,8 +114,9 @@ export const PRONTI: MenuItem[] = [
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/prodotti/carote-rondelle.jpg',
-    descrizione: 'Porzione 300g. Carote a rondelle cotte, pronte da scaldare.',
+    descrizione: 'Porzione 300g. Carote a rondelle cotte biologiche, pronte da scaldare.',
     peso: '300g',
+    bio: true,
   },
   {
     nome: 'Catalogna',
@@ -121,8 +124,9 @@ export const PRONTI: MenuItem[] = [
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/prodotti/catalogna.jpg',
-    descrizione: 'Porzione 300g. Catalogna cotta, pronta da scaldare.',
+    descrizione: 'Porzione 300g. Catalogna cotta biologica, pronta da scaldare.',
     peso: '300g',
+    bio: true,
   },
   {
     nome: 'Fagiolini verdi',
@@ -130,8 +134,9 @@ export const PRONTI: MenuItem[] = [
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/prodotti/fagiolini-verdi.jpg',
-    descrizione: 'Porzione 300g. Fagiolini verdi cotti, pronti da scaldare.',
+    descrizione: 'Porzione 300g. Fagiolini verdi cotti biologici, pronti da scaldare.',
     peso: '300g',
+    bio: true,
   },
   {
     nome: 'Zucchine a rondelle',
@@ -139,8 +144,9 @@ export const PRONTI: MenuItem[] = [
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/prodotti/zucchine-rondelle.jpg',
-    descrizione: 'Porzione 300g. Zucchine a rondelle cotte, pronte da scaldare.',
+    descrizione: 'Porzione 300g. Zucchine a rondelle cotte biologiche, pronte da scaldare.',
     peso: '300g',
+    bio: true,
   },
   {
     nome: 'Tartare di bovino',
