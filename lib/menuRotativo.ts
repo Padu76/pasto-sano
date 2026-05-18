@@ -12,7 +12,7 @@ export interface MenuItem {
   formato?: string;
 }
 
-// PASTI PRONTI (11) — pronti da scaldare/consumare
+// PASTI PRONTI (15) — pronti da scaldare/consumare
 export const PRONTI: MenuItem[] = [
   {
     nome: 'Polpette proteiche',
@@ -20,7 +20,7 @@ export const PRONTI: MenuItem[] = [
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/carni/polpette-proteiche.jpg',
-    descrizione: 'Polpette proteiche di carne. Pronte da scaldare in 2 minuti.',
+    descrizione: 'Porzione 184g (8 polpette da 22/24g). Polpette proteiche di carne, pronte da scaldare in 2 minuti.',
     peso: '184g',
     formato: '8 pezzi da 22/24g',
   },
@@ -30,7 +30,7 @@ export const PRONTI: MenuItem[] = [
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/carni/macinato-bovino-cotto.jpg',
-    descrizione: 'Macinato di bovino già cotto, pronto da scaldare.',
+    descrizione: 'Porzione 300g. Macinato di bovino già cotto, pronto da scaldare.',
     peso: '300g',
   },
   {
@@ -39,7 +39,7 @@ export const PRONTI: MenuItem[] = [
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/carni/roast-beef-fette.jpg',
-    descrizione: 'Roast beef di bovino a fette, pronto da consumare.',
+    descrizione: 'Porzione 180g. Roast beef di bovino a fette, pronto da consumare.',
     peso: '180g',
   },
   {
@@ -48,7 +48,7 @@ export const PRONTI: MenuItem[] = [
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/carni/insalata-pollo.jpg',
-    descrizione: 'Insalata fredda di pollo, ricca di proteine. Pronta da consumare.',
+    descrizione: 'Porzione 300g. Insalata fredda di pollo, ricca di proteine. Pronta da consumare.',
     peso: '300g',
   },
   {
@@ -57,7 +57,7 @@ export const PRONTI: MenuItem[] = [
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/carni/tagliata-pollo.jpg',
-    descrizione: 'Tagliata di pollo già cotta, pronta da scaldare.',
+    descrizione: 'Porzione 160g. Tagliata di pollo già cotta, pronta da scaldare.',
     peso: '160g',
   },
   {
@@ -66,7 +66,7 @@ export const PRONTI: MenuItem[] = [
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/carni/tagliata-bovino-cotta-fette.jpg',
-    descrizione: 'Tagliata di bovino cotta a fette, pronta da consumare.',
+    descrizione: 'Porzione 180g. Tagliata di bovino cotta a fette, pronta da consumare.',
     peso: '180g',
   },
   {
@@ -75,7 +75,7 @@ export const PRONTI: MenuItem[] = [
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/carni/tagliata-bovino-cotta-intera.jpg',
-    descrizione: 'Tagliata di bovino cotta, monoporzione intera. Pronta da scaldare.',
+    descrizione: 'Porzione 180g (monoporzione). Tagliata di bovino cotta, pronta da scaldare.',
     peso: '180g',
     formato: 'monoporzione',
   },
@@ -85,7 +85,7 @@ export const PRONTI: MenuItem[] = [
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/carni/tagliata-bovino-affumicata.jpg',
-    descrizione: 'Tagliata di bovino affumicata a fette, pronta da consumare.',
+    descrizione: 'Porzione 100g. Tagliata di bovino affumicata a fette, pronta da consumare.',
     peso: '100g',
   },
   {
@@ -94,7 +94,7 @@ export const PRONTI: MenuItem[] = [
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/carni/carne-secca.jpg',
-    descrizione: 'Snack proteico ad alta densità. Pronto da consumare.',
+    descrizione: 'Porzione 30g. Snack proteico ad alta densità, pronto da consumare.',
     peso: '30g',
   },
   {
@@ -103,7 +103,7 @@ export const PRONTI: MenuItem[] = [
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/carni/piselli.jpg',
-    descrizione: 'Piselli cotti, pronti da scaldare.',
+    descrizione: 'Porzione 300g. Piselli cotti, pronti da scaldare.',
     peso: '300g',
   },
   {
@@ -112,7 +112,7 @@ export const PRONTI: MenuItem[] = [
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/carni/carote-rondelle.jpg',
-    descrizione: 'Carote a rondelle cotte, pronte da scaldare.',
+    descrizione: 'Porzione 300g. Carote a rondelle cotte, pronte da scaldare.',
     peso: '300g',
   },
   {
@@ -121,7 +121,7 @@ export const PRONTI: MenuItem[] = [
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/carni/catalogna.jpg',
-    descrizione: 'Catalogna cotta, pronta da scaldare.',
+    descrizione: 'Porzione 300g. Catalogna cotta, pronta da scaldare.',
     peso: '300g',
   },
   {
@@ -130,7 +130,7 @@ export const PRONTI: MenuItem[] = [
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/carni/fagiolini-verdi.jpg',
-    descrizione: 'Fagiolini verdi cotti, pronti da scaldare.',
+    descrizione: 'Porzione 300g. Fagiolini verdi cotti, pronti da scaldare.',
     peso: '300g',
   },
   {
@@ -139,7 +139,7 @@ export const PRONTI: MenuItem[] = [
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/carni/zucchine-rondelle.jpg',
-    descrizione: 'Zucchine a rondelle cotte, pronte da scaldare.',
+    descrizione: 'Porzione 300g. Zucchine a rondelle cotte, pronte da scaldare.',
     peso: '300g',
   },
   {
@@ -148,7 +148,7 @@ export const PRONTI: MenuItem[] = [
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/carni/tartare-bovino.jpg',
-    descrizione: 'Tartare di bovino fresca, pronta da condire e consumare.',
+    descrizione: 'Porzione 150g. Tartare di bovino fresca, pronta da condire e consumare.',
     peso: '150g',
   },
 ];
@@ -161,7 +161,7 @@ export const DA_CUCINARE: MenuItem[] = [
     categoria: 'da-cuocere',
     disponibile: 'sempre',
     immagine: '/images/carni/macinato-bovino-crudo.jpg',
-    descrizione: 'Macinato di bovino crudo, da cuocere a casa.',
+    descrizione: 'Porzione 500g. Macinato di bovino crudo, da cuocere a casa.',
     peso: '500g',
   },
   {
@@ -170,7 +170,7 @@ export const DA_CUCINARE: MenuItem[] = [
     categoria: 'da-cuocere',
     disponibile: 'sempre',
     immagine: '/images/carni/hamburger-bovino.jpg',
-    descrizione: 'Hamburger di bovino, da cuocere alla griglia o piastra.',
+    descrizione: 'Porzione 240g (2 hamburger da 120/180g). Da cuocere alla griglia o piastra.',
     peso: '240g',
     formato: '2 pezzi da 120/180g',
   },
@@ -180,24 +180,19 @@ export const DA_CUCINARE: MenuItem[] = [
     categoria: 'da-cuocere',
     disponibile: 'sempre',
     immagine: '/images/carni/tagliata-bovino-adulto.jpg',
-    descrizione: 'Tagliata di bovino adulto, da cuocere alla griglia.',
+    descrizione: 'Porzione 400g (2 pezzi da 200g). Tagliata di bovino adulto, da cuocere alla griglia.',
     peso: '400g',
     formato: '2 pezzi da 200g',
   },
 ];
 
-// Tutti i prodotti, utile per ricerche e lookup
+// Tutti i prodotti
 export const TUTTI_PRODOTTI: MenuItem[] = [...PRONTI, ...DA_CUCINARE];
 
 // ===== BACKWARD COMPATIBILITY =====
-// Mantenuti per non rompere import esistenti durante la migrazione.
-// MENU_FISSO ora include solo i nuovi prodotti.
 export const MENU_FISSO: MenuItem[] = TUTTI_PRODOTTI;
-
-// Menu combo eliminato (non più offerto)
 export const MENU_COMBO: MenuItem[] = [];
 
-// Prezzi legacy (alcune pagine admin possono leggere PREZZI)
 export const PREZZI = {
   primo: 6.5,
   secondo: 7.5,
@@ -215,8 +210,6 @@ export const PREZZI = {
   comboSecondoMacedonia: 11.2,
 };
 
-// Funzione legacy mantenuta per non rompere /ordina vecchio durante migrazione.
-// Ritorna struttura vuota (no più menu del giorno).
 export function getMenuGiornoSpecifico(_data: Date) {
   return {
     data: '',
@@ -244,7 +237,6 @@ export function getMenuSettimanale() {
   };
 }
 
-// Ricerca prodotto per nome
 export function cercaPiatto(termine: string): MenuItem[] {
   const t = termine.toLowerCase();
   return TUTTI_PRODOTTI.filter((p) => p.nome.toLowerCase().includes(t));

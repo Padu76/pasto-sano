@@ -300,13 +300,20 @@ function ProductCard({ item }: { item: MenuItem }) {
         )}
       </div>
       <div className="p-4 lg:p-5 flex flex-col flex-1">
-        <h3 className="font-display font-bold text-base lg:text-lg leading-tight mb-1.5 line-clamp-2">
+        <h3 className="font-display font-bold text-base lg:text-lg leading-tight mb-2 line-clamp-2">
           {item.nome}
         </h3>
-        {item.formato && (
-          <p className="text-xs text-ink-500 mb-2">{item.formato}</p>
-        )}
-        <p className="text-sm text-ink-600 mb-4 line-clamp-2 flex-1">{item.descrizione}</p>
+
+        {/* Porzione - prominente */}
+        <div className="bg-primary-50 border border-primary-200 rounded-lg px-2.5 py-1.5 mb-3 inline-flex items-center gap-1.5 self-start">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-primary-700">Porzione</span>
+          <span className="font-display font-bold text-sm text-ink-950">{item.peso}</span>
+          {item.formato && (
+            <span className="text-xs text-ink-600">· {item.formato}</span>
+          )}
+        </div>
+
+        <p className="text-sm text-ink-600 mb-4 line-clamp-3 flex-1">{item.descrizione}</p>
 
         <div className="flex items-center justify-between pt-3 border-t border-ink-100">
           <div className="font-display font-bold text-xl">€{item.prezzo.toFixed(2)}</div>
