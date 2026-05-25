@@ -25,7 +25,7 @@ export const BASE_COSTS: Record<string, number> = {
 // Aggiornare quando si avranno i costi B2B reali del fornitore
 export const SUPPLIER_PREMIUM_COSTS: Record<string, number> = {
   'polpette proteiche': 4.55,
-  'macinato bovino cotto': 6.50,
+  'polpette energetiche': 4.55,
   'roast beef bovino a fette': 5.85,
   'insalata di pollo': 7.15,
   'tagliata di pollo': 3.90,
