@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Lock, LogOut, Shield, Eye, EyeOff } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { Lock, LogOut, Shield, Eye, EyeOff, LayoutDashboard, FileText } from 'lucide-react';
 
 export default function AdminLayout({
   children,
@@ -44,6 +46,8 @@ export default function AdminLayout({
     setIsAuthenticated(false);
     sessionStorage.removeItem('adminAuthenticated');
   };
+
+  const pathname = usePathname();
 
   if (isLoading) {
     return (
@@ -121,14 +125,41 @@ export default function AdminLayout({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Admin Header con Logout */}
+      {/* Admin Header con Navigation e Logout */}
       <div className="bg-gradient-to-r from-green-700 to-green-500 text-white shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-3">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-wrap justify-between items-center gap-3">
             <div className="flex items-center gap-2">
               <Shield className="w-5 h-5" />
               <span className="text-sm font-medium">Modalità Amministratore</span>
             </div>
+
+            {/* Nav tabs */}
+            <nav className="flex items-center gap-2">
+              <Link
+                href="/admin"
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition text-sm font-medium ${
+                  pathname === '/admin'
+                    ? 'bg-white text-green-700 shadow-md'
+                    : 'bg-white/20 hover:bg-white/30 text-white'
+                }`}
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                Dashboard
+              </Link>
+              <Link
+                href="/admin/production"
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition text-sm font-medium ${
+                  pathname === '/admin/production'
+                    ? 'bg-white text-green-700 shadow-md'
+                    : 'bg-white/20 hover:bg-white/30 text-white'
+                }`}
+              >
+                <FileText className="w-4 h-4" />
+                Documento Fornitore
+              </Link>
+            </nav>
+
             <button
               onClick={handleLogout}
               className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition text-sm font-medium"
@@ -139,7 +170,7 @@ export default function AdminLayout({
           </div>
         </div>
       </div>
-      
+
       {/* Contenuto Dashboard */}
       {children}
     </div>
