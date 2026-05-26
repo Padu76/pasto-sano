@@ -36,7 +36,8 @@ const initialPayPalOptions = {
   locale: "it_IT"
 };
 
-const STORE_ADDRESS = 'Via Bionde, 8, 37139 Verona VR, Italy';
+const STORE_ADDRESS = 'Via Albere 27/B, 37138 Verona VR, Italy';
+const STORE_NAME = 'Tribù Studio';
 
 interface CartItem extends MenuItem {
   id: string;
@@ -103,24 +104,33 @@ export default function CheckoutModal({
   const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'paypal' | 'cash' | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [minPickupDate, setMinPickupDate] = useState('');
+  const [pickupDay, setPickupDay] = useState<'monday' | 'tuesday'>('monday');
 
-  const calculateMinPickupDate = () => {
+  // FINESTRA ORDINI: martedì-venerdì → ritiro lunedì/martedì settimana successiva
+  // Sabato-lunedì: ordini chiusi (il fornitore consegna lunedì mattina, già pianificato)
+  const getOrderWindow = () => {
     const today = new Date();
-    let minDate = new Date(today);
-    
-    let daysAdded = 0;
-    while (daysAdded < 2) {
-      minDate.setDate(minDate.getDate() + 1);
-      const dayOfWeek = minDate.getDay();
-      
-      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-        daysAdded++;
-      }
+    today.setHours(0, 0, 0, 0);
+    const day = today.getDay(); // 0=dom, 1=lun, 2=mar, 3=mer, 4=gio, 5=ven, 6=sab
+
+    // Finestra aperta: martedì (2) - venerdì (5)
+    if (day >= 2 && day <= 5) {
+      const monday = new Date(today);
+      // Distanza al prossimo lunedì: mar→6, mer→5, gio→4, ven→3
+      monday.setDate(today.getDate() + (8 - day));
+      const tuesday = new Date(monday);
+      tuesday.setDate(monday.getDate() + 1);
+      return { isOpen: true, monday, tuesday, nextOpen: null as Date | null };
     }
-    
-    return minDate;
+
+    // Finestra chiusa: calcola prossimo martedì
+    const nextTuesday = new Date(today);
+    const daysToTuesday = day === 6 ? 3 : day === 0 ? 2 : 1; // sab→3, dom→2, lun→1
+    nextTuesday.setDate(today.getDate() + daysToTuesday);
+    return { isOpen: false, monday: null as Date | null, tuesday: null as Date | null, nextOpen: nextTuesday };
   };
+
+  const [orderWindow, setOrderWindow] = useState<ReturnType<typeof getOrderWindow> | null>(null);
 
   const formatDateForInput = (date: Date) => {
     const year = date.getFullYear();
@@ -129,22 +139,25 @@ export default function CheckoutModal({
     return `${year}-${month}-${day}`;
   };
 
-  const isWeekend = (date: Date) => {
-    const day = date.getDay();
-    return day === 0 || day === 6;
-  };
-
-  const getDayName = (date: Date) => {
-    const days = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
-    return days[date.getDay()];
+  const formatDateIT = (date: Date) => {
+    return date.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
   };
 
   useEffect(() => {
-    const minDate = calculateMinPickupDate();
-    const minDateString = formatDateForInput(minDate);
-    setMinPickupDate(minDateString);
-    setPickupDate(minDateString);
+    const window = getOrderWindow();
+    setOrderWindow(window);
+    if (window.isOpen && window.monday) {
+      setPickupDate(formatDateForInput(window.monday));
+      setPickupDay('monday');
+    }
   }, []);
+
+  // Aggiorna pickupDate quando l'utente cambia giorno
+  useEffect(() => {
+    if (!orderWindow || !orderWindow.isOpen) return;
+    const target = pickupDay === 'monday' ? orderWindow.monday : orderWindow.tuesday;
+    if (target) setPickupDate(formatDateForInput(target));
+  }, [pickupDay, orderWindow]);
 
   const calculateDeliveryZone = (distanceKm: number): DeliveryZone | null => {
     if (distanceKm <= 3) {
@@ -362,39 +375,27 @@ export default function CheckoutModal({
       setError('Per la consegna a domicilio è necessario il pagamento online');
       return false;
     }
-    
-    const selectedDate = new Date(pickupDate);
-    if (isWeekend(selectedDate)) {
-      setError('Il ritiro non è disponibile nel weekend. Seleziona un giorno feriale.');
+
+    if (!orderWindow || !orderWindow.isOpen) {
+      setError('Gli ordini sono chiusi. Riapriamo martedì.');
       return false;
     }
-    
-    const minDate = new Date(minPickupDate);
-    if (selectedDate < minDate) {
-      setError(`La data minima per il ritiro è ${minDate.toLocaleDateString('it-IT')}`);
+
+    if (!pickupDate) {
+      setError('Seleziona il giorno di ritiro (lunedì o martedì)');
       return false;
     }
-    
+
     if (getTotalItems() < minimumItems) {
       setError(`Ordine minimo: ${minimumItems} pezzi`);
       return false;
     }
-    
+
     setError(null);
     return true;
   };
 
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedDate = new Date(e.target.value);
-    
-    if (isWeekend(selectedDate)) {
-      setError('Il ritiro non è disponibile sabato e domenica');
-      return;
-    }
-    
-    setError(null);
-    setPickupDate(e.target.value);
-  };
+  // La data ritiro e' ora gestita automaticamente via radio Lun/Mar (vedi pickupDay)
 
   const getOrderMetadata = () => {
     const baseMetadata = {
@@ -676,7 +677,7 @@ export default function CheckoutModal({
                           deliveryType === 'pickup' ? 'text-primary-600' : 'text-gray-500'
                         }`} />
                         <div className="font-semibold">Ritiro in sede</div>
-                        <div className="text-xs text-gray-500 mt-1">Via Bionde, 8</div>
+                        <div className="text-xs text-gray-500 mt-1">Tribù - Via Albere 27/B</div>
                       </button>
                       
                       <button
@@ -1033,45 +1034,79 @@ export default function CheckoutModal({
                       )}
                     </div>
                     
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Calendar className="w-5 h-5 text-amber-600" />
-                        <label className="text-sm font-medium text-gray-700">
-                          Data {deliveryType === 'delivery' ? 'Consegna' : 'Ritiro'} Ordine *
-                        </label>
-                      </div>
-                      
-                      <input
-                        type="date"
-                        value={pickupDate}
-                        onChange={handleDateChange}
-                        min={minPickupDate}
-                        className="w-full p-3 border rounded-lg focus:outline-none focus:border-amber-500 mb-3"
-                        required
-                      />
-                      
-                      {pickupDate && (
-                        <div className="bg-white rounded-lg p-3">
-                          <p className="font-medium text-gray-800 flex items-center gap-1">
-                            <Clock className="w-4 h-4 text-amber-600" />
-                            {getDayName(new Date(pickupDate))}, {new Date(pickupDate).toLocaleDateString('it-IT')}
-                          </p>
-                          <p className="text-sm text-gray-600 mt-1 flex items-center gap-1">
-                            {deliveryType === 'delivery' ? (
-                              <>
-                                <Truck className="w-4 h-4 text-gray-500" />
-                                Consegna {deliveryTimeSlot.replace('-', ':00 - ')}:00 a {deliveryAddress || 'indirizzo da specificare'}
-                              </>
-                            ) : (
-                              <>
-                                <MapPin className="w-4 h-4 text-gray-500" />
-                                Ritiro presso Pasto Sano - Via Bionde, 8
-                              </>
-                            )}
-                          </p>
+                    {/* Finestra ordini chiusa */}
+                    {orderWindow && !orderWindow.isOpen && (
+                      <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4">
+                        <div className="flex items-start gap-3">
+                          <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <p className="font-semibold text-red-900 mb-1">
+                              Ordini temporaneamente chiusi
+                            </p>
+                            <p className="text-sm text-red-800">
+                              Riapriamo {orderWindow.nextOpen && formatDateIT(orderWindow.nextOpen)}.
+                              Il fornitore consegna il lunedì, raccogliamo ordini da martedì a venerdì.
+                            </p>
+                          </div>
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
+
+                    {/* Finestra ordini aperta - selezione giorno ritiro */}
+                    {orderWindow && orderWindow.isOpen && orderWindow.monday && orderWindow.tuesday && (
+                      <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Calendar className="w-5 h-5 text-primary-600" />
+                          <label className="text-sm font-medium text-gray-800">
+                            Giorno di ritiro *
+                          </label>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 mb-3">
+                          <button
+                            type="button"
+                            onClick={() => setPickupDay('monday')}
+                            className={`p-3 border-2 rounded-lg transition-all text-left ${
+                              pickupDay === 'monday'
+                                ? 'border-primary-500 bg-white shadow-md'
+                                : 'border-gray-300 bg-white hover:border-primary-300'
+                            }`}
+                          >
+                            <div className={`text-xs uppercase tracking-wider font-bold mb-1 ${
+                              pickupDay === 'monday' ? 'text-primary-700' : 'text-gray-500'
+                            }`}>Lunedì</div>
+                            <div className="font-semibold text-gray-900">
+                              {orderWindow.monday.toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })}
+                            </div>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setPickupDay('tuesday')}
+                            className={`p-3 border-2 rounded-lg transition-all text-left ${
+                              pickupDay === 'tuesday'
+                                ? 'border-primary-500 bg-white shadow-md'
+                                : 'border-gray-300 bg-white hover:border-primary-300'
+                            }`}
+                          >
+                            <div className={`text-xs uppercase tracking-wider font-bold mb-1 ${
+                              pickupDay === 'tuesday' ? 'text-primary-700' : 'text-gray-500'
+                            }`}>Martedì</div>
+                            <div className="font-semibold text-gray-900">
+                              {orderWindow.tuesday.toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })}
+                            </div>
+                          </button>
+                        </div>
+
+                        <div className="bg-white rounded-lg p-3 flex items-start gap-2">
+                          <MapPin className="w-4 h-4 text-primary-600 flex-shrink-0 mt-0.5" />
+                          <div className="text-sm">
+                            <span className="font-semibold text-gray-900">Ritiro presso {STORE_NAME}</span>
+                            <br />
+                            <span className="text-gray-600">Via Albere 27/B, 37138 Verona</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1122,6 +1157,15 @@ export default function CheckoutModal({
                   </div>
 
                   <h3 className="text-lg font-semibold mb-4">Scegli il metodo di pagamento</h3>
+                  {orderWindow && !orderWindow.isOpen ? (
+                    <div className="bg-gray-100 border-2 border-gray-200 rounded-lg p-6 text-center">
+                      <AlertCircle className="w-10 h-10 text-gray-400 mx-auto mb-3" />
+                      <p className="font-semibold text-gray-700 mb-2">Pagamento non disponibile</p>
+                      <p className="text-sm text-gray-600">
+                        Gli ordini sono chiusi. Riapriamo {orderWindow.nextOpen && formatDateIT(orderWindow.nextOpen)}.
+                      </p>
+                    </div>
+                  ) : (
                   <div className="space-y-3">
                     <button
                       onClick={() => validateForm() && setPaymentMethod('stripe')}
@@ -1134,7 +1178,7 @@ export default function CheckoutModal({
                         <div className="text-xs text-gray-500">Fattura elettronica inclusa</div>
                       </div>
                     </button>
-                    
+
                     <button
                       onClick={() => validateForm() && setPaymentMethod('paypal')}
                       disabled={isLoading}
@@ -1146,7 +1190,7 @@ export default function CheckoutModal({
                         <div className="text-xs text-gray-500">Fattura elettronica inclusa</div>
                       </div>
                     </button>
-                    
+
                     {deliveryType === 'pickup' && (
                       <button
                         onClick={() => validateForm() && setPaymentMethod('cash')}
@@ -1161,6 +1205,7 @@ export default function CheckoutModal({
                       </button>
                     )}
                   </div>
+                  )}
                 </>
               ) : (
                 <div className="space-y-4">
