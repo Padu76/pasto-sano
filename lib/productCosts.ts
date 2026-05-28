@@ -39,6 +39,7 @@ export const SUPPLIER_PREMIUM_COSTS: Record<string, number> = {
   'catalogna': 5.20,
   'fagiolini verdi': 5.20,
   'zucchine a rondelle': 5.20,
+  'funghi champignon': 5.20,
   // Tartare
   'tartare di bovino': 3.90,
   // crudi
