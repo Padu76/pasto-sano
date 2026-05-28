@@ -104,30 +104,29 @@ export default function CheckoutModal({
   const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'paypal' | 'cash' | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [pickupDay, setPickupDay] = useState<'monday' | 'tuesday'>('monday');
 
-  // FINESTRA ORDINI: martedì-venerdì → ritiro lunedì/martedì settimana successiva
-  // Sabato-lunedì: ordini chiusi (il fornitore consegna lunedì mattina, già pianificato)
+  // FINESTRA ORDINI: lunedì-giovedì → ritiro lunedì settimana successiva
+  // Venerdì-sabato-domenica: ordini chiusi (Andrea raccoglie giovedì sera,
+  // fornitore consegna lunedì mattina)
   const getOrderWindow = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const day = today.getDay(); // 0=dom, 1=lun, 2=mar, 3=mer, 4=gio, 5=ven, 6=sab
 
-    // Finestra aperta: martedì (2) - venerdì (5)
-    if (day >= 2 && day <= 5) {
+    // Finestra aperta: lunedì (1) - giovedì (4)
+    if (day >= 1 && day <= 4) {
       const monday = new Date(today);
-      // Distanza al prossimo lunedì: mar→6, mer→5, gio→4, ven→3
+      // Distanza al prossimo lunedì: lun→7, mar→6, mer→5, gio→4
       monday.setDate(today.getDate() + (8 - day));
-      const tuesday = new Date(monday);
-      tuesday.setDate(monday.getDate() + 1);
-      return { isOpen: true, monday, tuesday, nextOpen: null as Date | null };
+      return { isOpen: true, monday, nextOpen: null as Date | null };
     }
 
-    // Finestra chiusa: calcola prossimo martedì
-    const nextTuesday = new Date(today);
-    const daysToTuesday = day === 6 ? 3 : day === 0 ? 2 : 1; // sab→3, dom→2, lun→1
-    nextTuesday.setDate(today.getDate() + daysToTuesday);
-    return { isOpen: false, monday: null as Date | null, tuesday: null as Date | null, nextOpen: nextTuesday };
+    // Finestra chiusa: calcola prossimo lunedì utile per ordinare
+    // Ven (5) → lun prossimo (3 giorni), Sab (6) → lun (2 giorni), Dom (0) → lun (1 giorno)
+    const nextMonday = new Date(today);
+    const daysToMonday = day === 5 ? 3 : day === 6 ? 2 : 1; // ven=3, sab=2, dom=1
+    nextMonday.setDate(today.getDate() + daysToMonday);
+    return { isOpen: false, monday: null as Date | null, nextOpen: nextMonday };
   };
 
   const [orderWindow, setOrderWindow] = useState<ReturnType<typeof getOrderWindow> | null>(null);
@@ -148,16 +147,8 @@ export default function CheckoutModal({
     setOrderWindow(window);
     if (window.isOpen && window.monday) {
       setPickupDate(formatDateForInput(window.monday));
-      setPickupDay('monday');
     }
   }, []);
-
-  // Aggiorna pickupDate quando l'utente cambia giorno
-  useEffect(() => {
-    if (!orderWindow || !orderWindow.isOpen) return;
-    const target = pickupDay === 'monday' ? orderWindow.monday : orderWindow.tuesday;
-    if (target) setPickupDate(formatDateForInput(target));
-  }, [pickupDay, orderWindow]);
 
   const calculateDeliveryZone = (distanceKm: number): DeliveryZone | null => {
     if (distanceKm <= 3) {
@@ -377,12 +368,12 @@ export default function CheckoutModal({
     }
 
     if (!orderWindow || !orderWindow.isOpen) {
-      setError('Gli ordini sono chiusi. Riapriamo martedì.');
+      setError('Gli ordini sono chiusi. Riapriamo lunedì.');
       return false;
     }
 
     if (!pickupDate) {
-      setError('Seleziona il giorno di ritiro (lunedì o martedì)');
+      setError('Errore nella data di ritiro. Ricarica la pagina.');
       return false;
     }
 
@@ -1045,56 +1036,30 @@ export default function CheckoutModal({
                             </p>
                             <p className="text-sm text-red-800">
                               Riapriamo {orderWindow.nextOpen && formatDateIT(orderWindow.nextOpen)}.
-                              Il fornitore consegna il lunedì, raccogliamo ordini da martedì a venerdì.
+                              Raccogliamo ordini da lunedì a giovedì, consegna il lunedì successivo.
                             </p>
                           </div>
                         </div>
                       </div>
                     )}
 
-                    {/* Finestra ordini aperta - selezione giorno ritiro */}
-                    {orderWindow && orderWindow.isOpen && orderWindow.monday && orderWindow.tuesday && (
+                    {/* Finestra ordini aperta - info ritiro lunedì */}
+                    {orderWindow && orderWindow.isOpen && orderWindow.monday && (
                       <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
                         <div className="flex items-center gap-2 mb-3">
                           <Calendar className="w-5 h-5 text-primary-600" />
                           <label className="text-sm font-medium text-gray-800">
-                            Giorno di ritiro *
+                            Giorno di ritiro
                           </label>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2 mb-3">
-                          <button
-                            type="button"
-                            onClick={() => setPickupDay('monday')}
-                            className={`p-3 border-2 rounded-lg transition-all text-left ${
-                              pickupDay === 'monday'
-                                ? 'border-primary-500 bg-white shadow-md'
-                                : 'border-gray-300 bg-white hover:border-primary-300'
-                            }`}
-                          >
-                            <div className={`text-xs uppercase tracking-wider font-bold mb-1 ${
-                              pickupDay === 'monday' ? 'text-primary-700' : 'text-gray-500'
-                            }`}>Lunedì</div>
-                            <div className="font-semibold text-gray-900">
-                              {orderWindow.monday.toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })}
-                            </div>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setPickupDay('tuesday')}
-                            className={`p-3 border-2 rounded-lg transition-all text-left ${
-                              pickupDay === 'tuesday'
-                                ? 'border-primary-500 bg-white shadow-md'
-                                : 'border-gray-300 bg-white hover:border-primary-300'
-                            }`}
-                          >
-                            <div className={`text-xs uppercase tracking-wider font-bold mb-1 ${
-                              pickupDay === 'tuesday' ? 'text-primary-700' : 'text-gray-500'
-                            }`}>Martedì</div>
-                            <div className="font-semibold text-gray-900">
-                              {orderWindow.tuesday.toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })}
-                            </div>
-                          </button>
+                        <div className="bg-white rounded-lg p-4 border border-primary-200 mb-3">
+                          <div className="text-xs uppercase tracking-wider font-bold text-primary-700 mb-1">
+                            Lunedì
+                          </div>
+                          <div className="font-display font-bold text-xl text-gray-900">
+                            {orderWindow.monday.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' })}
+                          </div>
                         </div>
 
                         <div className="bg-white rounded-lg p-3 flex items-start gap-2">

@@ -108,7 +108,7 @@ export default function LandingPage() {
     {
       question: 'Quando devo ordinare?',
       answer:
-        'Entro le 18:00 del giorno prima per il ritiro del giorno dopo. Per ordini grandi (5+ pasti) consigliamo 2 giorni di anticipo.',
+        'Puoi ordinare da lunedì a giovedì. Tutti gli ordini ricevuti entro giovedì sera vengono consegnati il lunedì successivo, da ritirare in Via Albere.',
     },
     {
       question: 'È prevista la consegna a domicilio?',
@@ -593,7 +593,7 @@ export default function LandingPage() {
               {
                 num: '01',
                 title: 'Ordini online o su WhatsApp',
-                desc: 'Scegli dal menu della settimana entro le 18:00. PayPal, carta o contanti al ritiro.',
+                desc: 'Scegli dal menu da lunedì a giovedì. PayPal, carta o contanti al ritiro.',
               },
               {
                 num: '02',
@@ -696,8 +696,8 @@ export default function LandingPage() {
                 <div className="flex items-start gap-3">
                   <Clock className="w-5 h-5 text-primary-500 mt-1 flex-shrink-0" />
                   <div>
-                    <div className="font-semibold">Lun-Ven, orari da concordare</div>
-                    <div className="text-sm text-ink-500">Ordina entro le 18:00 del giorno prima</div>
+                    <div className="font-semibold">Ritiro il lunedì, orari da concordare</div>
+                    <div className="text-sm text-ink-500">Ordini da lunedì a giovedì</div>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -913,10 +913,10 @@ export default function LandingPage() {
                 </a>
                 <div className="flex items-start gap-2">
                   <Clock className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                  <span>Lun-Ven, orari su appuntamento</span>
+                  <span>Ritiro il lunedì, su appuntamento</span>
                 </div>
                 <div className="text-primary-400 font-semibold pt-2">
-                  ⚡ Ordina entro le 18:00
+                  ⚡ Ordini lun-gio
                 </div>
               </div>
             </div>

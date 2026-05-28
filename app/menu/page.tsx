@@ -229,7 +229,7 @@ export default function MenuPage() {
             Pronto a ordinare?
           </h2>
           <p className="text-white/80 mb-8">
-            Ritiro in Via Albere, dentro Tribù Studio. Ordina entro le 18:00 per il ritiro del giorno dopo.
+            Ritiro in Via Albere, dentro Tribù Studio. Ordini da lunedì a giovedì, consegna il lunedì successivo.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link

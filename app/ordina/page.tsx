@@ -223,7 +223,7 @@ export default function OrdinaPage() {
               Crea il tuo ordine
             </h1>
             <p className="text-base lg:text-lg text-white/80">
-              Aggiungi i prodotti al carrello. Ordine minimo {MINIMUM_ITEMS} articoli. Ritiro in Via Albere entro 2 giorni.
+              Aggiungi i prodotti al carrello. Ordine minimo {MINIMUM_ITEMS} articoli. Ordini da lunedì a giovedì, ritiro il lunedì successivo in Via Albere.
             </p>
           </div>
         </div>
