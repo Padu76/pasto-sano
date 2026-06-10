@@ -40,6 +40,7 @@ export const SUPPLIER_PREMIUM_COSTS: Record<string, number> = {
   'carote a rondelle': 7.50,
   'zucchine a rondelle': 7.50,
   'funghi champignon': 7.50,
+  'catalogna': 7.50,
   // Tartare / Carne cruda da consumare cruda o cuocere
   'tartare di bovino': 5.70,              // 150g × 38€/kg
   // Da cuocere
