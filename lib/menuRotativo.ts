@@ -16,28 +16,17 @@ export interface MenuItem {
 // PASTI PRONTI (15) — pronti da scaldare/consumare
 export const PRONTI: MenuItem[] = [
   {
-    nome: 'Polpette proteiche',
-    prezzo: 7.0,
+    nome: 'Macinato bovino cotto',
+    prezzo: 9.0,
     categoria: 'pronto',
     disponibile: 'sempre',
-    immagine: '/images/prodotti/polpette-proteiche.jpg',
-    descrizione: 'Porzione 184g (8 polpette da 22/24g). Polpette proteiche di carne, pronte da scaldare in 2 minuti.',
-    peso: '184g',
-    formato: '8 pezzi da 22/24g',
-  },
-  {
-    nome: 'Polpette energetiche',
-    prezzo: 7.0,
-    categoria: 'pronto',
-    disponibile: 'sempre',
-    immagine: '/images/prodotti/polpette-energetiche.jpg',
-    descrizione: 'Porzione 184g (8 polpette da 22/24g). Polpette di carne e riso, pronte da scaldare in 2 minuti.',
-    peso: '184g',
-    formato: '8 pezzi da 22/24g',
+    immagine: '/images/prodotti/macinato-bovino-cotto.jpg',
+    descrizione: 'Porzione 250g. Macinato di bovino già cotto, pronto da scaldare.',
+    peso: '250g',
   },
   {
     nome: 'Roast beef bovino a fette',
-    prezzo: 9.0,
+    prezzo: 10.5,
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/prodotti/roast-beef-fette.jpg',
@@ -46,7 +35,7 @@ export const PRONTI: MenuItem[] = [
   },
   {
     nome: 'Insalata di pollo',
-    prezzo: 11.0,
+    prezzo: 13.5,
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/prodotti/insalata-pollo.jpg',
@@ -55,7 +44,7 @@ export const PRONTI: MenuItem[] = [
   },
   {
     nome: 'Tagliata di pollo',
-    prezzo: 6.0,
+    prezzo: 7.5,
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/prodotti/tagliata-pollo.jpg',
@@ -64,7 +53,7 @@ export const PRONTI: MenuItem[] = [
   },
   {
     nome: 'Tagliata bovino cotta a fette',
-    prezzo: 9.0,
+    prezzo: 10.5,
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/prodotti/tagliata-bovino-cotta-fette.jpg',
@@ -73,7 +62,7 @@ export const PRONTI: MenuItem[] = [
   },
   {
     nome: 'Tagliata bovino cotta intera',
-    prezzo: 8.0,
+    prezzo: 9.5,
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/prodotti/tagliata-bovino-cotta-intera.jpg',
@@ -83,7 +72,7 @@ export const PRONTI: MenuItem[] = [
   },
   {
     nome: 'Tagliata bovino cotta affumicata',
-    prezzo: 5.0,
+    prezzo: 6.0,
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/prodotti/tagliata-bovino-affumicata.jpg',
@@ -92,7 +81,7 @@ export const PRONTI: MenuItem[] = [
   },
   {
     nome: 'Carne secca',
-    prezzo: 5.0,
+    prezzo: 6.0,
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/prodotti/carne-secca.jpg',
@@ -101,7 +90,7 @@ export const PRONTI: MenuItem[] = [
   },
   {
     nome: 'Piselli cotti',
-    prezzo: 8.0,
+    prezzo: 10.0,
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/prodotti/piselli.jpg',
@@ -110,7 +99,7 @@ export const PRONTI: MenuItem[] = [
   },
   {
     nome: 'Carote a rondelle',
-    prezzo: 8.0,
+    prezzo: 10.0,
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/prodotti/carote-rondelle.jpg',
@@ -118,26 +107,8 @@ export const PRONTI: MenuItem[] = [
     peso: '300g',
   },
   {
-    nome: 'Catalogna',
-    prezzo: 8.0,
-    categoria: 'pronto',
-    disponibile: 'sempre',
-    immagine: '/images/prodotti/catalogna.jpg',
-    descrizione: 'Porzione 300g. Catalogna cotta, pronta da scaldare.',
-    peso: '300g',
-  },
-  {
-    nome: 'Fagiolini verdi',
-    prezzo: 8.0,
-    categoria: 'pronto',
-    disponibile: 'sempre',
-    immagine: '/images/prodotti/fagiolini-verdi.jpg',
-    descrizione: 'Porzione 300g. Fagiolini verdi cotti, pronti da scaldare.',
-    peso: '300g',
-  },
-  {
     nome: 'Zucchine a rondelle',
-    prezzo: 8.0,
+    prezzo: 10.0,
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/prodotti/zucchine-rondelle.jpg',
@@ -146,7 +117,7 @@ export const PRONTI: MenuItem[] = [
   },
   {
     nome: 'Funghi champignon',
-    prezzo: 8.0,
+    prezzo: 10.0,
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/prodotti/funghi-champignon.jpg',
@@ -155,7 +126,7 @@ export const PRONTI: MenuItem[] = [
   },
   {
     nome: 'Tartare di bovino',
-    prezzo: 6.0,
+    prezzo: 7.5,
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/prodotti/tartare-bovino.jpg',
@@ -168,7 +139,7 @@ export const PRONTI: MenuItem[] = [
 export const DA_CUCINARE: MenuItem[] = [
   {
     nome: 'Macinato bovino crudo',
-    prezzo: 11.0,
+    prezzo: 14.5,
     categoria: 'da-cuocere',
     disponibile: 'sempre',
     immagine: '/images/prodotti/macinato-bovino-crudo.jpg',
@@ -177,7 +148,7 @@ export const DA_CUCINARE: MenuItem[] = [
   },
   {
     nome: 'Hamburger bovino',
-    prezzo: 6.0,
+    prezzo: 8.0,
     categoria: 'da-cuocere',
     disponibile: 'sempre',
     immagine: '/images/prodotti/hamburger-bovino.png',
@@ -187,7 +158,7 @@ export const DA_CUCINARE: MenuItem[] = [
   },
   {
     nome: 'Tagliata bovino adulto',
-    prezzo: 15.0,
+    prezzo: 20.0,
     categoria: 'da-cuocere',
     disponibile: 'sempre',
     immagine: '/images/prodotti/tagliata-bovino-adulto.jpg',
