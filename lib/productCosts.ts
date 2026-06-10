@@ -20,33 +20,32 @@ export const BASE_COSTS: Record<string, number> = {
   roastBeef: 6.00,
 };
 
-// Costi specifici nuovo fornitore (carni/verdure premium)
-// Calcolati come 65% del prezzo vendita al pubblico (margine 35% retail food)
-// Aggiornare quando si avranno i costi B2B reali del fornitore
+// Costi specifici nuovo fornitore - costi REALI da listino (peso × €/kg)
+// Aggiornato con quotazioni fornitore: macinato cotto 28€/kg, roast beef 45€/kg,
+// insalata pollo 35€/kg, tagliata pollo 35€/kg, tagliate 40-45€/kg,
+// carne secca 150€/kg, verdure 25€/kg, macinato crudo 22€/kg,
+// carne cruda 38€/kg, hamburger 25€/kg, tagliata adulto 38€/kg
 export const SUPPLIER_PREMIUM_COSTS: Record<string, number> = {
-  'polpette proteiche': 4.55,
-  'polpette energetiche': 4.55,
-  'roast beef bovino a fette': 5.85,
-  'insalata di pollo': 7.15,
-  'tagliata di pollo': 3.90,
-  'tagliata bovino cotta a fette': 5.85,
-  'tagliata bovino cotta intera': 5.20,
-  'tagliata bovino cotta affumicata': 3.25,
-  'carne secca': 3.25,
-  // Verdure cotte sottovuoto
-  'piselli': 5.20,
-  'carote a rondelle': 5.20,
-  'catalogna': 5.20,
-  'fagiolini verdi': 5.20,
-  'zucchine a rondelle': 5.20,
-  'funghi champignon': 5.20,
-  // Tartare
-  'tartare di bovino': 3.90,
-  // crudi
-  'macinato bovino crudo': 7.15,
-  'carne cruda bovino': 3.90,
-  'hamburger bovino': 3.90,
-  'tagliata bovino adulto': 9.75,
+  // Carni cotte
+  'macinato bovino cotto': 7.00,         // 250g × 28€/kg
+  'roast beef bovino a fette': 8.10,      // 180g × 45€/kg
+  'insalata di pollo': 10.50,             // 300g × 35€/kg
+  'tagliata di pollo': 5.60,              // 160g × 35€/kg
+  'tagliata bovino cotta a fette': 8.10,  // 180g × 45€/kg
+  'tagliata bovino cotta intera': 7.20,   // 180g × 40€/kg
+  'tagliata bovino cotta affumicata': 4.50, // 100g × 45€/kg
+  'carne secca': 4.50,                    // 30g × 150€/kg
+  // Verdure cotte sottovuoto (25€/kg, conf. 300g)
+  'piselli': 7.50,
+  'carote a rondelle': 7.50,
+  'zucchine a rondelle': 7.50,
+  'funghi champignon': 7.50,
+  // Tartare / Carne cruda da consumare cruda o cuocere
+  'tartare di bovino': 5.70,              // 150g × 38€/kg
+  // Da cuocere
+  'macinato bovino crudo': 11.00,         // 500g × 22€/kg (salato 12g/kg)
+  'hamburger bovino': 6.00,               // 240g × 25€/kg (salato 12g/kg)
+  'tagliata bovino adulto': 15.20,        // 400g × 38€/kg
 };
 
 // Costi specifici per combo
