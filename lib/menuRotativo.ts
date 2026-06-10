@@ -89,12 +89,12 @@ export const PRONTI: MenuItem[] = [
     peso: '30g',
   },
   {
-    nome: 'Piselli cotti',
+    nome: 'Piselli con prosciutto',
     prezzo: 10.0,
     categoria: 'pronto',
     disponibile: 'sempre',
     immagine: '/images/prodotti/piselli.jpg',
-    descrizione: 'Porzione 300g. Piselli cotti, pronti da scaldare.',
+    descrizione: 'Porzione 300g. Piselli cotti con prosciutto, pronti da scaldare.',
     peso: '300g',
   },
   {
