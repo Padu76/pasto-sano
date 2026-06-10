@@ -125,6 +125,15 @@ export const PRONTI: MenuItem[] = [
     peso: '300g',
   },
   {
+    nome: 'Catalogna',
+    prezzo: 10.0,
+    categoria: 'pronto',
+    disponibile: 'sempre',
+    immagine: '/images/prodotti/catalogna.jpg',
+    descrizione: 'Porzione 300g. Catalogna cotta, pronta da scaldare.',
+    peso: '300g',
+  },
+  {
     nome: 'Tartare di bovino',
     prezzo: 7.5,
     categoria: 'pronto',
