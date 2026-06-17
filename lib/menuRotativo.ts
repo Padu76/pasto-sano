@@ -11,7 +11,7 @@ export type Fornitore = 'CA' | 'BE';
 
 export const FORNITORI: Record<Fornitore, { nome: string; full: string }> = {
   CA: { nome: 'CA', full: 'Macelleria Carlo Alberto' },
-  BE: { nome: 'BE', full: 'Macelleria Bortolazzi' },
+  BE: { nome: 'BE', full: 'Macelleria Bortolazzi Enrico' },
 };
 
 export interface MenuItem {
