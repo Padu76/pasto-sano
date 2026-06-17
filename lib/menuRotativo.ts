@@ -17,7 +17,7 @@ export const FORNITORI: Record<Fornitore, { nome: string; full: string }> = {
 export interface MenuItem {
   nome: string;
   prezzo: number;        // prezzo default (usato se nessuna variante è scelta)
-  categoria: 'pronto' | 'da-cuocere';
+  categoria: 'pronto' | 'contorno' | 'da-cuocere';
   disponibile: 'sempre';
   immagine: string;
   descrizione: string;
@@ -28,8 +28,8 @@ export interface MenuItem {
   fornitore?: Fornitore;       // CA = Carlo Alberto, BE = Bortolazzi
 }
 
-// PASTI PRONTI (15) — pronti da scaldare/consumare
-export const PRONTI: MenuItem[] = [
+// PASTI PRONTI + CONTORNI: lista unica, separati per categoria dopo
+const _ALL_PRONTI: MenuItem[] = [
   // ===== FORNITORE CA (Macelleria Carlo Alberto) =====
   {
     nome: 'Macinato bovino cotto',
@@ -115,7 +115,7 @@ export const PRONTI: MenuItem[] = [
   {
     nome: 'Piselli con prosciutto',
     prezzo: 10.0,
-    categoria: 'pronto',
+    categoria: 'contorno',
     disponibile: 'sempre',
     immagine: '/images/prodotti/piselli.jpg',
     descrizione: 'Porzione 300g. Piselli cotti con prosciutto, pronti da scaldare.',
@@ -125,7 +125,7 @@ export const PRONTI: MenuItem[] = [
   {
     nome: 'Carote a rondelle',
     prezzo: 10.0,
-    categoria: 'pronto',
+    categoria: 'contorno',
     disponibile: 'sempre',
     immagine: '/images/prodotti/carote-rondelle.jpg',
     descrizione: 'Porzione 300g. Carote a rondelle cotte, pronte da scaldare.',
@@ -135,7 +135,7 @@ export const PRONTI: MenuItem[] = [
   {
     nome: 'Zucchine a rondelle',
     prezzo: 10.0,
-    categoria: 'pronto',
+    categoria: 'contorno',
     disponibile: 'sempre',
     immagine: '/images/prodotti/zucchine-rondelle.jpg',
     descrizione: 'Porzione 300g. Zucchine a rondelle cotte, pronte da scaldare.',
@@ -145,7 +145,7 @@ export const PRONTI: MenuItem[] = [
   {
     nome: 'Funghi champignon',
     prezzo: 10.0,
-    categoria: 'pronto',
+    categoria: 'contorno',
     disponibile: 'sempre',
     immagine: '/images/prodotti/funghi-champignon.jpg',
     descrizione: 'Porzione 300g. Funghi champignon cotti, pronti da scaldare.',
@@ -155,7 +155,7 @@ export const PRONTI: MenuItem[] = [
   {
     nome: 'Catalogna',
     prezzo: 10.0,
-    categoria: 'pronto',
+    categoria: 'contorno',
     disponibile: 'sempre',
     immagine: '/images/prodotti/catalogna.jpg',
     descrizione: 'Porzione 300g. Catalogna cotta, pronta da scaldare.',
@@ -360,7 +360,7 @@ export const PRONTI: MenuItem[] = [
     nome: 'Patate arrosto',
     fornitore: 'BE',
     prezzo: 4.0,
-    categoria: 'pronto',
+    categoria: 'contorno',
     disponibile: 'sempre',
     immagine: '/images/prodotti/patate-arrosto.jpg',
     descrizione: 'Patate arrosto cotte sottovuoto, pronte da scaldare. Peso indicativo.',
@@ -374,7 +374,7 @@ export const PRONTI: MenuItem[] = [
     nome: 'Patate lesse',
     fornitore: 'BE',
     prezzo: 4.0,
-    categoria: 'pronto',
+    categoria: 'contorno',
     disponibile: 'sempre',
     immagine: '/images/prodotti/patate-lesse.jpg',
     descrizione: 'Patate lesse cotte sottovuoto, pronte da scaldare. Peso indicativo.',
@@ -388,7 +388,7 @@ export const PRONTI: MenuItem[] = [
     nome: 'Carciofi trifolati',
     fornitore: 'BE',
     prezzo: 7.0,
-    categoria: 'pronto',
+    categoria: 'contorno',
     disponibile: 'sempre',
     immagine: '/images/prodotti/carciofi-trifolati.jpg',
     descrizione: 'Carciofi trifolati cotti sottovuoto, pronti da scaldare. Peso indicativo.',
@@ -402,7 +402,7 @@ export const PRONTI: MenuItem[] = [
     nome: 'Funghi misti',
     fornitore: 'BE',
     prezzo: 5.5,
-    categoria: 'pronto',
+    categoria: 'contorno',
     disponibile: 'sempre',
     immagine: '/images/prodotti/funghi-misti.jpg',
     descrizione: 'Funghi misti cotti sottovuoto, pronti da scaldare. Peso indicativo.',
@@ -416,7 +416,7 @@ export const PRONTI: MenuItem[] = [
     nome: 'Capponata',
     fornitore: 'BE',
     prezzo: 5.5,
-    categoria: 'pronto',
+    categoria: 'contorno',
     disponibile: 'sempre',
     immagine: '/images/prodotti/capponata.jpg',
     descrizione: 'Capponata di verdure cotte sottovuoto, pronta da scaldare. Peso indicativo.',
@@ -427,6 +427,12 @@ export const PRONTI: MenuItem[] = [
     ],
   },
 ];
+
+// PRONTI — solo carni cotte/pronte da consumare (escluse verdure/contorni)
+export const PRONTI: MenuItem[] = _ALL_PRONTI.filter((p) => p.categoria === 'pronto');
+
+// CONTORNI — verdure cotte sottovuoto + patate + capponata
+export const CONTORNI: MenuItem[] = _ALL_PRONTI.filter((p) => p.categoria === 'contorno');
 
 // DA CUCINARE (3) — carni crude per la tua preparazione
 export const DA_CUCINARE: MenuItem[] = [
@@ -465,7 +471,7 @@ export const DA_CUCINARE: MenuItem[] = [
 ];
 
 // Tutti i prodotti
-export const TUTTI_PRODOTTI: MenuItem[] = [...PRONTI, ...DA_CUCINARE];
+export const TUTTI_PRODOTTI: MenuItem[] = [...PRONTI, ...CONTORNI, ...DA_CUCINARE];
 
 // ===== BACKWARD COMPATIBILITY =====
 export const MENU_FISSO: MenuItem[] = TUTTI_PRODOTTI;

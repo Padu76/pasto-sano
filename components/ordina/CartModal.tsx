@@ -71,11 +71,11 @@ export default function CartModal({
   const getCategoryLabel = (category: string) => {
     switch(category) {
       case 'pronto': return 'Pasti pronti';
+      case 'contorno': return 'Contorni';
       case 'da-cuocere': return 'Da cucinare';
       // Legacy support
       case 'primo': return 'Primi Piatti';
       case 'secondo': return 'Secondi Piatti';
-      case 'contorno': return 'Contorni';
       case 'combo': return 'Menu Combo';
       case 'focaccia': return 'Focacce';
       case 'piadina': return 'Piadine';

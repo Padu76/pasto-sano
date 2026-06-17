@@ -13,13 +13,14 @@ import {
   Flame,
   ChefHat,
   Package,
+  Salad,
 } from 'lucide-react';
-import { PRONTI, DA_CUCINARE, type MenuItem } from '@/lib/menuRotativo';
+import { PRONTI, CONTORNI, DA_CUCINARE, type MenuItem } from '@/lib/menuRotativo';
 
 export default function MenuPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [activeTab, setActiveTab] = useState<'tutti' | 'pronti' | 'da-cuocere'>('tutti');
+  const [activeTab, setActiveTab] = useState<'tutti' | 'pronti' | 'contorni' | 'da-cuocere'>('tutti');
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 24);
@@ -141,8 +142,9 @@ export default function MenuPage() {
         <div className="container mx-auto px-4 lg:px-8 py-4">
           <div className="flex gap-2 overflow-x-auto scrollbar-hide">
             {[
-              { key: 'tutti', label: 'Tutti', count: PRONTI.length + DA_CUCINARE.length },
+              { key: 'tutti', label: 'Tutti', count: PRONTI.length + CONTORNI.length + DA_CUCINARE.length },
               { key: 'pronti', label: 'Pronti', count: PRONTI.length },
+              { key: 'contorni', label: 'Contorni', count: CONTORNI.length },
               { key: 'da-cuocere', label: 'Da cucinare', count: DA_CUCINARE.length },
             ].map((tab) => {
               const active = activeTab === tab.key;
@@ -212,6 +214,23 @@ export default function MenuPage() {
             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6 mt-8">
               {PRONTI.map((item, i) => (
                 <ProductCard key={i} item={item} priority={i < 4} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* CONTORNI */}
+        {(activeTab === 'tutti' || activeTab === 'contorni') && (
+          <section className="mb-16">
+            <SectionHeader
+              eyebrow="Contorni"
+              title="Contorni e verdure"
+              desc="Verdure cotte sottovuoto, patate e contorni. Pronti da scaldare."
+              icon={<Salad className="w-5 h-5" />}
+            />
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6 mt-8">
+              {CONTORNI.map((item, i) => (
+                <ProductCard key={i} item={item} />
               ))}
             </div>
           </section>
