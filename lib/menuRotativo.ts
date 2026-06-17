@@ -1,16 +1,23 @@
 // E:\pasto-sano\lib\menuRotativo.ts
 // Menu Pasto Sano - solo prodotti nuovo fornitore (no più menu rotativo)
 
+export interface MenuVariante {
+  peso: string;          // visualizzato es. "200g"
+  pesoGrammi: number;    // per calcoli costi
+  prezzo: number;        // prezzo vendita di questa variante
+}
+
 export interface MenuItem {
   nome: string;
-  prezzo: number;
+  prezzo: number;        // prezzo default (usato se nessuna variante è scelta)
   categoria: 'pronto' | 'da-cuocere';
   disponibile: 'sempre';
   immagine: string;
   descrizione: string;
-  peso: string;
+  peso: string;          // peso default
   formato?: string;
   bio?: boolean;
+  varianti?: MenuVariante[];  // se presenti, la card mostra dropdown taglia
 }
 
 // PASTI PRONTI (15) — pronti da scaldare/consumare
@@ -23,15 +30,6 @@ export const PRONTI: MenuItem[] = [
     immagine: '/images/prodotti/macinato-bovino-cotto.jpg',
     descrizione: 'Porzione 250g. Macinato di bovino già cotto, pronto da scaldare.',
     peso: '250g',
-  },
-  {
-    nome: 'Roast beef bovino a fette',
-    prezzo: 10.5,
-    categoria: 'pronto',
-    disponibile: 'sempre',
-    immagine: '/images/prodotti/roast-beef-fette.jpg',
-    descrizione: 'Porzione 180g. Roast beef di bovino a fette, pronto da consumare.',
-    peso: '180g',
   },
   {
     nome: 'Insalata di pollo',
@@ -50,34 +48,6 @@ export const PRONTI: MenuItem[] = [
     immagine: '/images/prodotti/tagliata-pollo.jpg',
     descrizione: 'Porzione 160g. Tagliata di pollo già cotta, pronta da scaldare.',
     peso: '160g',
-  },
-  {
-    nome: 'Tagliata bovino cotta a fette',
-    prezzo: 10.5,
-    categoria: 'pronto',
-    disponibile: 'sempre',
-    immagine: '/images/prodotti/tagliata-bovino-cotta-fette.jpg',
-    descrizione: 'Porzione 180g. Tagliata di bovino cotta a fette, pronta da consumare.',
-    peso: '180g',
-  },
-  {
-    nome: 'Tagliata bovino cotta intera',
-    prezzo: 9.5,
-    categoria: 'pronto',
-    disponibile: 'sempre',
-    immagine: '/images/prodotti/tagliata-bovino-cotta-intera.jpg',
-    descrizione: 'Porzione 180g (monoporzione). Tagliata di bovino cotta, pronta da scaldare.',
-    peso: '180g',
-    formato: 'monoporzione',
-  },
-  {
-    nome: 'Tagliata bovino cotta affumicata',
-    prezzo: 6.0,
-    categoria: 'pronto',
-    disponibile: 'sempre',
-    immagine: '/images/prodotti/tagliata-bovino-affumicata.jpg',
-    descrizione: 'Porzione 100g. Tagliata di bovino affumicata a fette, pronta da consumare.',
-    peso: '100g',
   },
   {
     nome: 'Carne secca',
@@ -141,6 +111,243 @@ export const PRONTI: MenuItem[] = [
     immagine: '/images/prodotti/tartare-bovino.jpg',
     descrizione: 'Porzione 150g. Tartare di bovino fresca, pronta da condire e consumare.',
     peso: '150g',
+  },
+  // ===== NUOVO FORNITORE - 17 prodotti con varianti taglia =====
+  // Carni premium (150g / 250g / 500g)
+  {
+    nome: 'Roastbeef cotto',
+    prezzo: 5.5,
+    categoria: 'pronto',
+    disponibile: 'sempre',
+    immagine: '/images/prodotti/roastbeef-cotto.jpg',
+    descrizione: 'Roastbeef cotto sottovuoto, pronto da consumare. Peso indicativo.',
+    peso: '150g',
+    varianti: [
+      { peso: '150g', pesoGrammi: 150, prezzo: 5.5 },
+      { peso: '250g', pesoGrammi: 250, prezzo: 9.0 },
+      { peso: '500g', pesoGrammi: 500, prezzo: 18.0 },
+    ],
+  },
+  {
+    nome: 'Tagliata cotta',
+    prezzo: 6.0,
+    categoria: 'pronto',
+    disponibile: 'sempre',
+    immagine: '/images/prodotti/tagliata-cotta.jpg',
+    descrizione: 'Tagliata di manzo cotta sottovuoto, pronta da scaldare. Peso indicativo.',
+    peso: '150g',
+    varianti: [
+      { peso: '150g', pesoGrammi: 150, prezzo: 6.0 },
+      { peso: '250g', pesoGrammi: 250, prezzo: 10.0 },
+      { peso: '500g', pesoGrammi: 500, prezzo: 19.5 },
+    ],
+  },
+  {
+    nome: 'Carpaccio',
+    prezzo: 4.5,
+    categoria: 'pronto',
+    disponibile: 'sempre',
+    immagine: '/images/prodotti/carpaccio.jpg',
+    descrizione: 'Carpaccio di manzo crudo sottovuoto, pronto da condire. Peso indicativo.',
+    peso: '150g',
+    varianti: [
+      { peso: '150g', pesoGrammi: 150, prezzo: 4.5 },
+      { peso: '250g', pesoGrammi: 250, prezzo: 7.5 },
+      { peso: '500g', pesoGrammi: 500, prezzo: 15.0 },
+    ],
+  },
+  {
+    nome: 'Battuta di scottona',
+    prezzo: 6.0,
+    categoria: 'pronto',
+    disponibile: 'sempre',
+    immagine: '/images/prodotti/battuta-scottona.jpg',
+    descrizione: 'Battuta di scottona cruda sottovuoto, pronta da condire. Peso indicativo.',
+    peso: '150g',
+    varianti: [
+      { peso: '150g', pesoGrammi: 150, prezzo: 6.0 },
+      { peso: '250g', pesoGrammi: 250, prezzo: 9.5 },
+      { peso: '500g', pesoGrammi: 500, prezzo: 19.0 },
+    ],
+  },
+  {
+    nome: 'Arrosto di vitello',
+    prezzo: 7.0,
+    categoria: 'pronto',
+    disponibile: 'sempre',
+    immagine: '/images/prodotti/arrosto-vitello.jpg',
+    descrizione: 'Arrosto di vitello cotto sottovuoto, pronto da scaldare. Peso indicativo.',
+    peso: '150g',
+    varianti: [
+      { peso: '150g', pesoGrammi: 150, prezzo: 7.0 },
+      { peso: '250g', pesoGrammi: 250, prezzo: 11.5 },
+      { peso: '500g', pesoGrammi: 500, prezzo: 23.0 },
+    ],
+  },
+  // Carni standard (200g / 300g / 500g)
+  {
+    nome: 'Macinato bovino saltato',
+    prezzo: 4.5,
+    categoria: 'pronto',
+    disponibile: 'sempre',
+    immagine: '/images/prodotti/macinato-bovino-saltato.jpg',
+    descrizione: 'Macinato di bovino adulto saltato, cotto sottovuoto. Peso indicativo.',
+    peso: '200g',
+    varianti: [
+      { peso: '200g', pesoGrammi: 200, prezzo: 4.5 },
+      { peso: '300g', pesoGrammi: 300, prezzo: 6.5 },
+      { peso: '500g', pesoGrammi: 500, prezzo: 10.5 },
+    ],
+  },
+  {
+    nome: 'Hamburger bovino cotto',
+    prezzo: 5.0,
+    categoria: 'pronto',
+    disponibile: 'sempre',
+    immagine: '/images/prodotti/hamburger-bovino-cotto.jpg',
+    descrizione: 'Hamburger di bovino adulto cotto sottovuoto, pronto da scaldare. Peso indicativo.',
+    peso: '200g',
+    varianti: [
+      { peso: '200g', pesoGrammi: 200, prezzo: 5.0 },
+      { peso: '300g', pesoGrammi: 300, prezzo: 7.0 },
+      { peso: '500g', pesoGrammi: 500, prezzo: 11.5 },
+    ],
+  },
+  {
+    nome: 'Petto di pollo a bassa temperatura',
+    prezzo: 3.5,
+    categoria: 'pronto',
+    disponibile: 'sempre',
+    immagine: '/images/prodotti/petto-pollo-bassa-temp.jpg',
+    descrizione: 'Petto di pollo cotto a bassa temperatura sottovuoto, pronto da scaldare. Peso indicativo.',
+    peso: '200g',
+    varianti: [
+      { peso: '200g', pesoGrammi: 200, prezzo: 3.5 },
+      { peso: '300g', pesoGrammi: 300, prezzo: 5.5 },
+      { peso: '500g', pesoGrammi: 500, prezzo: 9.0 },
+    ],
+  },
+  {
+    nome: 'Spezzatino di pollo al curry',
+    prezzo: 6.5,
+    categoria: 'pronto',
+    disponibile: 'sempre',
+    immagine: '/images/prodotti/spezzatino-pollo-curry.jpg',
+    descrizione: 'Spezzatino di petto di pollo al curry, cotto sottovuoto. Peso indicativo.',
+    peso: '200g',
+    varianti: [
+      { peso: '200g', pesoGrammi: 200, prezzo: 6.5 },
+      { peso: '300g', pesoGrammi: 300, prezzo: 10.0 },
+      { peso: '500g', pesoGrammi: 500, prezzo: 16.5 },
+    ],
+  },
+  {
+    nome: 'Straccetti di manzo',
+    prezzo: 8.5,
+    categoria: 'pronto',
+    disponibile: 'sempre',
+    immagine: '/images/prodotti/straccetti-manzo.jpg',
+    descrizione: 'Straccetti di manzo cotti sottovuoto, pronti da scaldare. Peso indicativo.',
+    peso: '200g',
+    varianti: [
+      { peso: '200g', pesoGrammi: 200, prezzo: 8.5 },
+      { peso: '300g', pesoGrammi: 300, prezzo: 12.5 },
+      { peso: '500g', pesoGrammi: 500, prezzo: 20.5 },
+    ],
+  },
+  {
+    nome: 'Sottocosce di pollo alla romana',
+    prezzo: 4.5,
+    categoria: 'pronto',
+    disponibile: 'sempre',
+    immagine: '/images/prodotti/sottocosce-pollo-romana.jpg',
+    descrizione: 'Sottocosce di pollo alla romana, cotte sottovuoto. Peso indicativo.',
+    peso: '200g',
+    varianti: [
+      { peso: '200g', pesoGrammi: 200, prezzo: 4.5 },
+      { peso: '300g', pesoGrammi: 300, prezzo: 6.5 },
+      { peso: '500g', pesoGrammi: 500, prezzo: 11.0 },
+    ],
+  },
+  {
+    nome: 'Scaloppe al limone',
+    prezzo: 5.5,
+    categoria: 'pronto',
+    disponibile: 'sempre',
+    immagine: '/images/prodotti/scaloppe-limone.jpg',
+    descrizione: 'Scaloppe al limone cotte sottovuoto, pronte da scaldare. Peso indicativo.',
+    peso: '200g',
+    varianti: [
+      { peso: '200g', pesoGrammi: 200, prezzo: 5.5 },
+      { peso: '300g', pesoGrammi: 300, prezzo: 8.0 },
+      { peso: '500g', pesoGrammi: 500, prezzo: 13.0 },
+    ],
+  },
+  // Contorni (300g / 500g)
+  {
+    nome: 'Patate arrosto',
+    prezzo: 4.0,
+    categoria: 'pronto',
+    disponibile: 'sempre',
+    immagine: '/images/prodotti/patate-arrosto.jpg',
+    descrizione: 'Patate arrosto cotte sottovuoto, pronte da scaldare. Peso indicativo.',
+    peso: '300g',
+    varianti: [
+      { peso: '300g', pesoGrammi: 300, prezzo: 4.0 },
+      { peso: '500g', pesoGrammi: 500, prezzo: 6.5 },
+    ],
+  },
+  {
+    nome: 'Patate lesse',
+    prezzo: 4.0,
+    categoria: 'pronto',
+    disponibile: 'sempre',
+    immagine: '/images/prodotti/patate-lesse.jpg',
+    descrizione: 'Patate lesse cotte sottovuoto, pronte da scaldare. Peso indicativo.',
+    peso: '300g',
+    varianti: [
+      { peso: '300g', pesoGrammi: 300, prezzo: 4.0 },
+      { peso: '500g', pesoGrammi: 500, prezzo: 6.5 },
+    ],
+  },
+  {
+    nome: 'Carciofi trifolati',
+    prezzo: 7.0,
+    categoria: 'pronto',
+    disponibile: 'sempre',
+    immagine: '/images/prodotti/carciofi-trifolati.jpg',
+    descrizione: 'Carciofi trifolati cotti sottovuoto, pronti da scaldare. Peso indicativo.',
+    peso: '300g',
+    varianti: [
+      { peso: '300g', pesoGrammi: 300, prezzo: 7.0 },
+      { peso: '500g', pesoGrammi: 500, prezzo: 11.5 },
+    ],
+  },
+  {
+    nome: 'Funghi misti',
+    prezzo: 5.5,
+    categoria: 'pronto',
+    disponibile: 'sempre',
+    immagine: '/images/prodotti/funghi-misti.jpg',
+    descrizione: 'Funghi misti cotti sottovuoto, pronti da scaldare. Peso indicativo.',
+    peso: '300g',
+    varianti: [
+      { peso: '300g', pesoGrammi: 300, prezzo: 5.5 },
+      { peso: '500g', pesoGrammi: 500, prezzo: 9.0 },
+    ],
+  },
+  {
+    nome: 'Capponata',
+    prezzo: 5.5,
+    categoria: 'pronto',
+    disponibile: 'sempre',
+    immagine: '/images/prodotti/capponata.jpg',
+    descrizione: 'Capponata di verdure cotte sottovuoto, pronta da scaldare. Peso indicativo.',
+    peso: '300g',
+    varianti: [
+      { peso: '300g', pesoGrammi: 300, prezzo: 5.5 },
+      { peso: '500g', pesoGrammi: 500, prezzo: 9.5 },
+    ],
   },
 ];
 
