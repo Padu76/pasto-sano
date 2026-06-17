@@ -20,20 +20,12 @@ export const BASE_COSTS: Record<string, number> = {
   roastBeef: 6.00,
 };
 
-// Costi specifici nuovo fornitore - costi REALI da listino (peso × €/kg)
-// Aggiornato con quotazioni fornitore: macinato cotto 28€/kg, roast beef 45€/kg,
-// insalata pollo 35€/kg, tagliata pollo 35€/kg, tagliate 40-45€/kg,
-// carne secca 150€/kg, verdure 25€/kg, macinato crudo 22€/kg,
-// carne cruda 38€/kg, hamburger 25€/kg, tagliata adulto 38€/kg
+// Costi specifici fornitore 1 (esistente)
 export const SUPPLIER_PREMIUM_COSTS: Record<string, number> = {
   // Carni cotte
   'macinato bovino cotto': 7.00,         // 250g × 28€/kg
-  'roast beef bovino a fette': 8.10,      // 180g × 45€/kg
   'insalata di pollo': 10.50,             // 300g × 35€/kg
   'tagliata di pollo': 5.60,              // 160g × 35€/kg
-  'tagliata bovino cotta a fette': 8.10,  // 180g × 45€/kg
-  'tagliata bovino cotta intera': 7.20,   // 180g × 40€/kg
-  'tagliata bovino cotta affumicata': 4.50, // 100g × 45€/kg
   'carne secca': 4.50,                    // 30g × 150€/kg
   // Verdure cotte sottovuoto (25€/kg, conf. 300g)
   'piselli': 7.50,
@@ -41,12 +33,34 @@ export const SUPPLIER_PREMIUM_COSTS: Record<string, number> = {
   'zucchine a rondelle': 7.50,
   'funghi champignon': 7.50,
   'catalogna': 7.50,
-  // Tartare / Carne cruda da consumare cruda o cuocere
+  // Tartare
   'tartare di bovino': 5.70,              // 150g × 38€/kg
   // Da cuocere
   'macinato bovino crudo': 11.00,         // 500g × 22€/kg (salato 12g/kg)
   'hamburger bovino': 6.00,               // 240g × 25€/kg (salato 12g/kg)
   'tagliata bovino adulto': 15.20,        // 400g × 38€/kg
+};
+
+// Costi al kg fornitore 2 (nuovo) - per calcolo dinamico costi varianti
+// Per i prodotti con varianti, costo confezione = pesoGrammi × COSTI_KG / 1000
+export const COSTI_KG_FORNITORE_2: Record<string, number> = {
+  'roastbeef cotto': 27.00,
+  'tagliata cotta': 29.25,
+  'carpaccio': 22.95,
+  'battuta di scottona': 28.80,
+  'arrosto di vitello': 34.65,
+  'macinato bovino saltato': 15.99,
+  'hamburger bovino cotto': 17.44,
+  'petto di pollo a bassa temperatura': 13.32,
+  'spezzatino di pollo al curry': 25.04,
+  'straccetti di manzo': 31.50,
+  'sottocosce di pollo alla romana': 16.65,
+  'scaloppe al limone': 19.80,
+  'patate arrosto': 10.00,
+  'patate lesse': 9.45,
+  'carciofi trifolati': 17.10,
+  'funghi misti': 13.41,
+  'capponata': 13.96,
 };
 
 // Costi specifici per combo
@@ -59,14 +73,24 @@ export const COMBO_COSTS: Record<string, number> = {
 };
 
 // Funzione per ottenere il costo di acquisto di un prodotto
-export function getPurchaseCost(productName: string, category?: string): number {
+// Per i prodotti con varianti taglia, passare anche pesoGrammi per calcolo dinamico.
+export function getPurchaseCost(productName: string, category?: string, pesoGrammi?: number): number {
   // Controlla se è un combo
   if (COMBO_COSTS[productName]) {
     return COMBO_COSTS[productName];
   }
 
-  // Controlla prodotti nuovo fornitore (match per nome normalizzato)
   const nameNormalized = productName.toLowerCase().trim();
+
+  // Controlla prodotti fornitore 2 (con varianti: calcolo dinamico)
+  for (const [key, eurKg] of Object.entries(COSTI_KG_FORNITORE_2)) {
+    if (nameNormalized.includes(key)) {
+      const grammi = pesoGrammi || 200; // default 200g se non specificato
+      return (grammi * eurKg) / 1000;
+    }
+  }
+
+  // Controlla prodotti fornitore 1 (costi confezione fissi)
   for (const [key, cost] of Object.entries(SUPPLIER_PREMIUM_COSTS)) {
     if (nameNormalized.includes(key)) {
       return cost;

@@ -8,6 +8,7 @@ import { MenuItem } from '@/lib/menuRotativo';
 interface CartItem extends MenuItem {
   id: string;
   quantity: number;
+  varianteScelta?: string;
   isCombo?: boolean;
   comboItems?: {
     primo?: string;

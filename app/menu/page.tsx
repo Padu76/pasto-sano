@@ -281,6 +281,13 @@ function SectionHeader({
 }
 
 function ProductCard({ item, priority = false }: { item: MenuItem; priority?: boolean }) {
+  const hasVarianti = !!(item.varianti && item.varianti.length > 0);
+  const minPrice = hasVarianti ? item.varianti![0].prezzo : item.prezzo;
+  const maxPrice = hasVarianti ? item.varianti![item.varianti!.length - 1].prezzo : item.prezzo;
+  const displayPeso = hasVarianti
+    ? `${item.varianti![0].peso}–${item.varianti![item.varianti!.length - 1].peso}`
+    : item.peso;
+
   return (
     <div className="group bg-white rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 flex flex-col">
       <div className="relative w-full h-48 sm:h-56 lg:h-64 overflow-hidden bg-ink-100">
@@ -293,7 +300,7 @@ function ProductCard({ item, priority = false }: { item: MenuItem; priority?: bo
           className="object-cover group-hover:scale-105 transition-transform duration-500"
         />
         <div className="absolute top-3 left-3 bg-ink-950/80 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
-          {item.peso}
+          {displayPeso}
         </div>
         {item.categoria === 'da-cuocere' && (
           <div className="absolute top-3 right-3 bg-lemon-400 text-ink-950 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
@@ -306,11 +313,17 @@ function ProductCard({ item, priority = false }: { item: MenuItem; priority?: bo
           {item.nome}
         </h3>
 
-        {/* Porzione - prominente */}
+        {/* Porzione - mostra range se ci sono varianti */}
         <div className="bg-primary-50 border border-primary-200 rounded-lg px-2.5 py-1.5 mb-3 inline-flex items-center gap-1.5 self-start">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-primary-700">Porzione</span>
-          <span className="font-display font-bold text-sm text-ink-950">{item.peso}</span>
-          {item.formato && (
+          <span className="text-[10px] font-bold uppercase tracking-wider text-primary-700">
+            {hasVarianti ? 'Taglie' : 'Porzione'}
+          </span>
+          <span className="font-display font-bold text-sm text-ink-950">
+            {hasVarianti
+              ? item.varianti!.map((v) => v.peso).join(' · ')
+              : item.peso}
+          </span>
+          {!hasVarianti && item.formato && (
             <span className="text-xs text-ink-600">· {item.formato}</span>
           )}
         </div>
@@ -318,7 +331,9 @@ function ProductCard({ item, priority = false }: { item: MenuItem; priority?: bo
         <p className="text-sm text-ink-600 mb-4 line-clamp-3 flex-1">{item.descrizione}</p>
 
         <div className="flex items-center justify-between pt-3 border-t border-ink-100">
-          <div className="font-display font-bold text-xl">€{item.prezzo.toFixed(2)}</div>
+          <div className="font-display font-bold text-xl">
+            {minPrice === maxPrice ? `€${minPrice.toFixed(2)}` : `da €${minPrice.toFixed(2)}`}
+          </div>
           <Link
             href="/ordina"
             className="bg-ink-950 hover:bg-primary-500 text-white p-2 rounded-full transition-colors"

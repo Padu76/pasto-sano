@@ -18,11 +18,12 @@ import {
 
 import CartModal from '@/components/ordina/CartModal';
 import CheckoutModal from '@/components/ordina/CheckoutModal';
-import { PRONTI, DA_CUCINARE, type MenuItem } from '@/lib/menuRotativo';
+import { PRONTI, DA_CUCINARE, type MenuItem, type MenuVariante } from '@/lib/menuRotativo';
 
 interface CartItem extends MenuItem {
   id: string;
   quantity: number;
+  varianteScelta?: string; // peso della variante scelta (es. "300g")
 }
 
 const MINIMUM_ITEMS = 3;
@@ -68,9 +69,15 @@ export default function OrdinaPage() {
     [cart]
   );
 
-  const addToCart = (product: MenuItem) => {
+  const addToCart = (product: MenuItem, variante?: MenuVariante) => {
+    const cartKey = variante ? `${product.nome} - ${variante.peso}` : product.nome;
+    const effectivePrezzo = variante ? variante.prezzo : product.prezzo;
+    const effectivePeso = variante ? variante.peso : product.peso;
+
     setCart((prev) => {
-      const existingIdx = prev.findIndex((c) => c.nome === product.nome);
+      const existingIdx = prev.findIndex((c) =>
+        variante ? c.nome === product.nome && c.varianteScelta === variante.peso : c.nome === product.nome && !c.varianteScelta
+      );
       if (existingIdx >= 0) {
         const updated = [...prev];
         updated[existingIdx] = { ...updated[existingIdx], quantity: updated[existingIdx].quantity + 1 };
@@ -80,8 +87,11 @@ export default function OrdinaPage() {
         ...prev,
         {
           ...product,
-          id: `${product.nome}-${Date.now()}`,
+          id: `${cartKey}-${Date.now()}`,
           quantity: 1,
+          prezzo: effectivePrezzo,
+          peso: effectivePeso,
+          varianteScelta: variante?.peso,
         },
       ];
     });
@@ -99,8 +109,10 @@ export default function OrdinaPage() {
     setCart((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const getQuantityInCart = (productName: string) => {
-    return cart.find((c) => c.nome === productName)?.quantity || 0;
+  const getQuantityInCart = (productName: string, varianteSelezionata?: string) => {
+    return cart.find((c) =>
+      c.nome === productName && (varianteSelezionata ? c.varianteScelta === varianteSelezionata : !c.varianteScelta)
+    )?.quantity || 0;
   };
 
   const handleOrderComplete = () => {
@@ -295,14 +307,18 @@ export default function OrdinaPage() {
                   key={`pronti-${i}`}
                   item={item}
                   priority={i < 4}
-                  quantity={getQuantityInCart(item.nome)}
-                  onAdd={() => addToCart(item)}
-                  onIncrease={() => {
-                    const existing = cart.find((c) => c.nome === item.nome);
+                  getQuantityInCart={getQuantityInCart}
+                  onAdd={(variante) => addToCart(item, variante)}
+                  onIncrease={(varianteSelezionata) => {
+                    const existing = cart.find((c) =>
+                      c.nome === item.nome && (varianteSelezionata ? c.varianteScelta === varianteSelezionata : !c.varianteScelta)
+                    );
                     if (existing) updateQuantity(existing.id, 1);
                   }}
-                  onDecrease={() => {
-                    const existing = cart.find((c) => c.nome === item.nome);
+                  onDecrease={(varianteSelezionata) => {
+                    const existing = cart.find((c) =>
+                      c.nome === item.nome && (varianteSelezionata ? c.varianteScelta === varianteSelezionata : !c.varianteScelta)
+                    );
                     if (existing) updateQuantity(existing.id, -1);
                   }}
                 />
@@ -325,14 +341,18 @@ export default function OrdinaPage() {
                 <OrderProductCard
                   key={`crudi-${i}`}
                   item={item}
-                  quantity={getQuantityInCart(item.nome)}
-                  onAdd={() => addToCart(item)}
-                  onIncrease={() => {
-                    const existing = cart.find((c) => c.nome === item.nome);
+                  getQuantityInCart={getQuantityInCart}
+                  onAdd={(variante) => addToCart(item, variante)}
+                  onIncrease={(varianteSelezionata) => {
+                    const existing = cart.find((c) =>
+                      c.nome === item.nome && (varianteSelezionata ? c.varianteScelta === varianteSelezionata : !c.varianteScelta)
+                    );
                     if (existing) updateQuantity(existing.id, 1);
                   }}
-                  onDecrease={() => {
-                    const existing = cart.find((c) => c.nome === item.nome);
+                  onDecrease={(varianteSelezionata) => {
+                    const existing = cart.find((c) =>
+                      c.nome === item.nome && (varianteSelezionata ? c.varianteScelta === varianteSelezionata : !c.varianteScelta)
+                    );
                     if (existing) updateQuantity(existing.id, -1);
                   }}
                 />
@@ -340,6 +360,14 @@ export default function OrdinaPage() {
             </div>
           </section>
         )}
+
+        {/* Banner peso indicativo */}
+        <div className="mt-10 bg-ink-50 border border-ink-200 rounded-2xl p-5 text-sm text-ink-700 flex items-start gap-3">
+          <Package className="w-5 h-5 text-ink-500 flex-shrink-0 mt-0.5" />
+          <div>
+            I tagli di carne hanno <strong>peso indicativo</strong>: la confezione che ricevi può variare ±15% rispetto alla taglia scelta. Il prezzo è quello indicato.
+          </div>
+        </div>
 
         {/* Help */}
         <div className="mt-16 bg-ink-50 rounded-3xl p-8 lg:p-12 text-center">
@@ -411,19 +439,26 @@ function SectionHeader({
 
 function OrderProductCard({
   item,
-  quantity,
+  getQuantityInCart,
   onAdd,
   onIncrease,
   onDecrease,
   priority = false,
 }: {
   item: MenuItem;
-  quantity: number;
-  onAdd: () => void;
-  onIncrease: () => void;
-  onDecrease: () => void;
+  getQuantityInCart: (productName: string, variante?: string) => number;
+  onAdd: (variante?: MenuVariante) => void;
+  onIncrease: (variante?: string) => void;
+  onDecrease: (variante?: string) => void;
   priority?: boolean;
 }) {
+  const hasVarianti = !!(item.varianti && item.varianti.length > 0);
+  const [selectedIdx, setSelectedIdx] = useState(0);
+  const currentVariante = hasVarianti ? item.varianti![selectedIdx] : undefined;
+  const displayPeso = currentVariante ? currentVariante.peso : item.peso;
+  const displayPrezzo = currentVariante ? currentVariante.prezzo : item.prezzo;
+  const quantity = getQuantityInCart(item.nome, currentVariante?.peso);
+
   return (
     <div className="group bg-white rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 flex flex-col">
       <div className="relative w-full h-48 sm:h-56 lg:h-64 overflow-hidden bg-ink-100">
@@ -436,7 +471,7 @@ function OrderProductCard({
           className="object-cover group-hover:scale-105 transition-transform duration-500"
         />
         <div className="absolute top-3 left-3 bg-ink-950/80 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
-          {item.peso}
+          {displayPeso}
         </div>
         {item.categoria === 'da-cuocere' && (
           <div className="absolute top-3 right-3 bg-lemon-400 text-ink-950 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
@@ -449,22 +484,37 @@ function OrderProductCard({
           {item.nome}
         </h3>
 
-        {/* Porzione - prominente */}
-        <div className="bg-primary-50 border border-primary-200 rounded-lg px-2.5 py-1.5 mb-3 inline-flex items-center gap-1.5 self-start flex-wrap">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-primary-700">Porzione</span>
-          <span className="font-display font-bold text-sm text-ink-950">{item.peso}</span>
-          {item.formato && (
-            <span className="text-xs text-ink-600">· {item.formato}</span>
-          )}
-        </div>
+        {/* Porzione - con dropdown se ci sono varianti */}
+        {hasVarianti ? (
+          <div className="bg-primary-50 border border-primary-200 rounded-lg px-2.5 py-1.5 mb-3 flex items-center gap-2 self-start">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-primary-700">Porzione</span>
+            <select
+              value={selectedIdx}
+              onChange={(e) => setSelectedIdx(Number(e.target.value))}
+              className="bg-white border border-primary-300 rounded-md px-2 py-0.5 text-sm font-bold text-ink-950 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400"
+            >
+              {item.varianti!.map((v, i) => (
+                <option key={i} value={i}>{v.peso}</option>
+              ))}
+            </select>
+          </div>
+        ) : (
+          <div className="bg-primary-50 border border-primary-200 rounded-lg px-2.5 py-1.5 mb-3 inline-flex items-center gap-1.5 self-start flex-wrap">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-primary-700">Porzione</span>
+            <span className="font-display font-bold text-sm text-ink-950">{item.peso}</span>
+            {item.formato && (
+              <span className="text-xs text-ink-600">· {item.formato}</span>
+            )}
+          </div>
+        )}
 
         <p className="text-sm text-ink-600 mb-4 line-clamp-3 flex-1">{item.descrizione}</p>
 
         <div className="flex items-center justify-between pt-3 border-t border-ink-100">
-          <div className="font-display font-bold text-xl">€{item.prezzo.toFixed(2)}</div>
+          <div className="font-display font-bold text-xl">€{displayPrezzo.toFixed(2)}</div>
           {quantity === 0 ? (
             <button
-              onClick={onAdd}
+              onClick={() => onAdd(currentVariante)}
               className="bg-ink-950 hover:bg-primary-500 text-white font-semibold px-4 py-2 rounded-full text-sm transition-colors flex items-center gap-1"
             >
               <Plus className="w-4 h-4" />
@@ -473,7 +523,7 @@ function OrderProductCard({
           ) : (
             <div className="flex items-center gap-2">
               <button
-                onClick={onDecrease}
+                onClick={() => onDecrease(currentVariante?.peso)}
                 className="w-8 h-8 bg-ink-100 hover:bg-ink-200 text-ink-950 rounded-full flex items-center justify-center transition-colors"
                 aria-label="Riduci"
               >
@@ -481,7 +531,7 @@ function OrderProductCard({
               </button>
               <span className="font-bold text-base min-w-[20px] text-center">{quantity}</span>
               <button
-                onClick={onIncrease}
+                onClick={() => onIncrease(currentVariante?.peso)}
                 className="w-8 h-8 bg-primary-500 hover:bg-primary-600 text-white rounded-full flex items-center justify-center transition-colors"
                 aria-label="Aumenta"
               >
