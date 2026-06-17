@@ -278,7 +278,7 @@ export default function OrdinaPage() {
 
       <main className="container mx-auto px-4 lg:px-8 py-10 lg:py-14">
         {/* Banner sottovuoto */}
-        <div className="bg-primary-50 border border-primary-200 rounded-2xl p-5 lg:p-6 mb-10 flex items-start gap-4">
+        <div className="bg-primary-50 border border-primary-200 rounded-2xl p-5 lg:p-6 mb-6 flex items-start gap-4">
           <div className="w-10 h-10 bg-primary-500 rounded-xl flex items-center justify-center flex-shrink-0">
             <Package className="w-5 h-5 text-white" />
           </div>
@@ -289,6 +289,19 @@ export default function OrdinaPage() {
             <p className="text-sm lg:text-base text-ink-700">
               Si conservano da <strong>10 a 15 giorni in frigorifero</strong>. Puoi anche congelarli per una durata maggiore.
             </p>
+          </div>
+        </div>
+
+        {/* Legenda fornitori */}
+        <div className="bg-white border border-ink-200 rounded-2xl p-4 lg:p-5 mb-10 flex flex-wrap items-center gap-4 text-sm">
+          <span className="font-semibold text-ink-700">I nostri fornitori:</span>
+          <div className="flex items-center gap-2">
+            <span className="bg-primary-500 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md">CA</span>
+            <span className="text-ink-700">Macelleria Carlo Alberto</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="bg-lemon-400 text-ink-950 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md">BE</span>
+            <span className="text-ink-700">Macelleria Bortolazzi</span>
           </div>
         </div>
 
@@ -473,8 +486,20 @@ function OrderProductCard({
         <div className="absolute top-3 left-3 bg-ink-950/80 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
           {displayPeso}
         </div>
+        {item.fornitore && (
+          <div
+            className={`absolute bottom-3 left-3 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md ${
+              item.fornitore === 'CA'
+                ? 'bg-primary-500 text-white'
+                : 'bg-lemon-400 text-ink-950'
+            }`}
+            title={item.fornitore === 'CA' ? 'Macelleria Carlo Alberto' : 'Macelleria Bortolazzi'}
+          >
+            {item.fornitore}
+          </div>
+        )}
         {item.categoria === 'da-cuocere' && (
-          <div className="absolute top-3 right-3 bg-lemon-400 text-ink-950 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
+          <div className="absolute top-3 right-3 bg-ink-100 text-ink-950 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
             Da cuocere
           </div>
         )}

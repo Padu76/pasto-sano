@@ -7,6 +7,13 @@ export interface MenuVariante {
   prezzo: number;        // prezzo vendita di questa variante
 }
 
+export type Fornitore = 'CA' | 'BE';
+
+export const FORNITORI: Record<Fornitore, { nome: string; full: string }> = {
+  CA: { nome: 'CA', full: 'Macelleria Carlo Alberto' },
+  BE: { nome: 'BE', full: 'Macelleria Bortolazzi' },
+};
+
 export interface MenuItem {
   nome: string;
   prezzo: number;        // prezzo default (usato se nessuna variante è scelta)
@@ -18,10 +25,12 @@ export interface MenuItem {
   formato?: string;
   bio?: boolean;
   varianti?: MenuVariante[];  // se presenti, la card mostra dropdown taglia
+  fornitore?: Fornitore;       // CA = Carlo Alberto, BE = Bortolazzi
 }
 
 // PASTI PRONTI (15) — pronti da scaldare/consumare
 export const PRONTI: MenuItem[] = [
+  // ===== FORNITORE CA (Macelleria Carlo Alberto) =====
   {
     nome: 'Macinato bovino cotto',
     prezzo: 9.0,
@@ -30,6 +39,17 @@ export const PRONTI: MenuItem[] = [
     immagine: '/images/prodotti/macinato-bovino-cotto.jpg',
     descrizione: 'Porzione 250g. Macinato di bovino già cotto, pronto da scaldare.',
     peso: '250g',
+    fornitore: 'CA',
+  },
+  {
+    nome: 'Roast beef bovino a fette',
+    prezzo: 10.5,
+    categoria: 'pronto',
+    disponibile: 'sempre',
+    immagine: '/images/prodotti/roast-beef-fette.jpg',
+    descrizione: 'Porzione 180g. Roast beef di bovino a fette, pronto da consumare.',
+    peso: '180g',
+    fornitore: 'CA',
   },
   {
     nome: 'Insalata di pollo',
@@ -39,6 +59,7 @@ export const PRONTI: MenuItem[] = [
     immagine: '/images/prodotti/insalata-pollo.jpg',
     descrizione: 'Porzione 300g. Insalata fredda di pollo, ricca di proteine. Pronta da consumare.',
     peso: '300g',
+    fornitore: 'CA',
   },
   {
     nome: 'Tagliata di pollo',
@@ -48,6 +69,38 @@ export const PRONTI: MenuItem[] = [
     immagine: '/images/prodotti/tagliata-pollo.jpg',
     descrizione: 'Porzione 160g. Tagliata di pollo già cotta, pronta da scaldare.',
     peso: '160g',
+    fornitore: 'CA',
+  },
+  {
+    nome: 'Tagliata bovino cotta a fette',
+    prezzo: 10.5,
+    categoria: 'pronto',
+    disponibile: 'sempre',
+    immagine: '/images/prodotti/tagliata-bovino-cotta-fette.jpg',
+    descrizione: 'Porzione 180g. Tagliata di bovino cotta a fette, pronta da consumare.',
+    peso: '180g',
+    fornitore: 'CA',
+  },
+  {
+    nome: 'Tagliata bovino cotta intera',
+    prezzo: 9.5,
+    categoria: 'pronto',
+    disponibile: 'sempre',
+    immagine: '/images/prodotti/tagliata-bovino-cotta-intera.jpg',
+    descrizione: 'Porzione 180g (monoporzione). Tagliata di bovino cotta, pronta da scaldare.',
+    peso: '180g',
+    formato: 'monoporzione',
+    fornitore: 'CA',
+  },
+  {
+    nome: 'Tagliata bovino cotta affumicata',
+    prezzo: 6.0,
+    categoria: 'pronto',
+    disponibile: 'sempre',
+    immagine: '/images/prodotti/tagliata-bovino-affumicata.jpg',
+    descrizione: 'Porzione 100g. Tagliata di bovino affumicata a fette, pronta da consumare.',
+    peso: '100g',
+    fornitore: 'CA',
   },
   {
     nome: 'Carne secca',
@@ -57,6 +110,7 @@ export const PRONTI: MenuItem[] = [
     immagine: '/images/prodotti/carne-secca.jpg',
     descrizione: 'Porzione 30g. Snack proteico ad alta densità, pronto da consumare.',
     peso: '30g',
+    fornitore: 'CA',
   },
   {
     nome: 'Piselli con prosciutto',
@@ -66,6 +120,7 @@ export const PRONTI: MenuItem[] = [
     immagine: '/images/prodotti/piselli.jpg',
     descrizione: 'Porzione 300g. Piselli cotti con prosciutto, pronti da scaldare.',
     peso: '300g',
+    fornitore: 'CA',
   },
   {
     nome: 'Carote a rondelle',
@@ -75,6 +130,7 @@ export const PRONTI: MenuItem[] = [
     immagine: '/images/prodotti/carote-rondelle.jpg',
     descrizione: 'Porzione 300g. Carote a rondelle cotte, pronte da scaldare.',
     peso: '300g',
+    fornitore: 'CA',
   },
   {
     nome: 'Zucchine a rondelle',
@@ -84,6 +140,7 @@ export const PRONTI: MenuItem[] = [
     immagine: '/images/prodotti/zucchine-rondelle.jpg',
     descrizione: 'Porzione 300g. Zucchine a rondelle cotte, pronte da scaldare.',
     peso: '300g',
+    fornitore: 'CA',
   },
   {
     nome: 'Funghi champignon',
@@ -93,6 +150,7 @@ export const PRONTI: MenuItem[] = [
     immagine: '/images/prodotti/funghi-champignon.jpg',
     descrizione: 'Porzione 300g. Funghi champignon cotti, pronti da scaldare.',
     peso: '300g',
+    fornitore: 'CA',
   },
   {
     nome: 'Catalogna',
@@ -102,6 +160,7 @@ export const PRONTI: MenuItem[] = [
     immagine: '/images/prodotti/catalogna.jpg',
     descrizione: 'Porzione 300g. Catalogna cotta, pronta da scaldare.',
     peso: '300g',
+    fornitore: 'CA',
   },
   {
     nome: 'Tartare di bovino',
@@ -111,8 +170,9 @@ export const PRONTI: MenuItem[] = [
     immagine: '/images/prodotti/tartare-bovino.jpg',
     descrizione: 'Porzione 150g. Tartare di bovino fresca, pronta da condire e consumare.',
     peso: '150g',
+    fornitore: 'CA',
   },
-  // ===== NUOVO FORNITORE - 17 prodotti con varianti taglia =====
+  // ===== FORNITORE BE (Macelleria Bortolazzi) - con varianti taglia =====
   // Carni premium (150g / 250g / 500g)
   {
     nome: 'Roastbeef cotto',
@@ -122,6 +182,7 @@ export const PRONTI: MenuItem[] = [
     immagine: '/images/prodotti/roastbeef-cotto.jpg',
     descrizione: 'Roastbeef cotto sottovuoto, pronto da consumare. Peso indicativo.',
     peso: '150g',
+    fornitore: 'BE',
     varianti: [
       { peso: '150g', pesoGrammi: 150, prezzo: 5.5 },
       { peso: '250g', pesoGrammi: 250, prezzo: 9.0 },
@@ -130,6 +191,7 @@ export const PRONTI: MenuItem[] = [
   },
   {
     nome: 'Tagliata cotta',
+    fornitore: 'BE',
     prezzo: 6.0,
     categoria: 'pronto',
     disponibile: 'sempre',
@@ -144,6 +206,7 @@ export const PRONTI: MenuItem[] = [
   },
   {
     nome: 'Carpaccio',
+    fornitore: 'BE',
     prezzo: 4.5,
     categoria: 'pronto',
     disponibile: 'sempre',
@@ -158,6 +221,7 @@ export const PRONTI: MenuItem[] = [
   },
   {
     nome: 'Battuta di scottona',
+    fornitore: 'BE',
     prezzo: 6.0,
     categoria: 'pronto',
     disponibile: 'sempre',
@@ -172,6 +236,7 @@ export const PRONTI: MenuItem[] = [
   },
   {
     nome: 'Arrosto di vitello',
+    fornitore: 'BE',
     prezzo: 7.0,
     categoria: 'pronto',
     disponibile: 'sempre',
@@ -187,6 +252,7 @@ export const PRONTI: MenuItem[] = [
   // Carni standard (200g / 300g / 500g)
   {
     nome: 'Macinato bovino saltato',
+    fornitore: 'BE',
     prezzo: 4.5,
     categoria: 'pronto',
     disponibile: 'sempre',
@@ -201,6 +267,7 @@ export const PRONTI: MenuItem[] = [
   },
   {
     nome: 'Hamburger bovino cotto',
+    fornitore: 'BE',
     prezzo: 5.0,
     categoria: 'pronto',
     disponibile: 'sempre',
@@ -215,6 +282,7 @@ export const PRONTI: MenuItem[] = [
   },
   {
     nome: 'Petto di pollo a bassa temperatura',
+    fornitore: 'BE',
     prezzo: 3.5,
     categoria: 'pronto',
     disponibile: 'sempre',
@@ -229,6 +297,7 @@ export const PRONTI: MenuItem[] = [
   },
   {
     nome: 'Spezzatino di pollo al curry',
+    fornitore: 'BE',
     prezzo: 6.5,
     categoria: 'pronto',
     disponibile: 'sempre',
@@ -243,6 +312,7 @@ export const PRONTI: MenuItem[] = [
   },
   {
     nome: 'Straccetti di manzo',
+    fornitore: 'BE',
     prezzo: 8.5,
     categoria: 'pronto',
     disponibile: 'sempre',
@@ -257,6 +327,7 @@ export const PRONTI: MenuItem[] = [
   },
   {
     nome: 'Sottocosce di pollo alla romana',
+    fornitore: 'BE',
     prezzo: 4.5,
     categoria: 'pronto',
     disponibile: 'sempre',
@@ -271,6 +342,7 @@ export const PRONTI: MenuItem[] = [
   },
   {
     nome: 'Scaloppe al limone',
+    fornitore: 'BE',
     prezzo: 5.5,
     categoria: 'pronto',
     disponibile: 'sempre',
@@ -286,6 +358,7 @@ export const PRONTI: MenuItem[] = [
   // Contorni (300g / 500g)
   {
     nome: 'Patate arrosto',
+    fornitore: 'BE',
     prezzo: 4.0,
     categoria: 'pronto',
     disponibile: 'sempre',
@@ -299,6 +372,7 @@ export const PRONTI: MenuItem[] = [
   },
   {
     nome: 'Patate lesse',
+    fornitore: 'BE',
     prezzo: 4.0,
     categoria: 'pronto',
     disponibile: 'sempre',
@@ -312,6 +386,7 @@ export const PRONTI: MenuItem[] = [
   },
   {
     nome: 'Carciofi trifolati',
+    fornitore: 'BE',
     prezzo: 7.0,
     categoria: 'pronto',
     disponibile: 'sempre',
@@ -325,6 +400,7 @@ export const PRONTI: MenuItem[] = [
   },
   {
     nome: 'Funghi misti',
+    fornitore: 'BE',
     prezzo: 5.5,
     categoria: 'pronto',
     disponibile: 'sempre',
@@ -338,6 +414,7 @@ export const PRONTI: MenuItem[] = [
   },
   {
     nome: 'Capponata',
+    fornitore: 'BE',
     prezzo: 5.5,
     categoria: 'pronto',
     disponibile: 'sempre',
@@ -361,6 +438,7 @@ export const DA_CUCINARE: MenuItem[] = [
     immagine: '/images/prodotti/macinato-bovino-crudo.jpg',
     descrizione: 'Porzione 500g. Macinato di bovino crudo, da cuocere a casa.',
     peso: '500g',
+    fornitore: 'CA',
   },
   {
     nome: 'Hamburger bovino',
@@ -371,6 +449,7 @@ export const DA_CUCINARE: MenuItem[] = [
     descrizione: 'Porzione 240g (2 hamburger da 120/180g). Da cuocere alla griglia o piastra.',
     peso: '240g',
     formato: '2 pezzi da 120/180g',
+    fornitore: 'CA',
   },
   {
     nome: 'Tagliata bovino adulto',
@@ -381,6 +460,7 @@ export const DA_CUCINARE: MenuItem[] = [
     descrizione: 'Porzione 400g (2 pezzi da 200g). Tagliata di bovino adulto, da cuocere alla griglia.',
     peso: '400g',
     formato: '2 pezzi da 200g',
+    fornitore: 'CA',
   },
 ];
 
