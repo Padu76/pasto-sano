@@ -14,11 +14,12 @@ import {
   Flame,
   ChefHat,
   Package,
+  Salad,
 } from 'lucide-react';
 
 import CartModal from '@/components/ordina/CartModal';
 import CheckoutModal from '@/components/ordina/CheckoutModal';
-import { PRONTI, DA_CUCINARE, type MenuItem, type MenuVariante } from '@/lib/menuRotativo';
+import { PRONTI, CONTORNI, DA_CUCINARE, type MenuItem, type MenuVariante } from '@/lib/menuRotativo';
 
 interface CartItem extends MenuItem {
   id: string;
@@ -31,7 +32,7 @@ const MINIMUM_ITEMS = 3;
 export default function OrdinaPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [activeTab, setActiveTab] = useState<'tutti' | 'pronti' | 'da-cuocere'>('tutti');
+  const [activeTab, setActiveTab] = useState<'tutti' | 'pronti' | 'contorni' | 'da-cuocere'>('tutti');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -246,8 +247,9 @@ export default function OrdinaPage() {
         <div className="container mx-auto px-4 lg:px-8 py-4">
           <div className="flex gap-2 overflow-x-auto scrollbar-hide">
             {[
-              { key: 'tutti', label: 'Tutti', count: PRONTI.length + DA_CUCINARE.length },
+              { key: 'tutti', label: 'Tutti', count: PRONTI.length + CONTORNI.length + DA_CUCINARE.length },
               { key: 'pronti', label: 'Pronti', count: PRONTI.length },
+              { key: 'contorni', label: 'Contorni', count: CONTORNI.length },
               { key: 'da-cuocere', label: 'Da cucinare', count: DA_CUCINARE.length },
             ].map((tab) => {
               const active = activeTab === tab.key;
@@ -320,6 +322,40 @@ export default function OrdinaPage() {
                   key={`pronti-${i}`}
                   item={item}
                   priority={i < 4}
+                  getQuantityInCart={getQuantityInCart}
+                  onAdd={(variante) => addToCart(item, variante)}
+                  onIncrease={(varianteSelezionata) => {
+                    const existing = cart.find((c) =>
+                      c.nome === item.nome && (varianteSelezionata ? c.varianteScelta === varianteSelezionata : !c.varianteScelta)
+                    );
+                    if (existing) updateQuantity(existing.id, 1);
+                  }}
+                  onDecrease={(varianteSelezionata) => {
+                    const existing = cart.find((c) =>
+                      c.nome === item.nome && (varianteSelezionata ? c.varianteScelta === varianteSelezionata : !c.varianteScelta)
+                    );
+                    if (existing) updateQuantity(existing.id, -1);
+                  }}
+                />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Contorni */}
+        {(activeTab === 'tutti' || activeTab === 'contorni') && (
+          <section className="mb-14">
+            <SectionHeader
+              eyebrow="Contorni"
+              title="Contorni e verdure"
+              desc="Verdure cotte sottovuoto, patate e contorni. Pronti da scaldare."
+              icon={<Salad className="w-5 h-5" />}
+            />
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6 mt-8">
+              {CONTORNI.map((item, i) => (
+                <OrderProductCard
+                  key={`contorni-${i}`}
+                  item={item}
                   getQuantityInCart={getQuantityInCart}
                   onAdd={(variante) => addToCart(item, variante)}
                   onIncrease={(varianteSelezionata) => {
