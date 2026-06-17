@@ -24,8 +24,12 @@ export const BASE_COSTS: Record<string, number> = {
 export const SUPPLIER_PREMIUM_COSTS: Record<string, number> = {
   // Carni cotte
   'macinato bovino cotto': 7.00,         // 250g × 28€/kg
+  'roast beef bovino a fette': 8.10,      // 180g × 45€/kg
   'insalata di pollo': 10.50,             // 300g × 35€/kg
   'tagliata di pollo': 5.60,              // 160g × 35€/kg
+  'tagliata bovino cotta a fette': 8.10,  // 180g × 45€/kg
+  'tagliata bovino cotta intera': 7.20,   // 180g × 40€/kg
+  'tagliata bovino cotta affumicata': 4.50, // 100g × 45€/kg
   'carne secca': 4.50,                    // 30g × 150€/kg
   // Verdure cotte sottovuoto (25€/kg, conf. 300g)
   'piselli': 7.50,
