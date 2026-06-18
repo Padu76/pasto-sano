@@ -22,13 +22,9 @@ export const BASE_COSTS: Record<string, number> = {
 
 // Costi specifici fornitore 1 (esistente)
 export const SUPPLIER_PREMIUM_COSTS: Record<string, number> = {
-  // Carni cotte
-  'macinato bovino cotto': 7.00,         // 250g × 28€/kg
-  'roast beef bovino a fette': 8.10,      // 180g × 45€/kg
+  // Carni cotte CA (rimossi doppioni: macinato cotto, roast beef, tagliata fette/intera, tartare)
   'insalata di pollo': 10.50,             // 300g × 35€/kg
   'tagliata di pollo': 5.60,              // 160g × 35€/kg
-  'tagliata bovino cotta a fette': 8.10,  // 180g × 45€/kg
-  'tagliata bovino cotta intera': 7.20,   // 180g × 40€/kg
   'tagliata bovino cotta affumicata': 4.50, // 100g × 45€/kg
   'carne secca': 4.50,                    // 30g × 150€/kg
   // Verdure cotte sottovuoto (25€/kg, conf. 300g)
@@ -37,8 +33,6 @@ export const SUPPLIER_PREMIUM_COSTS: Record<string, number> = {
   'zucchine a rondelle': 7.50,
   'funghi champignon': 7.50,
   'catalogna': 7.50,
-  // Tartare
-  'tartare di bovino': 5.70,              // 150g × 38€/kg
   // Da cuocere
   'macinato bovino crudo': 11.00,         // 500g × 22€/kg (salato 12g/kg)
   'hamburger bovino': 6.00,               // 240g × 25€/kg (salato 12g/kg)

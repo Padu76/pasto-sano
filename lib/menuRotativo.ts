@@ -31,26 +31,8 @@ export interface MenuItem {
 // PASTI PRONTI + CONTORNI: lista unica, separati per categoria dopo
 const _ALL_PRONTI: MenuItem[] = [
   // ===== FORNITORE CA (Macelleria Carlo Alberto) =====
-  {
-    nome: 'Macinato bovino cotto',
-    prezzo: 9.0,
-    categoria: 'pronto',
-    disponibile: 'sempre',
-    immagine: '/images/prodotti/macinato-bovino-cotto.jpg',
-    descrizione: 'Porzione 250g. Macinato di bovino già cotto, pronto da scaldare.',
-    peso: '250g',
-    fornitore: 'CA',
-  },
-  {
-    nome: 'Roast beef bovino a fette',
-    prezzo: 10.5,
-    categoria: 'pronto',
-    disponibile: 'sempre',
-    immagine: '/images/prodotti/roast-beef-fette.jpg',
-    descrizione: 'Porzione 180g. Roast beef di bovino a fette, pronto da consumare.',
-    peso: '180g',
-    fornitore: 'CA',
-  },
+  // Nota: rimossi roast beef + tagliata fette/intera + tartare + macinato cotto
+  // perché doppioni con BE più economico
   {
     nome: 'Insalata di pollo',
     prezzo: 13.5,
@@ -69,27 +51,6 @@ const _ALL_PRONTI: MenuItem[] = [
     immagine: '/images/prodotti/tagliata-pollo.jpg',
     descrizione: 'Porzione 160g. Tagliata di pollo già cotta, pronta da scaldare.',
     peso: '160g',
-    fornitore: 'CA',
-  },
-  {
-    nome: 'Tagliata bovino cotta a fette',
-    prezzo: 10.5,
-    categoria: 'pronto',
-    disponibile: 'sempre',
-    immagine: '/images/prodotti/tagliata-bovino-cotta-fette.jpg',
-    descrizione: 'Porzione 180g. Tagliata di bovino cotta a fette, pronta da consumare.',
-    peso: '180g',
-    fornitore: 'CA',
-  },
-  {
-    nome: 'Tagliata bovino cotta intera',
-    prezzo: 9.5,
-    categoria: 'pronto',
-    disponibile: 'sempre',
-    immagine: '/images/prodotti/tagliata-bovino-cotta-intera.jpg',
-    descrizione: 'Porzione 180g (monoporzione). Tagliata di bovino cotta, pronta da scaldare.',
-    peso: '180g',
-    formato: 'monoporzione',
     fornitore: 'CA',
   },
   {
@@ -162,24 +123,14 @@ const _ALL_PRONTI: MenuItem[] = [
     peso: '300g',
     fornitore: 'CA',
   },
-  {
-    nome: 'Tartare di bovino',
-    prezzo: 7.5,
-    categoria: 'pronto',
-    disponibile: 'sempre',
-    immagine: '/images/prodotti/tartare-bovino.jpg',
-    descrizione: 'Porzione 150g. Tartare di bovino fresca, pronta da condire e consumare.',
-    peso: '150g',
-    fornitore: 'CA',
-  },
-  // ===== FORNITORE BE (Macelleria Bortolazzi) - con varianti taglia =====
+  // ===== FORNITORE BE (Macelleria Bortolazzi Enrico) - con varianti taglia =====
   // Carni premium (150g / 250g / 500g)
   {
     nome: 'Roastbeef cotto',
     prezzo: 5.5,
     categoria: 'pronto',
     disponibile: 'sempre',
-    immagine: '/images/prodotti/roastbeef-cotto.jpg',
+    immagine: '/images/prodotti/roast-beef-fette.jpg',
     descrizione: 'Roastbeef cotto sottovuoto, pronto da consumare. Peso indicativo.',
     peso: '150g',
     fornitore: 'BE',
@@ -195,7 +146,7 @@ const _ALL_PRONTI: MenuItem[] = [
     prezzo: 6.0,
     categoria: 'pronto',
     disponibile: 'sempre',
-    immagine: '/images/prodotti/tagliata-cotta.jpg',
+    immagine: '/images/prodotti/tagliata-bovino-cotta-intera.jpg',
     descrizione: 'Tagliata di manzo cotta sottovuoto, pronta da scaldare. Peso indicativo.',
     peso: '150g',
     varianti: [
@@ -225,7 +176,7 @@ const _ALL_PRONTI: MenuItem[] = [
     prezzo: 6.0,
     categoria: 'pronto',
     disponibile: 'sempre',
-    immagine: '/images/prodotti/battuta-scottona.jpg',
+    immagine: '/images/prodotti/tartare-bovino.jpg',
     descrizione: 'Battuta di scottona cruda sottovuoto, pronta da condire. Peso indicativo.',
     peso: '150g',
     varianti: [
@@ -256,7 +207,7 @@ const _ALL_PRONTI: MenuItem[] = [
     prezzo: 4.5,
     categoria: 'pronto',
     disponibile: 'sempre',
-    immagine: '/images/prodotti/macinato-bovino-saltato.jpg',
+    immagine: '/images/prodotti/macinato-bovino-cotto.jpg',
     descrizione: 'Macinato di bovino adulto saltato, cotto sottovuoto. Peso indicativo.',
     peso: '200g',
     varianti: [
@@ -331,7 +282,7 @@ const _ALL_PRONTI: MenuItem[] = [
     prezzo: 4.5,
     categoria: 'pronto',
     disponibile: 'sempre',
-    immagine: '/images/prodotti/sottocosce-pollo-romana.jpg',
+    immagine: '/images/prodotti/sottocosce-pollo-romana.webp',
     descrizione: 'Sottocosce di pollo alla romana, cotte sottovuoto. Peso indicativo.',
     peso: '200g',
     varianti: [
