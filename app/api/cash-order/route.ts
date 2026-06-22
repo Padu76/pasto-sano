@@ -194,54 +194,68 @@ async function sendCashOrderEmail(orderData: any) {
     day: 'numeric'
   });
 
-  const templateParams = {
-    to_email: process.env.NOTIFICATION_EMAIL || 'ordini@pastosano.it',
-    subject: `💰 Ordine Contanti: ${customerName} - €${totalAmount.toFixed(2)}`,
-    
+  const baseParams = {
     order_type: deliveryEnabled ? 'ORDINE DELIVERY - CONTANTI' : 'ORDINE CONTANTI',
     customer_name: customerName,
     customer_phone: customerPhone,
     customer_email: customerEmail || 'Non fornita',
     customer_address: customerAddress || 'Ritiro in sede',
-    
     pickup_date: pickupDateFormatted,
-    payment_method: 'Contanti alla Consegna',
+    payment_method: 'Contanti al ritiro',
     payment_status: 'DA RISCUOTERE',
-    
     total_amount: `€${totalAmount.toFixed(2)}`,
     items_list: itemsList,
     total_items: totalItems.toString(),
-    
-    special_notes: `⚠️ PAGAMENTO IN CONTANTI: Il cliente pagherà €${totalAmount.toFixed(2)} al momento del ritiro. ${deliveryEnabled ? `\n🚚 DELIVERY: ${deliveryAddress}\n⏰ Fascia: ${deliveryTimeSlot}` : ''} ${notes ? `\nNote cliente: ${notes}` : ''}`,
     order_notes: notes || 'Nessuna nota',
-    
     order_date: new Date().toLocaleDateString('it-IT'),
     order_time: new Date().toLocaleTimeString('it-IT'),
-    
-    order_id: orderId
+    order_id: orderId,
   };
 
-  // FIX: Usa i nomi corretti delle variabili da Vercel
+  // 1. Email per ADMIN (info@pastosano.it)
+  const adminParams = {
+    ...baseParams,
+    to_email: process.env.NOTIFICATION_EMAIL || 'info@pastosano.it',
+    subject: `🔔 Nuovo Ordine: ${customerName} - €${totalAmount.toFixed(2)}`,
+    special_notes: `⚠️ PAGAMENTO IN CONTANTI: Il cliente pagherà €${totalAmount.toFixed(2)} al momento del ritiro. ${deliveryEnabled ? `\n🚚 DELIVERY: ${deliveryAddress}\n⏰ Fascia: ${deliveryTimeSlot}` : ''} ${notes ? `\nNote cliente: ${notes}` : ''}`,
+  };
+  await sendEmailJSRequest(adminParams);
+
+  // 2. Email CONFERMA per il CLIENTE (se ha fornito email)
+  if (customerEmail) {
+    const customerParams = {
+      ...baseParams,
+      to_email: customerEmail,
+      subject: `✅ Conferma Ordine Pasto Sano - €${totalAmount.toFixed(2)}`,
+      special_notes: `Grazie per il tuo ordine!\n\nIl ritiro è previsto per ${pickupDateFormatted} presso Tribù Studio - Via Albere 27/B, 37138 Verona.\n\nPagherai €${totalAmount.toFixed(2)} in contanti al momento del ritiro.\n\n${notes ? `Le tue note: ${notes}\n\n` : ''}Per qualsiasi domanda, scrivici su WhatsApp al 347 888 1515.`,
+    };
+    try {
+      await sendEmailJSRequest(customerParams);
+      console.log('✅ Email conferma inviata al cliente:', customerEmail);
+    } catch (e) {
+      console.error('⚠️ Errore email cliente (admin ricevuta):', e);
+    }
+  }
+}
+
+async function sendEmailJSRequest(templateParams: any) {
   const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       service_id: process.env.EMAILJS_SERVICE_ID,
       template_id: process.env.EMAILJS_TEMPLATE_ID,
       user_id: process.env.EMAILJS_PUBLIC_KEY,
       accessToken: process.env.EMAILJS_PRIVATE_KEY,
-      template_params: templateParams
-    })
+      template_params: templateParams,
+    }),
   });
 
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(`EmailJS error: ${response.status} - ${errorText}`);
   }
-
-  console.log('✅ Email inviata con successo via EmailJS');
+  console.log(`✅ Email inviata a ${templateParams.to_email}`);
 }
 
 export async function GET() {

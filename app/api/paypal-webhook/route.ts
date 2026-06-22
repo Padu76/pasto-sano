@@ -105,64 +105,67 @@ export async function POST(request: NextRequest) {
 
 // Funzione per inviare email di notifica
 async function sendPayPalEmailNotification(paymentData: any) {
-  try {
-    const { amount, currency, paypalOrderId, payerName, payerEmail, payerPhone } = paymentData;
-    
-    const templateParams = {
-      to_email: process.env.NOTIFICATION_EMAIL || 'ordini@pastosano.it',
-      subject: `🅿️ Pagamento PayPal: ${payerName} - ${amount.toFixed(2)} ${currency}`,
-      
-      // Dati per il template
-      order_type: 'PAGAMENTO PAYPAL',
-      customer_name: payerName,
-      customer_phone: payerPhone,
-      customer_email: payerEmail,
-      pickup_date: 'DA CONFERMARE',
-      payment_method: 'PayPal',
-      payment_status: 'PAGATO',
-      
-      // Dettagli pagamento
-      total_amount: `${amount.toFixed(2)} ${currency}`,
-      paypal_order_id: paypalOrderId,
-      
-      // Lista articoli (non disponibile da webhook base)
-      items_list: 'DETTAGLI NON DISPONIBILI - Contattare il cliente',
-      total_items: 'N/A',
-      
-      // Note speciali
-      special_notes: '⚠️ ATTENZIONE: Questo ordine è stato pagato tramite PayPal. Contatta il cliente per confermare data di ritiro e dettagli prodotti.',
-      
-      // Timestamp
-      order_date: new Date().toLocaleDateString('it-IT'),
-      order_time: new Date().toLocaleTimeString('it-IT'),
+  const { amount, currency, paypalOrderId, payerName, payerEmail, payerPhone } = paymentData;
+
+  const baseParams = {
+    order_type: 'PAGAMENTO PAYPAL',
+    customer_name: payerName,
+    customer_phone: payerPhone || 'Non fornito',
+    customer_email: payerEmail || 'Non fornita',
+    pickup_date: 'DA CONFERMARE',
+    payment_method: 'PayPal',
+    payment_status: 'PAGATO',
+    total_amount: `${amount.toFixed(2)} ${currency}`,
+    paypal_order_id: paypalOrderId,
+    items_list: 'DETTAGLI NON DISPONIBILI - Contattare il cliente',
+    total_items: 'N/A',
+    order_date: new Date().toLocaleDateString('it-IT'),
+    order_time: new Date().toLocaleTimeString('it-IT'),
+  };
+
+  // 1. Email ADMIN
+  const adminParams = {
+    ...baseParams,
+    to_email: process.env.NOTIFICATION_EMAIL || 'info@pastosano.it',
+    subject: `🅿️ Pagamento PayPal: ${payerName} - ${amount.toFixed(2)} ${currency}`,
+    special_notes: '⚠️ Questo ordine è stato pagato tramite PayPal. Contatta il cliente per confermare data di ritiro e dettagli prodotti.',
+  };
+  await sendEmailJSRequest(adminParams);
+
+  // 2. Email CONFERMA CLIENTE
+  if (payerEmail) {
+    const customerParams = {
+      ...baseParams,
+      to_email: payerEmail,
+      subject: `✅ Conferma Pagamento PayPal - ${amount.toFixed(2)} ${currency}`,
+      special_notes: `Grazie per il tuo pagamento via PayPal!\n\nIl tuo ordine è confermato. Ti ricontatteremo per confermare la data di ritiro.\n\nPer info: WhatsApp 347 888 1515`,
     };
-
-    // Chiamata API EmailJS
-    const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        service_id: process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
-        template_id: process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID,
-        user_id: process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY,
-        accessToken: process.env.EMAILJS_PRIVATE_KEY,
-        template_params: templateParams
-      })
-    });
-
-    if (response.ok) {
-      console.log('✅ Email PayPal inviata tramite EmailJS');
-    } else {
-      const errorText = await response.text();
-      throw new Error(`EmailJS error: ${response.status} - ${errorText}`);
+    try {
+      await sendEmailJSRequest(customerParams);
+    } catch (e) {
+      console.error('⚠️ Errore email cliente PayPal:', e);
     }
-
-  } catch (emailError: any) {
-    console.error('❌ Errore invio email PayPal:', emailError.message);
-    throw emailError;
   }
+}
+
+async function sendEmailJSRequest(templateParams: any) {
+  const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      service_id: process.env.EMAILJS_SERVICE_ID,
+      template_id: process.env.EMAILJS_TEMPLATE_ID,
+      user_id: process.env.EMAILJS_PUBLIC_KEY,
+      accessToken: process.env.EMAILJS_PRIVATE_KEY,
+      template_params: templateParams,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`EmailJS error: ${response.status} - ${errorText}`);
+  }
+  console.log(`✅ Email inviata a ${templateParams.to_email}`);
 }
 
 // GET endpoint per verificare che il webhook sia attivo

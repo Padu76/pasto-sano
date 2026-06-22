@@ -11,7 +11,6 @@ export default function ProductionPage() {
   const [loading, setLoading] = useState(true);
   const [dateFilter, setDateFilter] = useState('oggi');
   const [productionSummary, setProductionSummary] = useState<Record<string, { quantity: number; unitCost: number; category?: string }>>({});
-  const [totalCost, setTotalCost] = useState(0);
 
   useEffect(() => {
     loadOrders();
@@ -73,7 +72,6 @@ export default function ProductionPage() {
 
   const calculateSummary = (ordersToProcess: Order[]) => {
     const summary: Record<string, { quantity: number; unitCost: number; category?: string }> = {};
-    let total = 0;
 
     ordersToProcess.forEach(order => {
       order.items?.forEach(item => {
@@ -162,13 +160,7 @@ export default function ProductionPage() {
       });
     });
 
-    // Calcola totale
-    Object.values(summary).forEach(item => {
-      total += item.quantity * item.unitCost;
-    });
-
     setProductionSummary(summary);
-    setTotalCost(total);
   };
 
   const toggleOrderSelection = (orderId: string) => {
@@ -213,26 +205,21 @@ export default function ProductionPage() {
     doc += `Data Documento: ${new Date().toLocaleDateString('it-IT')}\n`;
     doc += `Filtro: ${dateFilter.charAt(0).toUpperCase() + dateFilter.slice(1)}\n`;
     doc += `Ordini: ${ordersToProcess.length}\n\n`;
-    
-    doc += `RIEPILOGO PRODUZIONE CON COSTI DI ACQUISTO:\n`;
+
+    doc += `RIEPILOGO PRODUZIONE:\n`;
     doc += `${'='.repeat(60)}\n`;
-    doc += `Quantità  Prezzo Unit.  Totale       Articolo\n`;
+    doc += `Quantità   Articolo\n`;
     doc += `${'─'.repeat(60)}\n`;
-    
+
     // Ordina per quantità
     const sorted = Object.entries(productionSummary)
       .sort(([,a], [,b]) => b.quantity - a.quantity);
-    
+
     sorted.forEach(([product, data]) => {
-      const totaleProdotto = data.quantity * data.unitCost;
       const qty = data.quantity.toString().padEnd(10);
-      const price = `€${data.unitCost.toFixed(2)}`.padEnd(13);
-      const total = `€${totaleProdotto.toFixed(2)}`.padEnd(12);
-      doc += `${qty}${price}${total} ${product}\n`;
+      doc += `${qty} ${product}\n`;
     });
-    
-    doc += `${'═'.repeat(60)}\n`;
-    doc += `TOTALE DA PAGARE AL FORNITORE: €${totalCost.toFixed(2)}\n`;
+
     doc += `${'═'.repeat(60)}\n\n`;
     
     // Dettaglio per cliente
@@ -379,27 +366,19 @@ export default function ProductionPage() {
           </div>
         </div>
 
-        {/* Riepilogo Costi */}
+        {/* Riepilogo Produzione */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
             <Calculator className="w-6 h-6 text-green-600" />
-            Riepilogo Produzione e Costi
+            Riepilogo Produzione
           </h2>
-          
-          <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4 mb-4">
-            <div className="text-2xl font-bold text-green-700">
-              TOTALE DA PAGARE: €{totalCost.toFixed(2)}
-            </div>
-          </div>
-          
+
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b-2 border-gray-200">
                   <th className="text-left py-2">Articolo</th>
                   <th className="text-center py-2">Quantità</th>
-                  <th className="text-right py-2">Prezzo Unit.</th>
-                  <th className="text-right py-2">Totale</th>
                 </tr>
               </thead>
               <tbody>
@@ -409,10 +388,6 @@ export default function ProductionPage() {
                     <tr key={product} className="border-b hover:bg-gray-50">
                       <td className="py-2">{product}</td>
                       <td className="text-center py-2 font-semibold">{data.quantity}</td>
-                      <td className="text-right py-2">€{data.unitCost.toFixed(2)}</td>
-                      <td className="text-right py-2 font-semibold">
-                        €{(data.quantity * data.unitCost).toFixed(2)}
-                      </td>
                     </tr>
                   ))}
               </tbody>

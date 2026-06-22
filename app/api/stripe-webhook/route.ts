@@ -185,53 +185,67 @@ async function sendStripeOrderEmail(orderData: any) {
     discountInfo = `\n💰 Sconto ${discountCode}: -€${discountAmount.toFixed(2)} (${discountPercent}%)`;
   }
 
-  const templateParams = {
-    to_email: process.env.NOTIFICATION_EMAIL || 'ordini@pastosano.it',
-    subject: `💳 Ordine Online: ${customerName} - €${totalAmount.toFixed(2)}`,
-    
+  const baseParams = {
     order_type: deliveryEnabled ? 'ORDINE DELIVERY - PAGAMENTO ONLINE' : 'ORDINE ONLINE',
     customer_name: customerName,
     customer_phone: customerPhone,
     customer_email: customerEmail || 'Non fornita',
     customer_address: customerAddress || 'Ritiro in sede',
-    
     pickup_date: pickupDateFormatted,
     payment_method: 'Carta di Credito (Stripe)',
     payment_status: '✅ PAGATO',
-    
     total_amount: `€${totalAmount.toFixed(2)}`,
     items_list: itemsList,
     total_items: totalItems.toString(),
-    
-    special_notes: `✅ PAGAMENTO COMPLETATO tramite Stripe${discountInfo}${deliveryEnabled ? `\n🚚 DELIVERY: ${deliveryAddress}\n⏰ Fascia: ${deliveryTimeSlot}\n💶 Costo consegna: €${deliveryCost?.toFixed(2) || '0.00'}` : ''}${notes ? `\n📝 Note cliente: ${notes}` : ''}`,
     order_notes: notes || 'Nessuna nota',
-    
     order_date: new Date().toLocaleDateString('it-IT'),
     order_time: new Date().toLocaleTimeString('it-IT'),
-    
-    order_id: orderId || sessionId
+    order_id: orderId || sessionId,
   };
 
+  // 1. Email ADMIN
+  const adminParams = {
+    ...baseParams,
+    to_email: process.env.NOTIFICATION_EMAIL || 'info@pastosano.it',
+    subject: `💳 Nuovo Ordine Online: ${customerName} - €${totalAmount.toFixed(2)}`,
+    special_notes: `✅ PAGAMENTO COMPLETATO tramite Stripe${discountInfo}${deliveryEnabled ? `\n🚚 DELIVERY: ${deliveryAddress}\n⏰ Fascia: ${deliveryTimeSlot}\n💶 Costo consegna: €${deliveryCost?.toFixed(2) || '0.00'}` : ''}${notes ? `\n📝 Note cliente: ${notes}` : ''}`,
+  };
+  await sendEmailJSRequest(adminParams);
+
+  // 2. Email CONFERMA CLIENTE
+  if (customerEmail) {
+    const customerParams = {
+      ...baseParams,
+      to_email: customerEmail,
+      subject: `✅ Conferma Ordine Pasto Sano - €${totalAmount.toFixed(2)}`,
+      special_notes: `Grazie per il tuo ordine!\n\nPagamento ricevuto: €${totalAmount.toFixed(2)} via Stripe.\nRitiro previsto per ${pickupDateFormatted} presso Tribù Studio - Via Albere 27/B, 37138 Verona.\n\n${notes ? `Le tue note: ${notes}\n\n` : ''}Per info: WhatsApp 347 888 1515`,
+    };
+    try {
+      await sendEmailJSRequest(customerParams);
+    } catch (e) {
+      console.error('⚠️ Errore email cliente Stripe:', e);
+    }
+  }
+}
+
+async function sendEmailJSRequest(templateParams: any) {
   const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       service_id: process.env.EMAILJS_SERVICE_ID,
       template_id: process.env.EMAILJS_TEMPLATE_ID,
       user_id: process.env.EMAILJS_PUBLIC_KEY,
       accessToken: process.env.EMAILJS_PRIVATE_KEY,
-      template_params: templateParams
-    })
+      template_params: templateParams,
+    }),
   });
 
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(`EmailJS error: ${response.status} - ${errorText}`);
   }
-
-  console.log('✅ Email Stripe inviata con successo');
+  console.log(`✅ Email inviata a ${templateParams.to_email}`);
 }
 
 export async function GET() {

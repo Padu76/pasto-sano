@@ -36,6 +36,7 @@ export default function OrdinaPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [variantSelectorItem, setVariantSelectorItem] = useState<MenuItem | null>(null);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 24);
@@ -311,6 +312,7 @@ export default function OrdinaPage() {
                   item={item}
                   priority={i < 4}
                   getQuantityInCart={getQuantityInCart}
+                  onOpenVarianti={() => setVariantSelectorItem(item)}
                   onAdd={(variante) => addToCart(item, variante)}
                   onIncrease={(varianteSelezionata) => {
                     const existing = cart.find((c) =>
@@ -346,6 +348,7 @@ export default function OrdinaPage() {
                   key={`contorni-${i}`}
                   item={item}
                   getQuantityInCart={getQuantityInCart}
+                  onOpenVarianti={() => setVariantSelectorItem(item)}
                   onAdd={(variante) => addToCart(item, variante)}
                   onIncrease={(varianteSelezionata) => {
                     const existing = cart.find((c) =>
@@ -381,6 +384,7 @@ export default function OrdinaPage() {
                   key={`crudi-${i}`}
                   item={item}
                   getQuantityInCart={getQuantityInCart}
+                  onOpenVarianti={() => setVariantSelectorItem(item)}
                   onAdd={(variante) => addToCart(item, variante)}
                   onIncrease={(varianteSelezionata) => {
                     const existing = cart.find((c) =>
@@ -448,6 +452,17 @@ export default function OrdinaPage() {
         onOrderComplete={handleOrderComplete}
         minimumItems={MINIMUM_ITEMS}
       />
+
+      {/* Variant Selector Modal (per scegliere taglia prodotti BE) */}
+      <VariantSelectorModal
+        item={variantSelectorItem}
+        onClose={() => setVariantSelectorItem(null)}
+        onSelect={(variante) => {
+          if (variantSelectorItem) addToCart(variantSelectorItem, variante);
+          setVariantSelectorItem(null);
+        }}
+        getQuantityInCart={getQuantityInCart}
+      />
     </div>
   );
 }
@@ -498,6 +513,7 @@ function OrderProductCard({
   onAdd,
   onIncrease,
   onDecrease,
+  onOpenVarianti,
   priority = false,
 }: {
   item: MenuItem;
@@ -505,14 +521,19 @@ function OrderProductCard({
   onAdd: (variante?: MenuVariante) => void;
   onIncrease: (variante?: string) => void;
   onDecrease: (variante?: string) => void;
+  onOpenVarianti: () => void;
   priority?: boolean;
 }) {
   const hasVarianti = !!(item.varianti && item.varianti.length > 0);
-  const [selectedIdx, setSelectedIdx] = useState(0);
-  const currentVariante = hasVarianti ? item.varianti![selectedIdx] : undefined;
-  const displayPeso = currentVariante ? currentVariante.peso : item.peso;
-  const displayPrezzo = currentVariante ? currentVariante.prezzo : item.prezzo;
-  const quantity = getQuantityInCart(item.nome, currentVariante?.peso);
+  // Per prodotti con varianti, mostra "da €X" e il peso minimo
+  const minPrezzo = hasVarianti ? item.varianti![0].prezzo : item.prezzo;
+  const displayPeso = hasVarianti
+    ? `${item.varianti![0].peso} – ${item.varianti![item.varianti!.length - 1].peso}`
+    : item.peso;
+  // Quantity totale per il prodotto (somma di tutte le varianti)
+  const totalQuantity = hasVarianti
+    ? item.varianti!.reduce((acc, v) => acc + getQuantityInCart(item.nome, v.peso), 0)
+    : getQuantityInCart(item.nome);
 
   return (
     <div className="group bg-white rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 flex flex-col">
@@ -551,37 +572,39 @@ function OrderProductCard({
           {item.nome}
         </h3>
 
-        {/* Porzione - con dropdown se ci sono varianti */}
-        {hasVarianti ? (
-          <div className="bg-primary-50 border border-primary-200 rounded-lg px-2.5 py-1.5 mb-3 flex items-center gap-2 self-start">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-primary-700">Porzione</span>
-            <select
-              value={selectedIdx}
-              onChange={(e) => setSelectedIdx(Number(e.target.value))}
-              className="bg-white border border-primary-300 rounded-md px-2 py-0.5 text-sm font-bold text-ink-950 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400"
-            >
-              {item.varianti!.map((v, i) => (
-                <option key={i} value={i}>{v.peso}</option>
-              ))}
-            </select>
-          </div>
-        ) : (
-          <div className="bg-primary-50 border border-primary-200 rounded-lg px-2.5 py-1.5 mb-3 inline-flex items-center gap-1.5 self-start flex-wrap">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-primary-700">Porzione</span>
-            <span className="font-display font-bold text-sm text-ink-950">{item.peso}</span>
-            {item.formato && (
-              <span className="text-xs text-ink-600">· {item.formato}</span>
-            )}
-          </div>
-        )}
+        {/* Porzione - badge informativo */}
+        <div className="bg-primary-50 border border-primary-200 rounded-lg px-2.5 py-1.5 mb-3 inline-flex items-center gap-1.5 self-start flex-wrap">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-primary-700">
+            {hasVarianti ? 'Taglie' : 'Porzione'}
+          </span>
+          <span className="font-display font-bold text-sm text-ink-950">
+            {hasVarianti
+              ? item.varianti!.map((v) => v.peso).join(' · ')
+              : item.peso}
+          </span>
+          {!hasVarianti && item.formato && (
+            <span className="text-xs text-ink-600">· {item.formato}</span>
+          )}
+        </div>
 
         <p className="text-sm text-ink-600 mb-4 line-clamp-3 flex-1">{item.descrizione}</p>
 
         <div className="flex items-center justify-between pt-3 border-t border-ink-100">
-          <div className="font-display font-bold text-xl">€{displayPrezzo.toFixed(2)}</div>
-          {quantity === 0 ? (
+          <div className="font-display font-bold text-xl">
+            {hasVarianti ? `da €${minPrezzo.toFixed(2)}` : `€${minPrezzo.toFixed(2)}`}
+          </div>
+          {hasVarianti ? (
+            // Con varianti: bottone apre modal taglie. Se gia' nel carrello mostra anche badge quantità
             <button
-              onClick={() => onAdd(currentVariante)}
+              onClick={onOpenVarianti}
+              className="bg-ink-950 hover:bg-primary-500 text-white font-semibold px-4 py-2 rounded-full text-sm transition-colors flex items-center gap-1 relative"
+            >
+              <Plus className="w-4 h-4" />
+              {totalQuantity > 0 ? `Aggiungi · ${totalQuantity}` : 'Scegli taglia'}
+            </button>
+          ) : totalQuantity === 0 ? (
+            <button
+              onClick={() => onAdd(undefined)}
               className="bg-ink-950 hover:bg-primary-500 text-white font-semibold px-4 py-2 rounded-full text-sm transition-colors flex items-center gap-1"
             >
               <Plus className="w-4 h-4" />
@@ -590,15 +613,15 @@ function OrderProductCard({
           ) : (
             <div className="flex items-center gap-2">
               <button
-                onClick={() => onDecrease(currentVariante?.peso)}
+                onClick={() => onDecrease(undefined)}
                 className="w-8 h-8 bg-ink-100 hover:bg-ink-200 text-ink-950 rounded-full flex items-center justify-center transition-colors"
                 aria-label="Riduci"
               >
                 <Minus className="w-4 h-4" />
               </button>
-              <span className="font-bold text-base min-w-[20px] text-center">{quantity}</span>
+              <span className="font-bold text-base min-w-[20px] text-center">{totalQuantity}</span>
               <button
-                onClick={() => onIncrease(currentVariante?.peso)}
+                onClick={() => onIncrease(undefined)}
                 className="w-8 h-8 bg-primary-500 hover:bg-primary-600 text-white rounded-full flex items-center justify-center transition-colors"
                 aria-label="Aumenta"
               >
@@ -606,6 +629,97 @@ function OrderProductCard({
               </button>
             </div>
           )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function VariantSelectorModal({
+  item,
+  onClose,
+  onSelect,
+  getQuantityInCart,
+}: {
+  item: MenuItem | null;
+  onClose: () => void;
+  onSelect: (variante: MenuVariante) => void;
+  getQuantityInCart: (productName: string, variante?: string) => number;
+}) {
+  if (!item || !item.varianti) return null;
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4">
+      {/* Overlay */}
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      {/* Modal */}
+      <div className="relative bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md max-h-[90vh] overflow-hidden shadow-2xl animate-slide-up">
+        {/* Header */}
+        <div className="relative">
+          <div className="relative h-40 sm:h-48 overflow-hidden bg-ink-100">
+            <Image
+              src={item.immagine}
+              alt={item.nome}
+              fill
+              sizes="500px"
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-ink-950/80 to-transparent" />
+          </div>
+          <button
+            onClick={onClose}
+            className="absolute top-3 right-3 w-9 h-9 bg-white/90 hover:bg-white text-ink-950 rounded-full flex items-center justify-center shadow-md"
+            aria-label="Chiudi"
+          >
+            <X className="w-5 h-5" />
+          </button>
+          <div className="absolute bottom-3 left-4 right-4">
+            <h3 className="font-display font-bold text-xl text-white">{item.nome}</h3>
+          </div>
+        </div>
+
+        {/* Lista taglie */}
+        <div className="p-5 sm:p-6">
+          <p className="text-sm font-semibold uppercase tracking-wider text-primary-700 mb-3">
+            Scegli la taglia
+          </p>
+          <div className="space-y-2.5">
+            {item.varianti.map((v, i) => {
+              const qty = getQuantityInCart(item.nome, v.peso);
+              return (
+                <button
+                  key={i}
+                  onClick={() => onSelect(v)}
+                  className="w-full bg-white hover:bg-primary-50 border-2 border-ink-200 hover:border-primary-500 rounded-2xl p-4 flex items-center justify-between transition-all group"
+                >
+                  <div className="text-left">
+                    <div className="font-display font-bold text-lg text-ink-950">{v.peso}</div>
+                    <div className="text-xs text-ink-500">Peso indicativo</div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {qty > 0 && (
+                      <span className="bg-primary-100 text-primary-700 text-xs font-bold px-2 py-1 rounded-full">
+                        ×{qty} in carrello
+                      </span>
+                    )}
+                    <div className="font-display font-bold text-xl text-primary-600 group-hover:text-primary-700">
+                      €{v.prezzo.toFixed(2)}
+                    </div>
+                    <div className="w-9 h-9 bg-primary-500 group-hover:bg-primary-600 text-white rounded-full flex items-center justify-center">
+                      <Plus className="w-5 h-5" />
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          <p className="text-xs text-ink-500 mt-4 text-center">
+            Il peso può variare ±15%. Paghi il prezzo indicato.
+          </p>
         </div>
       </div>
     </div>
