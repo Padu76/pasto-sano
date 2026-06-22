@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { 
-  getOrders, 
-  listenToOrders, 
-  getDashboardStats, 
+import {
+  getOrders,
+  listenToOrders,
+  getDashboardStats,
   getTopProducts,
   getUniqueCustomers,
+  deleteOrder,
   type Order,
   type ProductSales,
   type Customer
@@ -509,6 +510,22 @@ export default function AdminDashboard() {
     setSelectedOrders([]);
   };
 
+  const handleDeleteOrder = async (orderId: string) => {
+    const order = orders.find((o) => o.id === orderId);
+    const confirmMsg = `Eliminare l'ordine di ${order?.customerName || 'questo cliente'}?\n\nQuesta operazione è irreversibile.`;
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      await deleteOrder(orderId);
+      setOrders((prev) => prev.filter((o) => o.id !== orderId));
+      setSelectedOrders((prev) => prev.filter((id) => id !== orderId));
+      console.log('Ordine eliminato:', orderId);
+    } catch (error: any) {
+      console.error('Errore eliminazione ordine:', error);
+      alert(`Errore eliminazione ordine: ${error.message}`);
+    }
+  };
+
   const exportToCSV = () => {
     const ordersToExport = selectedOrders.length > 0 
       ? orders.filter(order => selectedOrders.includes(order.id!))
@@ -986,6 +1003,7 @@ export default function AdminDashboard() {
             onExportCSV={exportToCSV}
             onGenerateProduction={generateProductionDoc}
             onWhatsAppClick={openWhatsApp}
+            onDeleteOrder={handleDeleteOrder}
             formatDate={formatDate}
             getPaymentMethodLabel={getPaymentMethodLabel}
             chartData={getChartData()}
