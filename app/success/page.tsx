@@ -283,13 +283,13 @@ www.pastosano.it
         <div className="mt-8 text-center text-gray-600">
           <p className="mb-2">Hai domande sul tuo ordine?</p>
           <div className="flex justify-center gap-6 flex-wrap">
-            <a href="tel:+393331234567" className="flex items-center gap-2 hover:text-green-600 transition">
+            <a href="tel:+393478881515" className="flex items-center gap-2 hover:text-green-600 transition">
               <Phone className="w-4 h-4" />
-              +39 333 123 4567
+              +39 347 888 1515
             </a>
-            <a href="mailto:ordini@pastosano.it" className="flex items-center gap-2 hover:text-green-600 transition">
+            <a href="mailto:info@pastosano.it" className="flex items-center gap-2 hover:text-green-600 transition">
               <Mail className="w-4 h-4" />
-              ordini@pastosano.it
+              info@pastosano.it
             </a>
           </div>
         </div>

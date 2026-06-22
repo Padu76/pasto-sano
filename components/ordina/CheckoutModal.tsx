@@ -42,6 +42,7 @@ const STORE_NAME = 'Tribù Studio';
 interface CartItem extends MenuItem {
   id: string;
   quantity: number;
+  varianteScelta?: string;
   comboItems?: {
     primo?: string;
     secondo?: string;
@@ -486,7 +487,23 @@ export default function CheckoutModal({
       }
 
       const { sessionId } = await response.json();
-      
+
+      // Salva i dettagli ordine in sessionStorage per la pagina /success
+      const orderForSuccess = {
+        customerName,
+        customerPhone,
+        customerEmail,
+        pickupDate,
+        items: items.map(item => ({
+          name: item.varianteScelta ? `${item.nome} (${item.varianteScelta})` : item.nome,
+          price: item.prezzo,
+          quantity: item.quantity,
+        })),
+        totalAmount: getTotalPrice(),
+        notes,
+      };
+      sessionStorage.setItem('lastOrder', JSON.stringify(orderForSuccess));
+
       if (appliedDiscount && appliedDiscount.singleUse) {
         try {
           await fetch('/api/use-discount', {
@@ -547,6 +564,22 @@ export default function CheckoutModal({
         }
       }
       
+      // Salva i dettagli ordine in sessionStorage per la pagina /success
+      const orderForSuccess = {
+        customerName,
+        customerPhone,
+        customerEmail,
+        pickupDate,
+        items: items.map(item => ({
+          name: item.varianteScelta ? `${item.nome} (${item.varianteScelta})` : item.nome,
+          price: item.prezzo,
+          quantity: item.quantity,
+        })),
+        totalAmount: getTotalPrice(),
+        notes,
+      };
+      sessionStorage.setItem('lastOrder', JSON.stringify(orderForSuccess));
+
       onOrderComplete();
       window.location.href = '/success?method=paypal';
     } catch (error: any) {
@@ -612,9 +645,25 @@ export default function CheckoutModal({
         }
       }
       
+      // Salva i dettagli ordine in sessionStorage per la pagina /success
+      const orderForSuccess = {
+        customerName,
+        customerPhone,
+        customerEmail,
+        pickupDate,
+        items: items.map(item => ({
+          name: item.varianteScelta ? `${item.nome} (${item.varianteScelta})` : item.nome,
+          price: item.prezzo,
+          quantity: item.quantity,
+        })),
+        totalAmount: getTotalPrice(),
+        notes,
+      };
+      sessionStorage.setItem('lastOrder', JSON.stringify(orderForSuccess));
+
       onOrderComplete();
       window.location.href = '/success?method=cash';
-      
+
     } catch (error: any) {
       setError(error.message || 'Errore durante l\'invio dell\'ordine');
     } finally {
