@@ -2,9 +2,10 @@ import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
 import { 
   getFirestore, 
   collection, 
-  getDocs, 
-  addDoc, 
+  getDocs,
+  addDoc,
   updateDoc,
+  deleteDoc,
   doc,
   query,
   where,
@@ -343,12 +344,21 @@ export async function updateOrderStatus(orderId: string, status: string): Promis
       orderStatus: status,
       updatedAt: Timestamp.now()
     });
-    
+
     console.log(`Stato ordine ${orderId} aggiornato a: ${status}`);
-    
+
   } catch (error: any) {
     console.error('Errore aggiornamento stato ordine:', error.message);
   }
+}
+
+export async function deleteOrder(orderId: string): Promise<void> {
+  if (!db) {
+    throw new Error('Firestore non inizializzato');
+  }
+  const orderRef = doc(db, 'orders', orderId);
+  await deleteDoc(orderRef);
+  console.log(`Ordine ${orderId} eliminato`);
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {
@@ -636,6 +646,7 @@ export default {
   getOrdersByDateRange,
   addOrder,
   updateOrderStatus,
+  deleteOrder,
   getDashboardStats,
   getTopProducts,
   getUniqueCustomers,

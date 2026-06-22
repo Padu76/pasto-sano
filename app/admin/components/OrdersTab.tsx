@@ -1,4 +1,4 @@
-import { Download, FileText, Package, Phone, Calendar, Users, MessageCircle, MapPin, Navigation, Clock, Truck, Banknote, CreditCard, Smartphone } from 'lucide-react';
+import { Download, FileText, Package, Phone, Calendar, Users, MessageCircle, MapPin, Navigation, Clock, Truck, Banknote, CreditCard, Smartphone, Trash2 } from 'lucide-react';
 import { Order, ProductSales } from '@/lib/firebase';
 import { Line } from 'react-chartjs-2';
 
@@ -16,6 +16,7 @@ interface OrdersTabProps {
   onExportCSV: () => void;
   onGenerateProduction: () => void;
   onWhatsAppClick: (phone: string) => void;
+  onDeleteOrder: (orderId: string) => void;
   formatDate: (date: any) => string;
   getPaymentMethodLabel: (method: string) => string;
   chartData: any;
@@ -36,6 +37,7 @@ export default function OrdersTab({
   onExportCSV,
   onGenerateProduction,
   onWhatsAppClick,
+  onDeleteOrder,
   formatDate,
   getPaymentMethodLabel,
   chartData,
@@ -205,9 +207,22 @@ export default function OrdersTab({
                           </span>
                         )}
                       </div>
-                      <span className="text-xl font-bold text-green-600">
-                        €{order.totalAmount.toFixed(2)}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl font-bold text-green-600">
+                          €{order.totalAmount.toFixed(2)}
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (order.id) onDeleteOrder(order.id);
+                          }}
+                          className="p-2 text-red-500 hover:text-white hover:bg-red-500 rounded-lg transition-colors"
+                          title="Elimina ordine"
+                          aria-label="Elimina ordine"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
 
                     {order.deliveryEnabled && (
