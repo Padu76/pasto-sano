@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { CheckCircle, Package, Clock, Phone, Mail, Home, Printer, Download } from 'lucide-react';
 
 export default function SuccessPage() {
@@ -112,6 +113,32 @@ www.pastosano.it
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
+      {/* Header con logo e bottone home */}
+      <header className="bg-ink-950 text-white sticky top-0 z-40 shadow-md">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-3 group">
+            <Image
+              src="/images/logo.png"
+              alt="Pasto Sano"
+              width={36}
+              height={36}
+              className="rounded-lg"
+            />
+            <span className="font-display font-bold text-lg tracking-tightest">
+              PASTO<span className="text-primary-500">.</span>SANO
+            </span>
+          </Link>
+          <Link
+            href="/"
+            className="flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold px-4 py-2 rounded-full text-sm transition-colors"
+          >
+            <Home className="w-4 h-4" />
+            <span className="hidden sm:inline">Torna alla Home</span>
+            <span className="sm:hidden">Home</span>
+          </Link>
+        </div>
+      </header>
+
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-green-600 to-green-500 text-white py-20">
         <div className="max-w-4xl mx-auto px-4 text-center">
