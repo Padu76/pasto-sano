@@ -42,6 +42,10 @@ export const SUPPLIER_PREMIUM_COSTS: Record<string, number> = {
 // Costi al kg fornitore 2 (nuovo) - per calcolo dinamico costi varianti
 // Per i prodotti con varianti, costo confezione = pesoGrammi × COSTI_KG / 1000
 export const COSTI_KG_FORNITORE_2: Record<string, number> = {
+  // Polpette (160g a confezione, 4 pezzi da 40g)
+  'polpette di manzo miste': 18.50,
+  'polpette di pollo': 18.50,
+  // Carni
   'roastbeef cotto': 27.00,
   'tagliata cotta': 29.25,
   'carpaccio': 22.95,
