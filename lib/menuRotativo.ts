@@ -123,7 +123,30 @@ const _ALL_PRONTI: MenuItem[] = [
     peso: '300g',
     fornitore: 'CA',
   },
-  // ===== FORNITORE BE (Macelleria Bortolazzi Enrico) - con varianti taglia =====
+  // ===== FORNITORE BE (Macelleria Bortolazzi Enrico) =====
+  // Polpette (confezione singola 4 pezzi - 160g)
+  {
+    nome: 'Polpette di manzo miste',
+    fornitore: 'BE',
+    prezzo: 4.0,
+    categoria: 'pronto',
+    disponibile: 'sempre',
+    immagine: '/images/prodotti/polpette-manzo-miste.jpg',
+    descrizione: 'Manzo, 20% carni miste, pane, uova, patate, sale, pepe, noce moscata e cannella E 300. Pronte da scaldare.',
+    peso: '160g',
+    formato: '4 pezzi da 40g',
+  },
+  {
+    nome: 'Polpette di pollo',
+    fornitore: 'BE',
+    prezzo: 4.0,
+    categoria: 'pronto',
+    disponibile: 'sempre',
+    immagine: '/images/prodotti/polpette-pollo.jpg',
+    descrizione: 'Carne di pollo, pane, uova, erba madre E 300, fibra e pisello bambù, olio vegetale di cocco. Pronte da scaldare.',
+    peso: '160g',
+    formato: '4 pezzi da 40g',
+  },
   // Carni premium (150g / 250g / 500g)
   {
     nome: 'Roastbeef cotto',
