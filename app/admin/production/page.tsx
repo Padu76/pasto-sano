@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getOrders, type Order } from '@/lib/firebase';
+import { getOrders, deleteOrder, type Order } from '@/lib/firebase';
 import { getPurchaseCost } from '@/lib/productCosts';
-import { FileText, Download, Calculator, Package, } from 'lucide-react';
+import { FileText, Download, Calculator, Package, Trash2 } from 'lucide-react';
 
 export default function ProductionPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -161,6 +161,22 @@ export default function ProductionPage() {
     });
 
     setProductionSummary(summary);
+  };
+
+  const handleDeleteOrder = async (orderId: string, customerName: string) => {
+    const confirmMsg = `Eliminare l'ordine di ${customerName || 'questo cliente'}?\n\nQuesta operazione è irreversibile.`;
+    if (!window.confirm(confirmMsg)) return;
+    try {
+      await deleteOrder(orderId);
+      const updated = orders.filter((o) => o.id !== orderId);
+      setOrders(updated);
+      setSelectedOrders((prev) => prev.filter((id) => id !== orderId));
+      // Ricalcola riepilogo escludendo l'ordine eliminato
+      calculateSummary(updated.filter((o) => selectedOrders.length === 0 || selectedOrders.includes(o.id!)));
+    } catch (error: any) {
+      console.error('Errore eliminazione ordine:', error);
+      alert(`Errore eliminazione ordine: ${error.message}`);
+    }
   };
 
   const toggleOrderSelection = (orderId: string) => {
@@ -426,13 +442,26 @@ export default function ProductionPage() {
                       ).join(', ')}
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="font-semibold text-green-600">
-                      €{order.totalAmount.toFixed(2)}
+                  <div className="flex items-start gap-2">
+                    <div className="text-right">
+                      <div className="font-semibold text-green-600">
+                        €{order.totalAmount.toFixed(2)}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {order.paymentStatus === 'paid' ? 'Pagato' : 'Da pagare'}
+                      </div>
                     </div>
-                    <div className="text-xs text-gray-500">
-                      {order.paymentStatus === 'paid' ? 'Pagato' : 'Da pagare'}
-                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (order.id) handleDeleteOrder(order.id, order.customerName);
+                      }}
+                      className="p-2 text-red-500 hover:text-white hover:bg-red-500 rounded-lg transition-colors"
+                      title="Elimina ordine"
+                      aria-label="Elimina ordine"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               </div>
