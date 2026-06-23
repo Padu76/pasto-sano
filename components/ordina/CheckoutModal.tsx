@@ -406,7 +406,9 @@ export default function CheckoutModal({
       invoiceProvince: province.toUpperCase(),
       requiresInvoice: 'true',
       orderItems: JSON.stringify(items.map(item => ({
-        name: item.nome,
+        name: item.varianteScelta
+          ? `${item.nome} ${item.varianteScelta}`
+          : `${item.nome} ${item.peso}`,
         description: item.descrizione || '',
         price: item.prezzo,
         quantity: item.quantity,
@@ -446,7 +448,9 @@ export default function CheckoutModal({
     try {
       const stripeData = {
         items: items.map(item => ({
-          name: item.nome,
+          name: item.varianteScelta
+            ? `${item.nome} ${item.varianteScelta}`
+            : `${item.nome} ${item.peso}`,
           description: item.descrizione || '',
           image: item.immagine || '',
           price: item.prezzo,
@@ -608,7 +612,9 @@ export default function CheckoutModal({
           customerAddress: 'Ritiro presso Pasto Sano',
           pickupDate,
           items: items.map(item => ({
-            name: item.nome,
+            name: item.varianteScelta
+              ? `${item.nome} ${item.varianteScelta}`
+              : `${item.nome} ${item.peso}`,
             price: item.prezzo,
             quantity: item.quantity,
             comboItems: item.comboItems
