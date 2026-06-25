@@ -94,7 +94,8 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body className="antialiased font-sans">{children}</body>
+      <body className="antialiased font-sans">{children}        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: "{\"@context\":\"https://schema.org\",\"@graph\":[{\"@type\":\"Organization\",\"@id\":\"https://www.pastosano.it#organization\",\"name\":\"Pasto Sano\",\"url\":\"https://www.pastosano.it\",\"logo\":\"https://www.pastosano.it/icon.png\"},{\"@type\":\"WebSite\",\"@id\":\"https://www.pastosano.it#website\",\"name\":\"Pasto Sano\",\"url\":\"https://www.pastosano.it\",\"publisher\":{\"@id\":\"https://www.pastosano.it#organization\"}},{\"@type\":\"LocalBusiness\",\"@id\":\"https://www.pastosano.it#localbusiness\",\"name\":\"Pasto Sano\",\"url\":\"https://www.pastosano.it\"}]}" }} />
+      </body>
     </html>
   );
 }
